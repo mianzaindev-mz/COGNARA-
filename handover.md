@@ -1,8 +1,8 @@
 # COGNARA™ — Project Handover
 
-**Generated:** 2026-05-14  
-**Session scope:** Day 1 foundation — repository bootstrap and baseline verification  
-**Repository path:** `C:\GitHub\COGNARA` (Git remote folder name may differ; npm package name is `cognara` lowercase)
+**Generated:** 2026-05-14 (session 2)  
+**Repository path:** `C:\GitHub\COGNARA`  
+**npm package name:** `cognara` (repository folder name remains `COGNARA`)
 
 ---
 
@@ -10,71 +10,79 @@
 
 | Field | Value |
 |--------|--------|
-| **Product** | COGNARA™ — AI-powered EdTech SaaS (SDG 4, UMT PP Assignment #3 + #4) |
-| **Objective** | Production-grade Next.js + Supabase platform with three portals (student / coach / admin), multi-skill AI agent, payments, compliance, and Vercel deployment |
-| **Current architecture** | Single Next.js 15 App Router app at repo root (`src/app`), Tailwind CSS v4 (via default `create-next-app@15` template), TypeScript strict mode, ESLint |
-| **Technologies in use (installed)** | `next@15.5.18`, `react@19.1.0`, `react-dom@19.1.0`, `typescript`, `tailwindcss@4`, `@tailwindcss/postcss`, `eslint` + `eslint-config-next` |
+| **Product** | COGNARA™ — AI-powered EdTech SaaS (UMT PP #3 + #4, SDG 4) |
+| **Objective** | Three portals (student / coach / admin), Supabase-backed auth + RLS, AI agent system, Stripe, deployment on Vercel |
+| **Architecture** | Next.js 15 App Router (`src/app`), Tailwind CSS v4, TypeScript strict, Edge `middleware` + Supabase cookie session refresh |
+| **Stack (installed)** | `next@15.5.18`, `react@19.1.0`, `@supabase/supabase-js@^2.46`, `@supabase/ssr@^0.5.2`, `zod@^3.23` |
 
-**Authoritative specification:** Master build document v2.0 provided by the product owner (sections 1–27). Implementation must stay aligned with that document unless an explicit written deviation is approved.
+**Specification:** Master build document v2.0 (user-provided). Deviations are explicit below.
 
 ---
 
 ## 2. Current State
 
-### Completed
+### Completed this session
 
-- [x] Next.js 15 application scaffolded and **relocated to repository root** (initial `create-next-app` targeted subdirectory `cognara/` because npm disallows uppercase package names for a project created in folder `COGNARA`).
-- [x] `npm install` executed at repository root after file move.
-- [x] **`npm run build`** — **PASS** (Next.js 15.5.18, Turbopack build).
-- [x] **`npm run type-check`** (`tsc --noEmit`) — **PASS**.
-- [x] **`.env.example`** added with all variable keys from master document Section 19 (empty values; safe to commit).
-- [x] **`.gitignore`** updated so **`.env.example` is not ignored** (previous pattern `.env*` would have excluded it). Added `.supabase/` and `dist/` per master doc Section 7a.
-- [x] **`LICENSE`** — proprietary text (short form).
-- [x] **`TRADEMARK-NOTICE.md`** — COGNARA™ notice per master doc.
-- [x] **`package.json`** — `version` set to `1.0.0`; `type-check` script added.
+- [x] **Supabase SSR wiring:** `src/lib/supabase/client.ts` (browser; returns `null` if env missing), `server.ts` (Server Components / Server Actions), `middleware.ts` (session refresh + route guards).
+- [x] **Root middleware:** `src/middleware.ts` → `updateSession` with matcher excluding static assets.
+- [x] **OAuth + PKCE callback:** `src/app/api/auth/callback/route.ts` (`exchangeCodeForSession`, typed `setAll`).
+- [x] **Auth UI:** `(auth)/login`, `(auth)/register`, `(auth)/forgot-password`, `(auth)/reset-password`; standalone `verify-email` (outside auth card layout).
+- [x] **Zod validation:** `src/lib/validation/schemas/auth.schema.ts` (password rules per master doc).
+- [x] **Route helpers:** `src/lib/auth/paths.ts`, `roles.ts`, `guards.ts` (`requireUser`, `requireProfile`).
+- [x] **Onboarding:** `/onboarding/student`, `/onboarding/coach` + server action `completeOnboarding` (`src/app/onboarding/actions.ts`) updates `profiles.onboarding_complete`.
+- [x] **Portals (stubs):** `/dashboard` (student), `/coach/dashboard`, `/admin/dashboard`; redirects `/coach` → `/coach/dashboard`, `/admin` → `/admin/dashboard`.
+- [x] **Student nav stubs:** `/my-courses`, `/editor`, `/notebook`, `/agent`, `/quizzes`, `/progress`, `/certificates`, `/peer`, `/billing`, `/support`, `/settings`, `/profile` via `PortalStub`.
+- [x] **Banned account page:** `/banned`.
+- [x] **Branding:** Root layout uses **DM Sans** + **JetBrains Mono**; landing page (`/`) reflects COGNARA copy and SDG 4 positioning.
+- [x] **SQL migration (minimal auth):** `supabase/migrations/0001_profiles_auth_trigger.sql` — `profiles` subset, RLS (select/update own), `handle_new_user` trigger on `auth.users`, `is_verified` column.
+- [x] **Build / lint / typecheck:** `npm run build`, `npm run lint`, `npm run type-check` — **pass**.
 
-### Working / verified
+### Working when configured
 
-| Check | Result |
-|--------|--------|
-| Production build | OK |
-| TypeScript | OK |
-| Dev script | `next dev --turbopack` (not re-run in this session after final edits; prior scaffold default) |
+| Capability | Requirement |
+|-------------|-------------|
+| Email/password + OAuth | Supabase project with Email + Google + GitHub providers; redirect URLs include `{origin}/api/auth/callback` |
+| Profile row on signup | SQL migration applied (trigger `on_auth_user_created`) |
+| Role from registration | `raw_user_meta_data.role` set client-side (`student` \| `coach`); `admin` only via Supabase SQL |
 
-### Not started (explicit)
+### Explicit spec deviations (documented)
 
-- Supabase project, SQL migrations (Section 8), RLS policies, Auth providers.
-- `src/middleware.ts`, `src/lib/supabase/*`, auth pages `(auth)/*`.
-- All route groups `(student)`, `(coach)`, `(admin)`, `(public)`, APIs, AI layer, Stripe, etc.
+1. **`/courses` URL collision** in master doc (public browse vs student “My courses”). **Resolution:** public catalog will use `/courses` later; student enrolled list uses **`/my-courses`** (`paths.ts` + UI copy on dashboard).
+2. **Onboarding:** Master doc references `user_settings.onboarding_complete`; implementation uses **`profiles.onboarding_complete`** for the assignment slice to avoid an extra table before Section 8 merge.
+3. **Admin onboarding:** Middleware skips forced onboarding when `role === 'admin'` so manually promoted admins are not stuck.
 
 ---
 
-## 3. Files Modified / Added (this session)
+## 3. Files Modified / Added (high-signal list)
 
-| File | Purpose | Modification |
-|------|---------|--------------|
-| `package.json` | Project metadata & scripts | `version` → `1.0.0`; added `"type-check": "tsc --noEmit"` |
-| `.gitignore` | Prevent secrets / build artifacts from being committed | Replaced blanket `.env*` with explicit env patterns + `!.env.example`; added `.supabase/`, `dist/` |
-| `.env.example` | Document required environment variables | **Created** — keys only, no secrets |
-| `LICENSE` | Legal proprietary notice | **Created** |
-| `TRADEMARK-NOTICE.md` | Trademark assertion | **Created** |
-| `handover.md` | Session continuity for humans / other AI | **Created** — full handover per project rules |
-| Entire Next.js tree (`src/`, `public/`, configs) | Application baseline | **Created** via `create-next-app@15` then moved from `cognara/` subfolder to root; subdirectory removed |
-
-**Removed:** `c:\GitHub\COGNARA\cognara\` (entire folder after move, including its `node_modules`).
-
-**Pre-existing (unchanged by content in this session):** `.git/`, `.sixth/` (local tooling).
+| Area | Files |
+|------|--------|
+| Supabase | `src/lib/supabase/client.ts`, `server.ts`, `middleware.ts` |
+| Middleware entry | `src/middleware.ts` |
+| Auth API | `src/app/api/auth/callback/route.ts` |
+| Auth pages | `src/app/(auth)/layout.tsx`, `login/page.tsx`, `register/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx` |
+| Verify email | `src/app/verify-email/page.tsx`, `layout.tsx` |
+| Onboarding | `src/app/onboarding/actions.ts`, `student/page.tsx`, `coach/page.tsx` |
+| Portals | `src/app/dashboard/page.tsx`, `banned/page.tsx`, `coach/page.tsx`, `coach/dashboard/page.tsx`, `admin/page.tsx`, `admin/dashboard/page.tsx` |
+| Stubs | `src/app/my-courses/page.tsx`, `editor/page.tsx`, `notebook/page.tsx`, `agent/page.tsx`, `quizzes/page.tsx`, `progress/page.tsx`, `certificates/page.tsx`, `peer/page.tsx`, `billing/page.tsx`, `support/page.tsx`, `settings/page.tsx`, `profile/page.tsx` |
+| Components | `src/components/auth/*`, `src/components/shared/portal-stub.tsx` |
+| Auth lib | `src/lib/auth/paths.ts`, `roles.ts`, `guards.ts` |
+| Validation | `src/lib/validation/schemas/auth.schema.ts` |
+| SQL | `supabase/migrations/0001_profiles_auth_trigger.sql` |
+| Branding | `src/app/layout.tsx`, `globals.css`, `page.tsx` |
+| Dependencies | `package.json` / lockfile — added `@supabase/*`, `zod` |
 
 ---
 
 ## 4. Decisions Made
 
-| Decision | Rationale |
-|----------|-----------|
-| Scaffold in subdirectory `cognara` then move to root | `create-next-app` fails when the directory name is `COGNARA` (npm package name cannot contain capital letters). |
-| Keep default React 19 + Tailwind 4 from `create-next-app@15` | Master document Section 18 lists React `^18.3.0` and Tailwind `^3.4.0`. Current toolchain is **newer** and **build-verified**. Downgrading is optional and should be a deliberate choice (risk: dependency drift from doc). |
-| Proprietary `LICENSE` short form | Full legal review not in scope; placeholder is explicit proprietary. Replace with counsel-approved text if required. |
-| `.env.example` committed; `.env.local` blocked | Matches Section 19 and security checklist. |
+| Decision | Reason |
+|----------|--------|
+| Browser Supabase client returns `null` without public env | Prevents runtime throw on marketing pages during local dev without `.env.local`. |
+| Middleware blocks protected routes when Supabase env is missing | Avoids a false sense of security (open `/dashboard` without auth). |
+| Admin routes return **HTTP 404** for non-admins | Matches master doc (“404 for others”), not a soft redirect. |
+| Typed `setAll` cookie arrays | Satisfies `strict` TypeScript under Next 15 + `@supabase/ssr`. |
+| `EXECUTE PROCEDURE` in SQL trigger | PostgreSQL-compatible wording used in many Supabase samples; if your project errors, try `EXECUTE FUNCTION` (Postgres 14+). |
 
 ---
 
@@ -82,46 +90,55 @@
 
 | Issue | Root cause | Fix | Status |
 |-------|------------|-----|--------|
-| PowerShell `&&` parse error | Older PS statement separator | Use `Set-Location`; `;` separators | Resolved |
-| `create-next-app` in `.` failed | npm package name derived from folder `COGNARA` (invalid casing) | Scaffold in `cognara/` then move files | Resolved |
-| `.env*` would ignore `.env.example` | Overly broad gitignore | Narrow env ignore patterns + `!.env.example` | Resolved |
+| `create-next-app` in `COGNARA` root (prior session) | npm disallows uppercase package name | Scaffold in `cognara/` then move | Resolved (prior) |
+| `setAll` implicit `any` | Strict TS + Supabase cookie API | Explicit array element type in `server.ts`, `middleware.ts`, `api/auth/callback/route.ts` | Resolved |
+| ESLint unused `Link` in `(auth)/layout.tsx` | Leftover import | Removed import | Resolved |
 
 ---
 
-## 6. Remaining Tasks (ordered — Day 1 onward)
+## 6. Remaining Tasks (ordered)
 
-**Priority P0 — Day 1 afternoon / next session**
+**P0 — Supabase project (manual)**
 
-1. Install runtime dependencies from master Section 18 (`@supabase/supabase-js`, `@supabase/ssr`, `zod`, etc.) in controlled batches; reconcile versions with current React 19 / Tailwind 4 or pin stack per doc.
-2. Create `src/lib/supabase/client.ts`, `server.ts`, `middleware.ts` (Supabase SSR pattern for Next.js 15).
-3. Add `src/middleware.ts` for route protection per Section 9 (matcher + role logic).
-4. Implement `(auth)/` routes: login, register, verify-email, forgot-password, reset-password.
-5. Create Supabase project (manual): run Section 8 schema in SQL editor; enable RLS migrations as separate files under `supabase/migrations/` per Section 7.
+1. Create Supabase project; add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and (server-only) `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
+2. Authentication → URL configuration: add `http://localhost:3000/**` and production origins; **Redirect URLs** must include `http://localhost:3000/api/auth/callback` (and production equivalent).
+3. Enable **Email**, **Google**, **GitHub** providers per master Section 9.
+4. Run `supabase/migrations/0001_profiles_auth_trigger.sql` in the SQL editor (or merge with full Section 8 schema carefully — avoid duplicate conflicting `profiles` definitions).
 
-**P1 — Day 2+** per master Sections 20–22 (public pages, legal, onboarding, portals).
+**P1 — Day 2 (master plan)**
 
-**Blockers:** Supabase and third-party API keys must be supplied by the owner in `.env.local` (never commit).
+- Public `(public)` routes: `/pricing`, `/about`, `/courses` (browse), `/library`, legal pages, cookie banner.
+- Replace stub onboarding with five-step wizards; align `profiles` / `user_settings` with Section 8 if you adopt the full schema.
+
+**P2 — Day 3+**
+
+- Student sidebar layout group `(student)`, lesson routes, Judge0, notebooks, quizzes data layer.
+
+**Blockers**
+
+- OAuth and email confirmation **will not work** until Supabase redirect URLs and provider keys are configured.
 
 ---
 
 ## 7. Verification Status
 
-| Test | Result |
-|------|--------|
+| Check | Result |
+|--------|--------|
 | `npm run build` | Pass |
 | `npm run type-check` | Pass |
-| `npm run lint` | Pass (eslint) |
-| `npm run dev` + browser smoke | Not executed this session |
+| `npm run lint` | Pass |
+| Live Supabase auth E2E | **Not verified** (requires your project + keys) |
 
 ---
 
 ## 8. Important Context
 
-- **Naming:** Product branding is COGNARA™; **npm `name` is `cognara`** (lowercase).
-- **Do not commit:** `.env.local`, any real API keys, `SUPABASE_SERVICE_ROLE_KEY` to client bundles.
-- **Do not break:** `.gitignore` must keep `.env.example` committable.
-- **Master doc vs installed stack:** Document specifies React 18 + Tailwind 3 + many packages; repo currently matches **create-next-app@15 defaults** (React 19, Tailwind 4). Next implementer must either align package.json to the doc or record an intentional stack amendment in `docs/` and README.
+- **Never commit** `.env.local` or service role keys.
+- **GitHub OAuth** needs a GitHub OAuth App callback URL matching Supabase redirect settings.
+- **Password reset** uses `/reset-password` + hash tokens parsed client-side (`ResetPasswordForm`).
+- **Coach dashboard** selects `is_verified`; column exists after `0001` migration (or `ALTER` in same file).
+- Future sessions: when importing **full Section 8 SQL**, reconcile `profiles` columns and the `handle_new_user` trigger `INSERT` list so new columns with `NOT NULL` do not break signups.
 
 ---
 
-*End of handover. Next session: continue Day 1 — Supabase client + auth UI + middleware.*
+*Next session should start with Supabase dashboard configuration + running the SQL migration, then smoke-test register → verify email → onboarding → dashboard for student and coach.*
