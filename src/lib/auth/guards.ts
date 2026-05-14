@@ -26,8 +26,14 @@ export async function requireProfile(): Promise<{
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role, onboarding_complete")
+    .select("role")
     .eq("id", user.id)
+    .maybeSingle();
+
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("onboarding_complete")
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (error || !profile) {
@@ -41,6 +47,6 @@ export async function requireProfile(): Promise<{
   return {
     user,
     role: isUserRole(profile.role) ? profile.role : "student",
-    onboardingComplete: Boolean(profile.onboarding_complete),
+    onboardingComplete: Boolean(settings?.onboarding_complete),
   };
 }

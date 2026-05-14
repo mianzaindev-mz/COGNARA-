@@ -1,0 +1,11 @@
+# COGNARA — Supabase CLI config (optional)
+# Run `supabase link` then `supabase db push` from the repo root to apply supabase/migrations/
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[studio]
+enabled = true

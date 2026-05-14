@@ -22,21 +22,27 @@ async function fetchProfile(
   is_banned: boolean;
   onboarding_complete: boolean | null;
 } | null> {
-  const { data, error } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role, is_banned, onboarding_complete")
+    .select("role, is_banned")
     .eq("id", userId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (profileError || !profile) return null;
 
-  const role = isUserRole(data.role) ? data.role : "student";
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("onboarding_complete")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const role = isUserRole(profile.role) ? profile.role : "student";
   return {
     role,
-    is_banned: Boolean(data.is_banned),
+    is_banned: Boolean(profile.is_banned),
     onboarding_complete:
-      typeof data.onboarding_complete === "boolean"
-        ? data.onboarding_complete
+      typeof settings?.onboarding_complete === "boolean"
+        ? settings.onboarding_complete
         : null,
   };
 }
@@ -139,7 +145,7 @@ export async function updateSession(request: NextRequest) {
     emailConfirmed &&
     profile &&
     profile.role !== "admin" &&
-    profile.onboarding_complete === false
+    profile.onboarding_complete !== true
   ) {
     const target =
       profile.role === "coach"
@@ -153,7 +159,11 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (emailConfirmed && profile?.onboarding_complete && pathname.startsWith("/onboarding")) {
+  if (
+    emailConfirmed &&
+    profile?.onboarding_complete === true &&
+    pathname.startsWith("/onboarding")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";

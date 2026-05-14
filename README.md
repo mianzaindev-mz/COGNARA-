@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# COGNARA™
 
-## Getting Started
+**Where knowledge finds its place.**
 
-First, run the development server:
+AI-native EdTech platform (Next.js 15 + Supabase) for UMT PP Assignments #3 and #4 — three portals (student / coach / admin), SDG 4 alignment, and a tool-using agent architecture (see product master document).
+
+## Run locally (first time)
+
+1. **Create a Supabase project** and apply the SQL in `supabase/migrations/` (or paste `docs/supabase/schema_bundle.sql` once in the SQL Editor).  
+2. **Configure Auth** (email/OAuth) and redirect URLs — see **[docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md)** for exact steps.  
+3. Copy **`.env.example`** → **`.env.local`** and set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.  
+4. Install and start:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open **http://localhost:3000**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Documentation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Doc | Purpose |
+|-----|---------|
+| [docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md) | Supabase setup, migrations order, auth URLs, smoke test, troubleshooting |
+| [handover.md](./handover.md) | Session-to-session engineering continuity |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Development server (Turbopack) |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run type-check` | TypeScript check |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Repository layout (high level)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app/` — App Router (auth, dashboards, stubs)  
+- `src/lib/supabase/` — Browser + server clients, session middleware  
+- `supabase/migrations/` — Postgres schema + RLS (Session 3)  
+- `docs/` — Local setup and bundled SQL  
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Proprietary — see `LICENSE` and `TRADEMARK-NOTICE.md`.

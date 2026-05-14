@@ -14,12 +14,11 @@ export async function completeOnboarding() {
   }
 
   const { error } = await supabase
-    .from("profiles")
+    .from("user_settings")
     .update({
       onboarding_complete: true,
-      updated_at: new Date().toISOString(),
     })
-    .eq("id", user.id);
+    .eq("user_id", user.id);
 
   if (error) {
     throw new Error(error.message);
