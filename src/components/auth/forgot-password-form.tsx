@@ -24,7 +24,9 @@ export function ForgotPasswordForm() {
 
     const supabase = createClient();
     if (!supabase) {
-      setError("Supabase is not configured for this environment.");
+      setError(
+        "Backend not connected. Add Supabase keys to .env.local — see /setup.",
+      );
       return;
     }
 

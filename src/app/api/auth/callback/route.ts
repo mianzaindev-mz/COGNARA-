@@ -2,20 +2,24 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getSupabasePublicAnonKey, getSupabasePublicUrl } from "@/lib/supabase/env";
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const next = url.searchParams.get("next") ?? "/dashboard";
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  const supabaseUrl = getSupabasePublicUrl();
+  const supabaseAnon = getSupabasePublicAnonKey();
+  if (!supabaseUrl || !supabaseAnon) {
     return NextResponse.redirect(new URL("/login?error=config", url.origin));
   }
 
   if (code) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      supabaseUrl,
+      supabaseAnon,
       {
         cookies: {
           getAll() {

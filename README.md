@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:3000**.
+Open **http://localhost:3000**. If OAuth shows “connect Supabase”, open **http://localhost:3000/setup** for a built-in checklist.
 
 ## Documentation
 

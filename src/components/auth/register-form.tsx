@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { registerSchema } from "@/lib/validation/schemas/auth.schema";
@@ -36,7 +37,9 @@ export function RegisterForm() {
 
     const supabase = createClient();
     if (!supabase) {
-      setError("Supabase is not configured for this environment.");
+      setError(
+        "Backend not connected. Add Supabase keys to .env.local and restart the dev server.",
+      );
       return;
     }
 
@@ -79,8 +82,8 @@ export function RegisterForm() {
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-neutral-200 dark:border-neutral-800" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-neutral-500 dark:bg-[#0A0A0A]">
+        <div className="relative flex justify-center text-xs uppercase tracking-wider">
+          <span className="bg-white px-3 text-neutral-500 dark:bg-[#141414] dark:text-neutral-400">
             or create with email
           </span>
         </div>
@@ -171,7 +174,14 @@ export function RegisterForm() {
         </label>
 
         {error ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+            <p>{error}</p>
+            {(error.includes("Backend") || error.includes(".env.local")) ? (
+              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#6366F1] hover:underline">
+                Setup checklist →
+              </Link>
+            ) : null}
+          </div>
         ) : null}
         {info ? (
           <p className="text-sm text-emerald-700 dark:text-emerald-300">{info}</p>

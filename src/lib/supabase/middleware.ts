@@ -6,13 +6,11 @@ import {
   VERIFY_EMAIL_ROUTE,
 } from "@/lib/auth/paths";
 import { isUserRole, type UserRole } from "@/lib/auth/roles";
-
-function isSupabaseConfigured() {
-  return (
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
-}
+import {
+  getSupabasePublicAnonKey,
+  getSupabasePublicUrl,
+  isSupabaseConfigured,
+} from "@/lib/supabase/env";
 
 async function fetchProfile(
   supabase: ReturnType<typeof createServerClient>,
@@ -62,9 +60,12 @@ export async function updateSession(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request });
 
+  const supabaseUrl = getSupabasePublicUrl()!;
+  const supabaseAnon = getSupabasePublicAnonKey()!;
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnon,
     {
       cookies: {
         getAll() {

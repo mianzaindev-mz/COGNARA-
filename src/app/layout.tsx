@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Kodchasan, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const kodchasan = Kodchasan({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
+  variable: "--font-kodchasan",
   weight: ["400", "500", "600", "700"],
 });
 
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${dmSans.variable} ${jetbrainsMono.variable} bg-[#FAFAFA] font-sans text-[#0A0A0A] antialiased dark:bg-[#0A0A0A] dark:text-white`}
+        className={`${kodchasan.variable} ${jetbrainsMono.variable} bg-[#f7f7f5] font-sans text-[#151313] antialiased dark:bg-[#0A0A0A] dark:text-white`}
       >
         {children}
       </body>

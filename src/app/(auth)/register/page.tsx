@@ -9,14 +9,14 @@ export default function RegisterPage() {
   return (
     <>
       <div className="mb-8 text-center">
-        <p className="text-sm font-medium tracking-[0.15em] text-[#6366F1]">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6366F1]">
           COGNARA™
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-[#0A0A0A] dark:text-white">
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#0A0A0A] dark:text-white">
           Create account
         </h1>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-          Start as a student or apply the coach path (verification follows).
+        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+          Start as a student or choose coach — verification unlocks publishing.
         </p>
       </div>
       <RegisterForm />
