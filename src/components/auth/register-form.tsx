@@ -7,6 +7,9 @@ import { registerSchema } from "@/lib/validation/schemas/auth.schema";
 import { createClient } from "@/lib/supabase/client";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
+const inputClass =
+  "h-12 rounded-2xl border border-cn-border bg-cn-canvas px-4 text-cn-ink outline-none focus:ring-2 focus:ring-cn-orange/35";
+
 export function RegisterForm() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -69,9 +72,7 @@ export function RegisterForm() {
       return;
     }
 
-    setInfo(
-      "Check your email to confirm your account before signing in.",
-    );
+    setInfo("Check your email to confirm your account before signing in.");
   }
 
   return (
@@ -80,23 +81,21 @@ export function RegisterForm() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-neutral-200 dark:border-neutral-800" />
+          <span className="w-full border-t border-cn-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase tracking-wider">
-          <span className="bg-white px-3 text-neutral-500 dark:bg-[#141414] dark:text-neutral-400">
-            or create with email
-          </span>
+          <span className="bg-cn-surface px-3 text-cn-ink-subtle">or create with email</span>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div className="flex rounded-lg border border-neutral-200 p-1 dark:border-neutral-800">
+        <div className="flex rounded-2xl border border-cn-border p-1">
           <button
             type="button"
-            className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
+            className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${
               role === "student"
-                ? "bg-[#ff5734] text-white"
-                : "text-neutral-600 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                ? "bg-cn-orange text-white"
+                : "text-cn-ink-muted hover:bg-cn-canvas"
             }`}
             onClick={() => setRole("student")}
           >
@@ -104,10 +103,10 @@ export function RegisterForm() {
           </button>
           <button
             type="button"
-            className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
+            className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${
               role === "coach"
-                ? "bg-[#ff5734] text-white"
-                : "text-neutral-600 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                ? "bg-cn-orange text-white"
+                : "text-cn-ink-muted hover:bg-cn-canvas"
             }`}
             onClick={() => setRole("coach")}
           >
@@ -116,11 +115,9 @@ export function RegisterForm() {
         </div>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">
-            Full name
-          </span>
+          <span className="font-medium text-cn-ink">Full name</span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className={inputClass}
             value={fullName}
             onChange={(ev) => setFullName(ev.target.value)}
             autoComplete="name"
@@ -129,11 +126,9 @@ export function RegisterForm() {
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">
-            Email
-          </span>
+          <span className="font-medium text-cn-ink">Email</span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className={inputClass}
             type="email"
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
@@ -143,28 +138,24 @@ export function RegisterForm() {
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">
-            Password
-          </span>
+          <span className="font-medium text-cn-ink">Password</span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className={inputClass}
             type="password"
             value={password}
             onChange={(ev) => setPassword(ev.target.value)}
             autoComplete="new-password"
             required
           />
-          <span className="text-xs text-neutral-500">
+          <span className="text-xs text-cn-ink-muted">
             Min 8 characters, uppercase, number, and special character.
           </span>
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">
-            Confirm password
-          </span>
+          <span className="font-medium text-cn-ink">Confirm password</span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className={inputClass}
             type="password"
             value={confirmPassword}
             onChange={(ev) => setConfirmPassword(ev.target.value)}
@@ -176,29 +167,27 @@ export function RegisterForm() {
         {error ? (
           <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
             <p>{error}</p>
-            {(error.includes("Backend") || error.includes(".env.local")) ? (
-              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#ff5734] hover:underline">
+            {error.includes("Backend") || error.includes(".env.local") ? (
+              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-cn-orange hover:underline">
                 Setup checklist →
               </Link>
             ) : null}
           </div>
         ) : null}
-        {info ? (
-          <p className="text-sm text-emerald-700 dark:text-emerald-300">{info}</p>
-        ) : null}
+        {info ? <p className="text-sm text-emerald-700 dark:text-emerald-300">{info}</p> : null}
 
         <button
           type="submit"
           disabled={loading}
-          className="h-11 rounded-lg bg-[#ff5734] text-sm font-semibold text-white transition hover:bg-[#e64a2e] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-12 w-full rounded-2xl bg-cn-orange text-sm font-bold text-white shadow-md transition hover:bg-cn-orange-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
 
-      <p className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-        By creating an account you agree that paid transactions must remain on
-        COGNARA and that off-platform solicitation violates the Terms of Service.
+      <p className="text-center text-xs text-cn-ink-muted">
+        By creating an account you agree that paid transactions must remain on COGNARA and that
+        off-platform solicitation violates the Terms of Service.
       </p>
     </div>
   );

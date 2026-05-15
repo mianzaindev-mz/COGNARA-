@@ -1,12 +1,23 @@
 # COGNARA™ — Project Handover
 
-**Session:** 6 (enrollments + lesson viewer + token polish)  
+**Session:** 7 (white page fix + combined Learnify/EDUBRINK marketing)  
 **Date:** 2026-05-15  
 **Repository:** `C:\GitHub\COGNARA`
 
 ---
 
-## 1. What this session did (Session 6 — continue)
+## 1. What this session did (Session 7)
+
+### White page fix
+- **Cause:** Stale dev server on **port 3000** while a fresh build was on **3002**; missing Tailwind tokens (`text-cn-ink-subtle`) could also make text invisible in edge cases.
+- **Fix:** Solid hex tokens in `globals.css`, `app/error.tsx`, restart dev on 3000.
+- **Use:** http://localhost:3000 (if port busy, check terminal for the actual port).
+
+### Combined Learnify + EDUBRINK home
+- Hero gradient banner, path chips, stats grid, course preview cards, how-it-works, dark CTA.
+- Header search pill (Learnify) + cream marketing sections (EDUBRINK).
+
+## 1b. Session 6 recap
 
 ### Functional
 

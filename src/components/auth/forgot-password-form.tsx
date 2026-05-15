@@ -5,6 +5,9 @@ import { useState } from "react";
 import { forgotPasswordSchema } from "@/lib/validation/schemas/auth.schema";
 import { createClient } from "@/lib/supabase/client";
 
+const inputClass =
+  "h-12 rounded-2xl border border-cn-border bg-cn-canvas px-4 text-cn-ink outline-none focus:ring-2 focus:ring-cn-orange/35";
+
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,20 +27,15 @@ export function ForgotPasswordForm() {
 
     const supabase = createClient();
     if (!supabase) {
-      setError(
-        "Backend not connected. Add Supabase keys to .env.local — see /setup.",
-      );
+      setError("Backend not connected. Add Supabase keys to .env.local — see /setup.");
       return;
     }
 
     setLoading(true);
     const origin = window.location.origin;
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      parsed.data.email,
-      {
-        redirectTo: `${origin}/reset-password`,
-      },
-    );
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${origin}/reset-password`,
+    });
     setLoading(false);
 
     if (resetError) {
@@ -51,11 +49,9 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium text-neutral-800 dark:text-neutral-100">
-          Email
-        </span>
+        <span className="font-medium text-cn-ink">Email</span>
         <input
-          className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+          className={inputClass}
           type="email"
           value={email}
           onChange={(ev) => setEmail(ev.target.value)}
@@ -64,23 +60,19 @@ export function ForgotPasswordForm() {
         />
       </label>
 
-      {error ? (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-      ) : null}
-      {info ? (
-        <p className="text-sm text-emerald-700 dark:text-emerald-300">{info}</p>
-      ) : null}
+      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {info ? <p className="text-sm text-emerald-700 dark:text-emerald-300">{info}</p> : null}
 
       <button
         type="submit"
         disabled={loading}
-        className="h-11 rounded-lg bg-[#ff5734] text-sm font-semibold text-white transition hover:bg-[#e64a2e] disabled:cursor-not-allowed disabled:opacity-60"
+        className="h-12 w-full rounded-2xl bg-cn-orange text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Sending…" : "Send reset link"}
       </button>
 
-      <p className="text-center text-sm text-neutral-600 dark:text-neutral-300">
-        <Link className="font-medium text-[#ff5734] hover:underline" href="/login">
+      <p className="text-center text-sm text-cn-ink-muted">
+        <Link className="font-semibold text-cn-orange hover:underline" href="/login">
           Back to sign in
         </Link>
       </p>

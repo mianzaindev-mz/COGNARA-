@@ -1,23 +1,26 @@
 @import "tailwindcss";
 
-/* ─── Learnify-inspired tokens (light default) ─── */
+/* Learnify (warm dashboard) + EDUBRINK (cream marketing) combined tokens */
 :root {
   --cn-canvas: #f7f7f5;
+  --cn-cream: #fdf8f1;
   --cn-surface: #ffffff;
   --cn-surface-elevated: #ffffff;
   --cn-ink: #151313;
-  --cn-ink-muted: rgba(21, 19, 19, 0.55);
-  --cn-ink-subtle: rgba(21, 19, 19, 0.38);
-  --cn-border: rgba(21, 19, 19, 0.08);
-  --cn-border-strong: rgba(21, 19, 19, 0.14);
+  --cn-ink-muted: #5c5656;
+  --cn-ink-subtle: #8a8484;
+  --cn-border: #e8e6e3;
+  --cn-border-strong: #d4d0cb;
   --cn-orange: #ff5734;
   --cn-orange-hover: #e64a2e;
+  --cn-pink: #ff4d6d;
   --cn-yellow: #fccc42;
   --cn-lavender: #be94f5;
+  --cn-mint: #b8f1d2;
+  --cn-sky: #cfe2ff;
   --cn-lavender-soft: #ebe4ff;
   --cn-sidebar: #151313;
-  --cn-sidebar-fg: rgba(255, 255, 255, 0.55);
-  --cn-callout-bg: linear-gradient(135deg, #fff9f6 0%, #fff4e8 50%, #f5edff 100%);
+  --cn-callout-bg: linear-gradient(135deg, #fff9f6 0%, #fff4e8 45%, #f5edff 100%);
   --cn-callout-border: rgba(255, 87, 52, 0.22);
   --cn-shadow-card: 0 12px 40px -24px rgba(21, 19, 19, 0.35);
   --cn-radius-card: 1.75rem;
@@ -27,20 +30,23 @@
 
 .dark {
   --cn-canvas: #0f0e0e;
+  --cn-cream: #141210;
   --cn-surface: #1a1818;
   --cn-surface-elevated: #232020;
   --cn-ink: #f7f7f5;
-  --cn-ink-muted: rgba(247, 247, 245, 0.58);
-  --cn-ink-subtle: rgba(247, 247, 245, 0.38);
-  --cn-border: rgba(255, 255, 255, 0.08);
-  --cn-border-strong: rgba(255, 255, 255, 0.14);
+  --cn-ink-muted: #b8b4b4;
+  --cn-ink-subtle: #8a8585;
+  --cn-border: #2e2a2a;
+  --cn-border-strong: #3d3838;
   --cn-orange: #ff6b4a;
   --cn-orange-hover: #ff5734;
+  --cn-pink: #ff6b8a;
   --cn-yellow: #fccc42;
   --cn-lavender: #c9a8f7;
+  --cn-mint: #3d5a4a;
+  --cn-sky: #2a3544;
   --cn-lavender-soft: #2a2438;
   --cn-sidebar: #0a0909;
-  --cn-sidebar-fg: rgba(255, 255, 255, 0.5);
   --cn-callout-bg: linear-gradient(135deg, #1f1614 0%, #1a1520 50%, #141218 100%);
   --cn-callout-border: rgba(255, 107, 74, 0.35);
   --cn-shadow-card: 0 16px 48px -28px rgba(0, 0, 0, 0.65);
@@ -52,23 +58,32 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-cn-canvas: var(--cn-canvas);
+  --color-cn-cream: var(--cn-cream);
   --color-cn-surface: var(--cn-surface);
-  --color-cn-surface-elevated: var(--cn-surface-elevated);
   --color-cn-ink: var(--cn-ink);
   --color-cn-ink-muted: var(--cn-ink-muted);
+  --color-cn-ink-subtle: var(--cn-ink-subtle);
   --color-cn-border: var(--cn-border);
+  --color-cn-border-strong: var(--cn-border-strong);
   --color-cn-orange: var(--cn-orange);
   --color-cn-orange-hover: var(--cn-orange-hover);
+  --color-cn-pink: var(--cn-pink);
   --color-cn-yellow: var(--cn-yellow);
   --color-cn-lavender: var(--cn-lavender);
+  --color-cn-mint: var(--cn-mint);
+  --color-cn-sky: var(--cn-sky);
   --color-cn-sidebar: var(--cn-sidebar);
   --font-sans: var(--font-kodchasan), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
-  --radius-cn-card: var(--cn-radius-card);
+}
+
+html {
+  min-height: 100%;
 }
 
 body {
-  background: var(--cn-canvas);
+  min-height: 100%;
+  background-color: var(--cn-canvas);
   color: var(--cn-ink);
   font-family: var(--font-sans);
 }
@@ -78,7 +93,6 @@ pre {
   font-family: var(--font-mono);
 }
 
-/* Auth / marketing card */
 .cn-card {
   background: var(--cn-surface);
   border: 1px solid var(--cn-border);
@@ -90,4 +104,13 @@ pre {
   background: var(--cn-callout-bg);
   border: 1px solid var(--cn-callout-border);
   border-radius: 1.25rem;
+}
+
+.cn-hero-gradient {
+  background: linear-gradient(
+    115deg,
+    rgba(21, 19, 19, 0.88) 0%,
+    rgba(21, 19, 19, 0.55) 45%,
+    rgba(255, 87, 52, 0.35) 100%
+  );
 }

@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AgentQuickLaunch } from "@/components/student/agent-quick-launch";
-import { CourseCard } from "@/components/student/course-card";
-import { CourseFilterChips } from "@/components/student/course-filter-chips";
+import { DashboardCoursesGrid } from "@/components/student/dashboard-courses-grid";
 import { DashboardStatCard } from "@/components/student/dashboard-stat-card";
+import { NextLessonsList } from "@/components/student/next-lessons-list";
 import { DatabaseStatusBanner } from "@/components/student/database-status-banner";
 import { checkStudentDbHealth } from "@/lib/student/db-health";
 import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
+import { loadStudentUpcomingLessons } from "@/lib/student/upcoming-lessons";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +17,6 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Student dashboard — COGNARA™",
 };
-
-const filters = ["All courses", "Marketing", "Computer Science", "Psychology"] as const;
 
 const demoCourses = [
   {
@@ -53,12 +52,13 @@ export default async function DashboardPage() {
     return null;
   }
 
-  const [profileRes, stats, health, enrollments, featured] = await Promise.all([
+  const [profileRes, stats, health, enrollments, featured, upcomingLessons] = await Promise.all([
     supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle(),
     loadStudentPortalStats(user.id),
     checkStudentDbHealth(user.id),
     loadStudentEnrollments(user.id),
     loadPublishedCourses(1),
+    loadStudentUpcomingLessons(user.id, 5),
   ]);
 
   const profile = profileRes.data;
@@ -143,24 +143,16 @@ export default async function DashboardPage() {
             View all
           </Link>
         </div>
-        {showDemo ? (
-          <div className="mt-4">
-            <CourseFilterChips filters={filters} />
-          </div>
-        ) : null}
-        <ul className="mt-6 grid gap-5 md:grid-cols-3">
-          {courseCards.map((c) => (
-            <li key={c.href}>
-              <CourseCard
-                title={c.title}
-                category={c.category}
-                progressDone={c.progressDone}
-                totalLessons={c.totalLessons}
-                href={c.href}
-              />
-            </li>
-          ))}
-        </ul>
+        <DashboardCoursesGrid
+          courses={courseCards.map((c) => ({
+            title: c.title,
+            category: c.category,
+            progressDone: c.progressDone,
+            totalLessons: c.totalLessons,
+            href: c.href,
+          }))}
+          showFilters
+        />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -172,31 +164,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="cn-card mt-3 overflow-hidden p-0">
-            {enrollments.length > 0 ? (
-              <ul>
-                {enrollments.slice(0, 3).map((c) => (
-                  <li
-                    key={c.enrollmentId}
-                    className="grid gap-2 border-b border-cn-border px-5 py-4 last:border-0 sm:grid-cols-[1fr_auto]"
-                  >
-                    <div>
-                      <p className="font-semibold text-cn-ink">{c.title}</p>
-                      <p className="text-xs text-cn-ink-subtle">{c.progressPct}% complete</p>
-                    </div>
-                    <Link
-                      href={`/learn/${c.slug}`}
-                      className="text-sm font-semibold text-cn-orange hover:underline sm:text-right"
-                    >
-                      Continue →
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="px-5 py-8 text-center text-sm text-cn-ink-muted">
-                Enroll in a course to see upcoming lessons here.
-              </p>
-            )}
+            <NextLessonsList lessons={upcomingLessons} />
           </div>
         </section>
 

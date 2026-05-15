@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CourseCard } from "@/components/student/course-card";
+import { EnrollCourseButton } from "@/components/student/enroll-course-button";
 import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
 
@@ -26,6 +27,8 @@ export default async function MyCoursesPage() {
     loadPublishedCourses(6),
   ]);
 
+  const enrolledIds = new Set(enrollments.map((e) => e.courseId));
+
   return (
     <div className="flex flex-col gap-10">
       <div>
@@ -33,7 +36,7 @@ export default async function MyCoursesPage() {
         <p className="mt-1 text-sm text-cn-ink-muted">
           {enrollments.length > 0
             ? `${enrollments.length} enrolled — pick up where you left off.`
-            : "You are not enrolled yet. Browse the catalog below or seed demo data in Supabase."}
+            : "You are not enrolled yet. Enroll free from the catalog below or run demo_seed.sql in Supabase."}
         </p>
       </div>
 
@@ -59,7 +62,7 @@ export default async function MyCoursesPage() {
           <p className="font-bold text-cn-ink">No enrollments yet</p>
           <p className="mt-2 text-sm text-cn-ink-muted">
             Run <code className="font-mono text-xs">docs/supabase/demo_seed.sql</code> in Supabase (after schema) to
-            attach sample courses to your user, or enroll from the catalog when checkout ships.
+            attach sample courses to your user, or use Enroll free on any catalog course.
           </p>
           <Link
             href="/courses"
@@ -81,12 +84,16 @@ export default async function MyCoursesPage() {
                 </span>
                 <h3 className="mt-3 font-bold text-cn-ink">{c.title}</h3>
                 <p className="mt-2 line-clamp-2 flex-1 text-sm text-cn-ink-muted">{c.description}</p>
-                <Link
-                  href="/courses"
-                  className="mt-4 text-sm font-semibold text-cn-orange hover:underline"
-                >
-                  View in catalog →
-                </Link>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <EnrollCourseButton
+                    courseId={c.id}
+                    slug={c.slug}
+                    alreadyEnrolled={enrolledIds.has(c.id)}
+                  />
+                  <Link href="/courses" className="text-sm font-semibold text-cn-orange hover:underline">
+                    Catalog →
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

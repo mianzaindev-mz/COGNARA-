@@ -28,6 +28,7 @@ export const AUTHENTICATED_PREFIXES = [
   "/support",
   "/settings",
   "/profile",
+  "/learn",
   "/onboarding",
   "/coach",
   "/admin",

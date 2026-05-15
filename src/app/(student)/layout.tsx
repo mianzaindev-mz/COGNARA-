@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { AgentFloatingButton } from "@/components/student/agent-floating-button";
 import { StudentShell } from "@/components/student/student-shell";
@@ -9,6 +10,10 @@ export default async function StudentPortalLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (!isSupabaseConfigured()) {
+    redirect("/setup");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

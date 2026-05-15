@@ -108,7 +108,7 @@ export function LoginForm() {
           <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
             <p>{error}</p>
             {(error.includes("Backend") || error.includes(".env.local")) ? (
-              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#ff5734] hover:underline">
+              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-cn-orange hover:underline">
                 Setup checklist →
               </Link>
             ) : null}
