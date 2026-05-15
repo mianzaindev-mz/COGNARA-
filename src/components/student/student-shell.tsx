@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const nav = [
   { href: "/dashboard", label: "Home", icon: IconGrid },
@@ -27,12 +28,11 @@ export function StudentShell({ displayName, email, creditBalance, children }: St
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-[#f7f7f5] font-sans text-[#151313]">
-      {/* Sidebar — rich black, icon rail */}
-      <aside className="fixed bottom-0 left-0 top-0 z-30 flex w-[4.5rem] flex-col border-r border-black/10 bg-[#151313] py-6 sm:w-[5.25rem]">
+    <div className="flex min-h-screen bg-cn-canvas font-sans text-cn-ink">
+      <aside className="fixed bottom-0 left-0 top-0 z-30 flex w-[4.5rem] flex-col border-r border-white/10 bg-cn-sidebar py-6 sm:w-[5.25rem]">
         <Link
           href="/"
-          className="mb-6 flex justify-center px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-[#ff5734]"
+          className="mb-6 flex justify-center px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-cn-orange"
           title="COGNARA home"
         >
           CN
@@ -50,7 +50,7 @@ export function StudentShell({ displayName, email, creditBalance, children }: St
                 title={label}
                 className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
                   active
-                    ? "bg-[#fccc42] text-[#151313] shadow-sm"
+                    ? "bg-cn-yellow text-cn-sidebar shadow-sm"
                     : "text-white/55 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -64,7 +64,7 @@ export function StudentShell({ displayName, email, creditBalance, children }: St
             href="/billing"
             title="Billing"
             className={`flex h-11 w-11 items-center justify-center rounded-2xl text-white/55 transition hover:bg-white/10 hover:text-white ${
-              pathname.startsWith("/billing") ? "bg-[#fccc42] text-[#151313]" : ""
+              pathname.startsWith("/billing") ? "bg-cn-yellow text-cn-sidebar" : ""
             }`}
           >
             <IconCard className="h-5 w-5" />
@@ -75,50 +75,51 @@ export function StudentShell({ displayName, email, creditBalance, children }: St
 
       {/* Main column */}
       <div className="flex min-h-screen flex-1 flex-col pl-[4.5rem] sm:pl-[5.25rem]">
-        <header className="sticky top-0 z-20 border-b border-black/[0.06] bg-[#f7f7f5]/90 px-4 py-4 backdrop-blur-md sm:px-8">
+        <header className="sticky top-0 z-20 border-b border-cn-border bg-cn-canvas/90 px-4 py-4 backdrop-blur-md sm:px-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-[#151313]/60">
+              <p className="text-sm text-cn-ink-muted">
                 Welcome to{" "}
-                <span className="font-semibold text-[#ff5734]">COGNARA</span>
+                <span className="font-semibold text-cn-orange">COGNARA</span>
               </p>
-              <p className="mt-0.5 text-xs text-[#151313]/45">{email}</p>
+              <p className="mt-0.5 text-xs text-cn-ink-subtle">{email}</p>
             </div>
             <div className="flex flex-1 flex-wrap items-center justify-end gap-3 sm:max-w-xl sm:flex-1">
-              <div className="relative flex min-w-[200px] flex-1 items-center rounded-full border border-black/10 bg-white pl-4 pr-1 shadow-sm sm:min-w-[280px]">
+              <div className="relative flex min-w-[200px] flex-1 items-center rounded-full border border-cn-border bg-cn-surface pl-4 pr-1 shadow-sm sm:min-w-[280px]">
                 <span className="sr-only">Search</span>
                 <input
                   type="search"
                   placeholder="Search courses, lessons…"
-                  className="h-11 flex-1 bg-transparent text-sm text-[#151313] outline-none placeholder:text-[#151313]/35"
+                  className="h-11 flex-1 bg-transparent text-sm text-cn-ink outline-none placeholder:text-cn-ink-subtle"
                   readOnly
                   aria-readonly
                 />
                 <button
                   type="button"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ff5734] text-white shadow-md transition hover:bg-[#e64a2e]"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cn-orange text-white shadow-md transition hover:bg-cn-orange-hover"
                   aria-label="Search (coming soon)"
                 >
                   <IconSearch className="h-4 w-4" />
                 </button>
               </div>
+              <ThemeToggle />
               <button
                 type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-white text-[#151313]/60 shadow-sm transition hover:text-[#151313]"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cn-border bg-cn-surface text-cn-ink-muted shadow-sm transition hover:text-cn-ink"
                 aria-label="Notifications"
               >
                 <IconBell className="h-5 w-5" />
               </button>
               <Link
                 href="/profile"
-                className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-[#ff5734]/30"
+                className="flex items-center gap-2 rounded-2xl border border-cn-border bg-cn-surface py-1 pl-1 pr-3 shadow-sm transition hover:border-cn-orange/30"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#be94f5]/35 text-sm font-bold text-[#151313]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cn-lavender/35 text-sm font-bold text-cn-ink">
                   {displayName.charAt(0).toUpperCase()}
                 </span>
                 <div className="hidden min-w-0 sm:block">
-                  <p className="truncate text-sm font-semibold text-[#151313]">{displayName}</p>
-                  <p className="truncate text-xs text-[#151313]/45">
+                  <p className="truncate text-sm font-semibold text-cn-ink">{displayName}</p>
+                  <p className="truncate text-xs text-cn-ink-subtle">
                     {creditBalance !== null ? `${creditBalance} AI credits` : "Learner"}
                   </p>
                 </div>

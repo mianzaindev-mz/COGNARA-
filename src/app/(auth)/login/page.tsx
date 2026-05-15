@@ -10,29 +10,18 @@ export default function LoginPage() {
   return (
     <>
       <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6366F1]">
-          COGNARA™
-        </p>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#0A0A0A] dark:text-white">
-          Sign in
-        </h1>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-          Student or coach workspace — same account, role-aware dashboards.
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-cn-orange">COGNARA™</p>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-cn-ink">Welcome back</h1>
+        <p className="mt-2 text-sm text-cn-ink-muted">
+          Sign in to your student or coach workspace.
         </p>
       </div>
-      <Suspense
-        fallback={
-          <p className="text-center text-sm text-neutral-500">Loading…</p>
-        }
-      >
+      <Suspense fallback={<p className="text-center text-sm text-cn-ink-muted">Loading…</p>}>
         <LoginForm />
       </Suspense>
-      <p className="mt-8 text-center text-sm text-neutral-600 dark:text-neutral-300">
+      <p className="mt-8 text-center text-sm text-cn-ink-muted">
         No account?{" "}
-        <Link
-          className="font-medium text-[#6366F1] hover:underline"
-          href="/register"
-        >
+        <Link className="font-semibold text-cn-orange hover:underline" href="/register">
           Create one
         </Link>
       </p>

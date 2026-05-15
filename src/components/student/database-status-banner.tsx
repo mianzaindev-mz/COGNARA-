@@ -24,7 +24,7 @@ export function DatabaseStatusBanner({ health }: DatabaseStatusBannerProps) {
       <p className="mt-1 leading-relaxed text-amber-900/85">{health.message}</p>
       <Link
         href="/setup"
-        className="mt-3 inline-flex rounded-full bg-[#ff5734] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#e64a2e]"
+        className="mt-3 inline-flex rounded-full bg-cn-orange px-4 py-2 text-xs font-bold text-white transition hover:bg-cn-orange-hover"
       >
         Open setup guide
       </Link>

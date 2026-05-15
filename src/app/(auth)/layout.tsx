@@ -1,27 +1,68 @@
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+
 export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f7f7f5]">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-30"
-        aria-hidden
-      >
-        <div className="absolute -left-24 top-0 h-[28rem] w-[28rem] rounded-full bg-[#ff5734]/15 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-[24rem] w-[24rem] rounded-full bg-[#be94f5]/25 blur-3xl" />
-        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fccc42]/20 blur-2xl" />
-      </div>
+    <div className="grid min-h-screen bg-cn-canvas lg:grid-cols-2">
+      {/* Brand panel — Learnify-style dark rail */}
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-cn-sidebar p-10 text-white lg:flex lg:p-14">
+        <div className="pointer-events-none absolute inset-0 opacity-40" aria-hidden>
+          <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-cn-orange/30 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-cn-lavender/25 blur-3xl" />
+        </div>
+        <div className="relative">
+          <Link href="/" className="text-2xl font-bold tracking-tight">
+            <span className="text-cn-orange">COGNARA</span>
+            <span className="text-white/90">™</span>
+          </Link>
+          <p className="mt-8 max-w-sm text-lg font-semibold leading-snug text-white/90">
+            Where knowledge finds its place.
+          </p>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/50">
+            Warm, focused learning — courses, code lab, AI agent, and progress in one student hub.
+          </p>
+        </div>
+        <ul className="relative space-y-3 text-sm text-white/55">
+          <li className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cn-yellow/90 text-cn-sidebar text-xs font-bold">
+              1
+            </span>
+            Enroll in courses with clear progress
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cn-lavender/90 text-cn-sidebar text-xs font-bold">
+              2
+            </span>
+            Learn with a tool-using AI tutor
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cn-orange text-xs font-bold text-white">
+              3
+            </span>
+            Earn certificates & track XP
+          </li>
+        </ul>
+      </aside>
 
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 sm:px-6">
-        <div className="w-full max-w-[420px] rounded-2xl border border-white/60 bg-white/95 p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)] ring-1 ring-neutral-900/[0.04] backdrop-blur-md dark:border-neutral-800 dark:bg-[#141414]/95 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] dark:ring-white/[0.06]">
-          {children}
+      {/* Form column */}
+      <div className="relative flex flex-col px-4 py-8 sm:px-8 lg:px-14 lg:py-12">
+        <div className="mb-6 flex items-center justify-between lg:absolute lg:right-8 lg:top-8 lg:mb-0">
+          <Link href="/" className="text-sm font-bold text-cn-orange lg:hidden">
+            COGNARA™
+          </Link>
+          <ThemeToggle className="ml-auto" />
         </div>
 
-        <p className="mt-8 max-w-sm text-center text-xs leading-relaxed text-neutral-500 dark:text-neutral-500">
-          COGNARA™ — Where knowledge finds its place.
-        </p>
+        <div className="mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-center">
+          <div className="cn-card p-8 sm:p-10">{children}</div>
+          <p className="mt-8 text-center text-xs leading-relaxed text-cn-ink-subtle">
+            COGNARA™ · SDG 4 Quality Education
+          </p>
+        </div>
       </div>
     </div>
   );

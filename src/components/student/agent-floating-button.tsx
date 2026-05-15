@@ -22,7 +22,7 @@ export function AgentFloatingButton() {
   return (
     <Link
       href="/agent"
-      className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ff5734] text-2xl text-white shadow-lg shadow-[#ff5734]/40 transition hover:scale-105 hover:bg-[#e64a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#151313] sm:bottom-8 sm:right-8"
+      className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-cn-orange text-2xl text-white shadow-lg shadow-cn-orange/40 transition hover:scale-105 hover:bg-cn-orange-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cn-ink sm:bottom-8 sm:right-8"
       aria-label="Open COGNARA AI agent"
       title="COGNARA agent"
     >

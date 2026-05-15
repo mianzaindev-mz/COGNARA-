@@ -20,18 +20,18 @@ export function AgentQuickLaunch({ creditLabel }: AgentQuickLaunchProps) {
 
   return (
     <section
-      className="rounded-[1.75rem] border border-[#151313]/10 bg-[#151313] p-6 text-white shadow-[0_20px_50px_-28px_rgba(21,19,19,0.55)]"
+      className="rounded-[1.75rem] border border-cn-border bg-cn-sidebar p-6 text-white shadow-[var(--cn-shadow-card)]"
       aria-labelledby="agent-quick-launch-heading"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#ff5734]">COGNARA agent</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-cn-orange">COGNARA agent</p>
           <h2 id="agent-quick-launch-heading" className="mt-1 text-xl font-bold tracking-tight">
             What would you like to learn today?
           </h2>
           <p className="mt-1 text-sm text-white/55">
             Tool-using tutor — not a generic chatbot. Full history on{" "}
-            <Link href="/agent" className="font-semibold text-[#fccc42] underline-offset-2 hover:underline">
+            <Link href="/agent" className="font-semibold text-cn-yellow underline-offset-2 hover:underline">
               /agent
             </Link>
             .
@@ -39,7 +39,7 @@ export function AgentQuickLaunch({ creditLabel }: AgentQuickLaunchProps) {
         </div>
         <div className="shrink-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center sm:text-right">
           <p className="text-[10px] font-bold uppercase tracking-wide text-white/45">Balance</p>
-          <p className="text-lg font-bold text-[#fccc42]">{creditLabel}</p>
+          <p className="text-lg font-bold text-cn-yellow">{creditLabel}</p>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export function AgentQuickLaunch({ creditLabel }: AgentQuickLaunchProps) {
               {a.emoji}
             </span>
             <span className="mt-2 text-sm font-bold leading-snug">{a.title}</span>
-            <span className="mt-1 text-xs font-semibold text-[#ff5734]">{a.cost}</span>
+            <span className="mt-1 text-xs font-semibold text-cn-orange">{a.cost}</span>
           </Link>
         ))}
       </div>

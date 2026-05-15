@@ -9,21 +9,17 @@ export default function RegisterPage() {
   return (
     <>
       <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6366F1]">
-          COGNARA™
-        </p>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#0A0A0A] dark:text-white">
-          Create account
-        </h1>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-cn-orange">COGNARA™</p>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-cn-ink">Create account</h1>
+        <p className="mt-2 text-sm text-cn-ink-muted">
           Start as a student or choose coach — verification unlocks publishing.
         </p>
       </div>
       <RegisterForm />
-      <p className="mt-8 text-center text-sm text-neutral-600 dark:text-neutral-300">
+      <p className="mt-8 text-center text-sm text-cn-ink-muted">
         Already registered?{" "}
         <Link
-          className="font-medium text-[#6366F1] hover:underline"
+          className="font-semibold text-cn-orange hover:underline"
           href="/login"
         >
           Sign in

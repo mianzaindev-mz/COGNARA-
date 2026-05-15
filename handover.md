@@ -1,129 +1,135 @@
 # COGNARA™ — Project Handover
 
-**Session:** 4 (Learnify-style UI + student portal polish)  
+**Session:** 6 (enrollments + lesson viewer + token polish)  
 **Date:** 2026-05-15  
 **Repository:** `C:\GitHub\COGNARA`
 
 ---
 
-## 1. Project overview
+## 1. What this session did (Session 6 — continue)
 
-COGNARA™ is a Next.js 15 App Router application with Supabase (Postgres + Auth). This session adds a **Learnify-inspired student experience** (warm canvas, rich-black sidebar, orange primary, Kodchasan typography), wires the dashboard to **live Supabase stats** where schema exists, and unifies **auth/landing button styling** with the new palette.
+### Functional
+
+- **`loadStudentEnrollments`** — joins `enrollments` → `courses` for real progress on dashboard / my-courses.
+- **`/my-courses`** — enrolled course cards with Continue → `/learn/[slug]`.
+- **Lesson viewer shell** — `/learn/[slug]` (Learnify layout: player area, tabs, curriculum sidebar) and `/learn/[slug]/lesson/[order]`.
+- **`docs/supabase/demo_seed.sql`** — sample published courses + lessons (uncomment enrollment block with your user id).
+- **Dashboard** — uses live enrollments when present; demo cards only when count is zero.
+
+### UI polish
+
+- **`CourseCard`** shared component with category tints (light + dark).
+- Stat cards, filter chips, portal stub, agent blocks → **`cn-*` tokens**.
+
+### Session 5 recap (still valid)
+
+### UI/UX (Learnify reference — light + dark)
+
+- **Design tokens** in `src/app/globals.css`: canvas, surface, ink, orange, yellow, lavender, sidebar, callout gradient — with `.dark` overrides.
+- **Theme system**: `ThemeProvider` + `ThemeToggle` (persists to `localStorage`, applies `light` / `dark` on `<html>`).
+- **Auth**: split layout — dark brand panel (desktop) + `cn-card` form; works in both themes.
+- **Fixed “Social sign-in needs Supabase keys”** → `SupabaseSetupCallout` (gradient card, env chips, setup + dashboard links) — no more harsh dark box on login.
+- **OAuth buttons**: full-color Google icon, rounded-2xl controls using tokens.
+- **Student shell**: token-based colors + theme toggle in header.
+- **Marketing** moved under `(public)/` with shared header/footer.
+
+### Functional (Day 2 from master doc)
+
+- [x] **`(public)` route group**: layout, header, footer.
+- [x] **`/courses`** — loads published courses from Supabase when configured; Learnify-style demo cards otherwise.
+- [x] **`/pricing`** — tier cards (Stripe noted as later).
+- [x] **`/legal/privacy`**, **`/legal/terms`** — placeholder legal copy.
+- [x] **`/setup`** — moved into public shell; embeds setup callout + numbered steps.
+- [x] **Cookie banner** — consent stored in `localStorage`.
+- [x] **Landing `/`** — Learnify palette, links to courses/register.
+
+### Still using demo/placeholder UI
+
+- Dashboard shows **demo** course cards only when the student has **zero** enrollments.
+- Video/Mux player, lesson body content, agent tools, editor/Judge0, Stripe.
+- Coach/admin full UIs.
 
 ---
 
-## 2. Current state
+## 2. Master product prompt — done vs left
 
-### Done (Session 4)
+*Aligned to COGNARA master build doc (Sections 8, 17, Day 1–3 + Day 2 public).*
 
-- [x] **Student route group** `(student)/` with shared `StudentShell`: dark icon rail, yellow active pill, header search/notifications/profile, billing + icon sign-out.
-- [x] **Dashboard** at `/dashboard`: stat cards (enrollments, streak/XP, AI credits), agent quick-launch, interactive course filter chips, demo course cards, next-lessons list, spotlight card.
-- [x] **`loadStudentPortalStats`** — reads `enrollments`, `ai_credits`, `user_xp`, `agent_sessions` (graceful empty state if DB unreachable).
-- [x] **`checkStudentDbHealth`** + **`DatabaseStatusBanner`** — surfaces missing migrations, profile/settings rows, or env keys on the dashboard.
-- [x] **`AgentFloatingButton`** on all student pages (links to `/agent`).
-- [x] **Global design tokens** in `globals.css` + **Kodchasan** in root `layout.tsx` (`#f7f7f5`, `#151313`, `#ff5734`, `#be94f5`, `#fccc42`).
-- [x] **Auth + landing** primary buttons/links moved from indigo to orange; auth layout warm gradients.
-- [x] **Shared `Button`** component (`src/components/ui/button.tsx`) for future reuse.
-- [x] **Build / typecheck / lint** — run before handoff (see §7).
+### Done (cumulative)
 
-### Done (Session 3 — still valid)
+| Area | Status |
+|------|--------|
+| Next.js 15 App Router, TypeScript, Tailwind | Done |
+| Supabase client/server/middleware, env helpers | Done |
+| Auth: register, login, forgot/reset password, verify email, OAuth callback | Done |
+| Auth: banned route, role in `profiles`, onboarding → `user_settings.onboarding_complete` | Done |
+| **Database**: migrations 01–09, RLS + `cognara_is_admin()`, schema bundle, LOCAL_SETUP | Done (user must run SQL on hosted Supabase) |
+| **Student portal shell**: sidebar, header, dashboard, stats from DB, agent quick-launch, FAB | Done |
+| **Enrollments + lesson viewer shell** (`/learn/[slug]`) | Done (Session 6) |
+| **Student route stubs**: my-courses, editor, notebook, agent, quizzes, progress, certificates, peer, billing, settings, profile, support | Scaffolded |
+| **Coach / admin** entry + dashboard stubs | Scaffolded |
+| **Public**: home, courses browse, pricing, legal, setup, cookie banner | Done (this session) |
+| **UI**: Learnify-inspired tokens, light/dark theme, auth split layout | Done (this session) |
+| Feature flags module | Done |
+| README, handover, trademark/license files | Done |
 
-- [x] Nine SQL migrations `20250514180001` … `20250514180009` + `docs/supabase/schema_bundle.sql` + `docs/LOCAL_SETUP.md`.
-- [x] Onboarding via `user_settings.onboarding_complete`; env helpers in `src/lib/supabase/env.ts`.
+### Not done (master doc backlog)
 
-### Not done
-
-- [ ] Public route group, legal pages, cookie banner.
-- [ ] Real course CRUD, lesson viewer, Stripe, full agent UI, Judge0, admin UI beyond stub.
-- [ ] RLS: student read for published quizzes; public coach profile reads.
-- [ ] Role immutability trigger on `profiles.role`.
+| Area | Notes |
+|------|--------|
+| **Payments** | Stripe checkout, webhooks, subscriptions |
+| **Course product** | Coach CRUD, **full** lesson content + video (Mux), progress sync on complete |
+| **Code lab** | Monaco + Judge0 execution |
+| **AI agent** | Tool routes, credits debit, memory, streaming UI |
+| **Quizzes** | Take flow; RLS for enrolled students |
+| **Peer / live** | Daily rooms, scheduling |
+| **Certificates** | PDF generation, verification |
+| **Coach verification** | Upload flow, admin queue UI |
+| **Admin** | Full ops: users, moderation, analytics |
+| **Seed data** | Kaggle / demo catalog in Supabase |
+| **RLS hardening** | Role self-escalation trigger; public coach profile policy |
+| **Mobile / Phase 2** | Per feature flags (jobs, hackathons, etc.) |
+| **Deploy** | Vercel production env, custom domain |
 
 ---
 
-## 3. Files touched (Session 4)
+## 3. Run locally
+
+```bash
+npm install
+copy .env.example .env.local   # Windows
+# Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_APP_URL
+npm run dev
+```
+
+Open **http://localhost:3000**. Sign in: **http://localhost:3000/login**. Dashboard: **http://localhost:3000/dashboard**.
+
+If OAuth shows the setup callout, fill `.env.local` and restart dev — or open **http://localhost:3000/setup**.
+
+Toggle **light/dark** via the sun/moon control (auth header, public header, student header).
+
+---
+
+## 4. Key files (Session 5)
 
 | Path | Purpose |
 |------|---------|
-| `src/app/(student)/layout.tsx` | Student shell + portal stats + floating agent button |
-| `src/app/(student)/dashboard/page.tsx` | Learnify-style dashboard with DB-backed stats |
-| `src/components/student/student-shell.tsx` | Sidebar, header, credits in profile chip |
-| `src/components/student/dashboard-stat-card.tsx` | Stat tiles |
-| `src/components/student/course-filter-chips.tsx` | Interactive filter pills |
-| `src/components/student/database-status-banner.tsx` | DB health UI |
-| `src/components/student/agent-floating-button.tsx` | FAB → `/agent` |
-| `src/components/student/agent-quick-launch.tsx` | Agent skill shortcuts |
-| `src/lib/student/portal-stats.ts` | Supabase snapshot for dashboard |
-| `src/lib/student/db-health.ts` | Migration/profile connectivity checks |
-| `src/components/ui/button.tsx` | Shared button variants |
-| `src/components/auth/sign-out-button.tsx` | `variant="icon"` for sidebar |
-| `src/components/auth/*.tsx` | Orange primary buttons |
-| `src/app/(auth)/layout.tsx` | Warm auth backdrop |
-| `src/app/page.tsx` | Landing palette aligned |
-| `src/app/layout.tsx`, `globals.css` | Kodchasan + tokens |
-
-Student stubs under `(student)/`: `my-courses`, `editor`, `notebook`, `agent`, `quizzes`, `progress`, `certificates`, `peer`, `billing`, `support`, `settings`, `profile`.
+| `src/app/globals.css` | Learnify tokens + `.cn-card` / `.cn-callout` |
+| `src/components/theme/*` | Theme provider + toggle |
+| `src/components/auth/supabase-setup-callout.tsx` | Fixed setup window |
+| `src/app/(auth)/layout.tsx` | Split auth layout |
+| `src/app/(public)/*` | Marketing + legal + courses + setup |
+| `src/lib/courses/public-catalog.ts` | Published courses query |
 
 ---
 
-## 4. Run locally (see the UI)
-
-1. Copy env: `copy .env.example .env.local` (Windows) and set:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
-2. In Supabase SQL Editor, run migrations or `docs/supabase/schema_bundle.sql` (see `docs/LOCAL_SETUP.md`).
-3. Configure Auth redirect URLs: `http://localhost:3000/api/auth/callback`
-4. Install & start:
-   ```bash
-   npm install
-   npm run dev
-   ```
-5. Open **http://localhost:3000** → register/login → **http://localhost:3000/dashboard**
-
-If you see **ERR_CONNECTION_REFUSED**, the dev server is not running — run `npm run dev` in the project root.
-
----
-
-## 5. Database checks (dashboard)
-
-The dashboard banner reports:
-
-| Check | Table / signal |
-|-------|----------------|
-| Profile | `profiles` row for `auth.uid()` |
-| Settings | `user_settings` row (onboarding) |
-| Credits | `ai_credits` reachable (row created by `ensure_ai_credits` trigger) |
-| Enrollments | `enrollments` query (count on stat cards) |
-
-Portal stats queries match migration schema (`student_id` on enrollments/agent_sessions, `user_id` on credits/XP).
-
----
-
-## 6. Next tasks
-
-1. User: apply SQL on Supabase if banner shows “setup needed”.
-2. Seed demo courses/enrollments for non-zero dashboard counts.
-3. Day 2: `(public)` layout, `/legal/*`, `/pricing`, `/courses` browse.
-4. RLS: student read policies for quizzes/lessons tied to enrollments.
-
----
-
-## 7. Verification
+## 5. Verification
 
 | Check | Result |
 |-------|--------|
-| `npm run build` | Run after Session 4 changes |
-| `npm run lint` | Run after Session 4 changes |
-| SQL on live Supabase | **User must run** |
+| `npm run build` | Pass (Session 5) |
+| SQL on live Supabase | User must apply migrations |
 
 ---
 
-## 8. Critical notes
-
-- Never commit `.env.local` or service role keys.
-- Onboarding flag: **`user_settings.onboarding_complete`**.
-- Demo course cards are **placeholder UI** until catalog API ships; stat cards use **real** Supabase counts when schema exists.
-
----
-
-*Next session: seed data + public catalog, or lesson viewer shell.*
+*Next: run `demo_seed.sql` + enroll your user, wire lesson completion → `progress_pct`, then agent/Stripe per master schedule.*

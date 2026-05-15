@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Kodchasan, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
 const kodchasan = Kodchasan({
@@ -29,11 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" suppressHydrationWarning>
       <body
-        className={`${kodchasan.variable} ${jetbrainsMono.variable} bg-[#f7f7f5] font-sans text-[#151313] antialiased dark:bg-[#0A0A0A] dark:text-white`}
+        className={`${kodchasan.variable} ${jetbrainsMono.variable} min-h-screen bg-cn-canvas font-sans text-cn-ink antialiased`}
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

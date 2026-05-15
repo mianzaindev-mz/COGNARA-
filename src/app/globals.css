@@ -1,35 +1,93 @@
 @import "tailwindcss";
 
+/* ─── Learnify-inspired tokens (light default) ─── */
 :root {
-  --background: #f7f7f5;
-  --foreground: #151313;
-  --cn-orange: #ff5734;
-  --cn-lavender: #be94f5;
-  --cn-yellow: #fccc42;
+  --cn-canvas: #f7f7f5;
+  --cn-surface: #ffffff;
+  --cn-surface-elevated: #ffffff;
   --cn-ink: #151313;
+  --cn-ink-muted: rgba(21, 19, 19, 0.55);
+  --cn-ink-subtle: rgba(21, 19, 19, 0.38);
+  --cn-border: rgba(21, 19, 19, 0.08);
+  --cn-border-strong: rgba(21, 19, 19, 0.14);
+  --cn-orange: #ff5734;
+  --cn-orange-hover: #e64a2e;
+  --cn-yellow: #fccc42;
+  --cn-lavender: #be94f5;
+  --cn-lavender-soft: #ebe4ff;
+  --cn-sidebar: #151313;
+  --cn-sidebar-fg: rgba(255, 255, 255, 0.55);
+  --cn-callout-bg: linear-gradient(135deg, #fff9f6 0%, #fff4e8 50%, #f5edff 100%);
+  --cn-callout-border: rgba(255, 87, 52, 0.22);
+  --cn-shadow-card: 0 12px 40px -24px rgba(21, 19, 19, 0.35);
+  --cn-radius-card: 1.75rem;
+  --background: var(--cn-canvas);
+  --foreground: var(--cn-ink);
+}
+
+.dark {
+  --cn-canvas: #0f0e0e;
+  --cn-surface: #1a1818;
+  --cn-surface-elevated: #232020;
+  --cn-ink: #f7f7f5;
+  --cn-ink-muted: rgba(247, 247, 245, 0.58);
+  --cn-ink-subtle: rgba(247, 247, 245, 0.38);
+  --cn-border: rgba(255, 255, 255, 0.08);
+  --cn-border-strong: rgba(255, 255, 255, 0.14);
+  --cn-orange: #ff6b4a;
+  --cn-orange-hover: #ff5734;
+  --cn-yellow: #fccc42;
+  --cn-lavender: #c9a8f7;
+  --cn-lavender-soft: #2a2438;
+  --cn-sidebar: #0a0909;
+  --cn-sidebar-fg: rgba(255, 255, 255, 0.5);
+  --cn-callout-bg: linear-gradient(135deg, #1f1614 0%, #1a1520 50%, #141218 100%);
+  --cn-callout-border: rgba(255, 107, 74, 0.35);
+  --cn-shadow-card: 0 16px 48px -28px rgba(0, 0, 0, 0.65);
+  --background: var(--cn-canvas);
+  --foreground: var(--cn-ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-cn-canvas: var(--cn-canvas);
+  --color-cn-surface: var(--cn-surface);
+  --color-cn-surface-elevated: var(--cn-surface-elevated);
+  --color-cn-ink: var(--cn-ink);
+  --color-cn-ink-muted: var(--cn-ink-muted);
+  --color-cn-border: var(--cn-border);
+  --color-cn-orange: var(--cn-orange);
+  --color-cn-orange-hover: var(--cn-orange-hover);
+  --color-cn-yellow: var(--cn-yellow);
+  --color-cn-lavender: var(--cn-lavender);
+  --color-cn-sidebar: var(--cn-sidebar);
   --font-sans: var(--font-kodchasan), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-  }
+  --radius-cn-card: var(--cn-radius-card);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--cn-canvas);
+  color: var(--cn-ink);
   font-family: var(--font-sans);
 }
 
 code,
 pre {
   font-family: var(--font-mono);
+}
+
+/* Auth / marketing card */
+.cn-card {
+  background: var(--cn-surface);
+  border: 1px solid var(--cn-border);
+  border-radius: var(--cn-radius-card);
+  box-shadow: var(--cn-shadow-card);
+}
+
+.cn-callout {
+  background: var(--cn-callout-bg);
+  border: 1px solid var(--cn-callout-border);
+  border-radius: 1.25rem;
 }

@@ -20,8 +20,8 @@ export function CourseFilterChips({ filters }: CourseFilterChipsProps) {
           className={cn(
             "rounded-full border px-4 py-2 text-sm font-semibold transition",
             active === i
-              ? "border-[#151313] bg-[#151313] text-white shadow-sm"
-              : "border-[#151313]/15 bg-white text-[#151313]/80 hover:border-[#151313]/30",
+              ? "border-cn-sidebar bg-cn-sidebar text-white shadow-sm dark:border-cn-yellow dark:bg-cn-yellow dark:text-cn-sidebar"
+              : "border-cn-border bg-cn-surface text-cn-ink-muted hover:border-cn-border-strong hover:text-cn-ink",
           )}
         >
           {label}

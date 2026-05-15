@@ -73,23 +73,19 @@ export function LoginForm() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-neutral-200 dark:border-neutral-800" />
+          <span className="w-full border-t border-cn-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase tracking-wider">
-          <span className="bg-white px-3 text-neutral-500 dark:bg-[#141414] dark:text-neutral-400">
-            or email
-          </span>
+          <span className="bg-cn-surface px-3 text-cn-ink-subtle">or email</span>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">
-            Email
-          </span>
+          <span className="font-medium text-cn-ink">Email</span>
           <input
             autoComplete="email"
-            className="h-11 rounded-xl border border-neutral-200 bg-white px-3 text-neutral-900 outline-none focus:ring-2 focus:ring-[#ff5734]/40 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-12 rounded-2xl border border-cn-border bg-cn-canvas px-4 text-cn-ink outline-none focus:ring-2 focus:ring-cn-orange/35"
             type="email"
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
@@ -97,12 +93,10 @@ export function LoginForm() {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">
-            Password
-          </span>
+          <span className="font-medium text-cn-ink">Password</span>
           <input
             autoComplete="current-password"
-            className="h-11 rounded-xl border border-neutral-200 bg-white px-3 text-neutral-900 outline-none focus:ring-2 focus:ring-[#ff5734]/40 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-12 rounded-2xl border border-cn-border bg-cn-canvas px-4 text-cn-ink outline-none focus:ring-2 focus:ring-cn-orange/35"
             type="password"
             value={password}
             onChange={(ev) => setPassword(ev.target.value)}
@@ -124,14 +118,14 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="h-11 w-full rounded-xl bg-[#ff5734] text-sm font-semibold text-white shadow-md transition hover:bg-[#e64a2e] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-12 w-full rounded-2xl bg-cn-orange text-sm font-bold text-white shadow-md transition hover:bg-cn-orange-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-neutral-600 dark:text-neutral-300">
-        <Link className="font-medium text-[#ff5734] hover:underline" href="/forgot-password">
+      <p className="text-center text-sm text-cn-ink-muted">
+        <Link className="font-semibold text-cn-orange hover:underline" href="/forgot-password">
           Forgot password?
         </Link>
       </p>

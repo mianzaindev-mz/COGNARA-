@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AgentQuickLaunch } from "@/components/student/agent-quick-launch";
+import { CourseCard } from "@/components/student/course-card";
 import { CourseFilterChips } from "@/components/student/course-filter-chips";
 import { DashboardStatCard } from "@/components/student/dashboard-stat-card";
 import { DatabaseStatusBanner } from "@/components/student/database-status-banner";
 import { checkStudentDbHealth } from "@/lib/student/db-health";
+import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
+import { loadPublishedCourses } from "@/lib/courses/public-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -18,35 +21,26 @@ const filters = ["All courses", "Marketing", "Computer Science", "Psychology"] a
 
 const demoCourses = [
   {
-    id: "1",
-    category: "Marketing",
     title: "Creative writing for beginners",
-    progress: { done: 5, total: 20 },
-    tint: "bg-[#fff4d6] border-[#fccc42]/40",
-    badge: "bg-[#fccc42]/90 text-[#151313]",
+    category: "Marketing",
+    progressDone: 5,
+    totalLessons: 20,
+    slug: "creative-writing",
   },
   {
-    id: "2",
-    category: "Computer Science",
     title: "Digital illustration foundations",
-    progress: { done: 3, total: 12 },
-    tint: "bg-[#ebe4ff] border-[#be94f5]/35",
-    badge: "bg-[#be94f5] text-[#151313]",
+    category: "Computer Science",
+    progressDone: 3,
+    totalLessons: 12,
+    slug: "digital-illustration",
   },
   {
-    id: "3",
-    category: "Psychology",
     title: "Public speaking & leadership",
-    progress: { done: 8, total: 24 },
-    tint: "bg-[#e4f2ff] border-sky-200/60",
-    badge: "bg-sky-300/90 text-[#151313]",
+    category: "Psychology",
+    progressDone: 8,
+    totalLessons: 24,
+    slug: "public-speaking",
   },
-] as const;
-
-const nextLessons = [
-  { lesson: "Lesson 4 · Story arcs", course: "Creative writing", teacher: "A. Rivera", duration: "22 min" },
-  { lesson: "Lesson 2 · Vector basics", course: "Illustration", teacher: "M. Chen", duration: "18 min" },
-  { lesson: "Lesson 1 · Presence", course: "Public speaking", teacher: "J. Okonjo", duration: "30 min" },
 ] as const;
 
 export default async function DashboardPage() {
@@ -59,10 +53,12 @@ export default async function DashboardPage() {
     return null;
   }
 
-  const [profileRes, stats, health] = await Promise.all([
+  const [profileRes, stats, health, enrollments, featured] = await Promise.all([
     supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle(),
     loadStudentPortalStats(user.id),
     checkStudentDbHealth(user.id),
+    loadStudentEnrollments(user.id),
+    loadPublishedCourses(1),
   ]);
 
   const profile = profileRes.data;
@@ -79,22 +75,35 @@ export default async function DashboardPage() {
         ? "0"
         : "—";
 
+  const showDemo = enrollments.length === 0;
+  const courseCards = showDemo
+    ? demoCourses.map((c) => ({ ...c, href: `/learn/${c.slug}` }))
+    : enrollments.slice(0, 3).map((c) => ({
+        title: c.title,
+        category: c.category,
+        progressDone: c.progressDone,
+        totalLessons: c.totalLessons,
+        href: `/learn/${c.slug}`,
+      }));
+
+  const spotlight = featured[0];
+
   return (
     <div className="flex flex-col gap-10">
-      <section className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#151313] sm:text-3xl">
-            Hi, {firstName} — here&apos;s your space
-          </h1>
-          <p className="mt-1 max-w-xl text-sm text-[#151313]/55">
-            Learnify-inspired student hub. Live counts below come from Supabase when migrations are applied.
-            {profile?.role ? (
-              <span className="ml-1 rounded-full bg-[#151313]/08 px-2 py-0.5 text-xs font-medium text-[#151313]/70">
-                {profile.role}
-              </span>
-            ) : null}
-          </p>
-        </div>
+      <section>
+        <h1 className="text-2xl font-bold tracking-tight text-cn-ink sm:text-3xl">
+          Hi, {firstName} — here&apos;s your space
+        </h1>
+        <p className="mt-1 max-w-xl text-sm text-cn-ink-muted">
+          {showDemo
+            ? "Demo cards below — enroll via Supabase seed or your catalog to see live progress."
+            : "Your enrolled courses and stats are synced from Supabase."}
+          {profile?.role ? (
+            <span className="ml-1 rounded-full bg-cn-ink/10 px-2 py-0.5 text-xs font-medium text-cn-ink-muted">
+              {profile.role}
+            </span>
+          ) : null}
+        </p>
       </section>
 
       <DatabaseStatusBanner health={health} />
@@ -103,7 +112,7 @@ export default async function DashboardPage() {
         <DashboardStatCard
           label="Enrolled"
           value={enrolledLabel}
-          hint={stats.enrolledCourses === 0 ? "Browse catalog soon" : "Active courses"}
+          hint={stats.enrolledCourses === 0 ? "Browse catalog" : "Active courses"}
           accent="orange"
         />
         <DashboardStatCard
@@ -129,116 +138,84 @@ export default async function DashboardPage() {
 
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-[#151313]">My courses</h2>
-          <Link
-            href="/my-courses"
-            className="text-sm font-semibold text-[#ff5734] hover:underline"
-          >
+          <h2 className="text-lg font-bold text-cn-ink">My courses</h2>
+          <Link href="/my-courses" className="text-sm font-semibold text-cn-orange hover:underline">
             View all
           </Link>
         </div>
-        <div className="mt-4">
-          <CourseFilterChips filters={filters} />
-        </div>
-
-        <div className="mt-6 grid gap-5 md:grid-cols-3">
-          {demoCourses.map((c) => {
-            const pct = Math.round((100 * c.progress.done) / c.progress.total);
-            return (
-              <article
-                key={c.id}
-                className={`flex flex-col rounded-[1.75rem] border p-5 shadow-[0_12px_40px_-24px_rgba(21,19,19,0.45)] ${c.tint}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${c.badge}`}>
-                    {c.category}
-                  </span>
-                  <button
-                    type="button"
-                    className="rounded-xl p-2 text-[#151313]/40 transition hover:bg-white/60 hover:text-[#151313]"
-                    aria-label="Bookmark (coming soon)"
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M17.593 3.322c1.1.128 1.907 1.08 1.907 2.185V21L12 17.25l-7.5 3.75V5.507c0-1.106.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <h3 className="mt-4 text-lg font-bold leading-snug text-[#151313]">{c.title}</h3>
-                <p className="mt-3 text-xs font-medium text-[#151313]/50">
-                  {c.progress.done}/{c.progress.total} lessons
-                </p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/70">
-                  <div className="h-full rounded-full bg-[#ff5734]" style={{ width: `${pct}%` }} />
-                </div>
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <div className="flex -space-x-2">
-                    {["KP", "MR", "SO"].map((init) => (
-                      <span
-                        key={init}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-white text-[10px] font-bold text-[#151313] shadow-sm"
-                      >
-                        {init}
-                      </span>
-                    ))}
-                  </div>
-                  <Link
-                    href="/my-courses"
-                    className="rounded-full bg-[#ff5734] px-4 py-2.5 text-center text-sm font-bold text-white shadow-md transition hover:bg-[#e64a2e]"
-                  >
-                    Continue
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+        {showDemo ? (
+          <div className="mt-4">
+            <CourseFilterChips filters={filters} />
+          </div>
+        ) : null}
+        <ul className="mt-6 grid gap-5 md:grid-cols-3">
+          {courseCards.map((c) => (
+            <li key={c.href}>
+              <CourseCard
+                title={c.title}
+                category={c.category}
+                progressDone={c.progressDone}
+                totalLessons={c.totalLessons}
+                href={c.href}
+              />
+            </li>
+          ))}
+        </ul>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-[1.75rem] border border-black/[0.06] bg-white px-5 py-4 shadow-sm">
-            <h2 className="text-lg font-bold text-[#151313]">My next lessons</h2>
-            <Link href="/my-courses" className="text-sm font-semibold text-[#ff5734] hover:underline">
+          <div className="cn-card flex flex-wrap items-center justify-between gap-2 px-5 py-4">
+            <h2 className="text-lg font-bold text-cn-ink">My next lessons</h2>
+            <Link href="/my-courses" className="text-sm font-semibold text-cn-orange hover:underline">
               View all lessons
             </Link>
           </div>
-          <div className="mt-3 overflow-hidden rounded-[1.75rem] border border-black/[0.06] bg-white shadow-sm">
-            <ul>
-              {nextLessons.map((row) => (
-                <li
-                  key={row.lesson}
-                  className="grid grid-cols-1 gap-2 border-b border-black/[0.04] px-5 py-4 last:border-0 sm:grid-cols-[1fr_auto_auto] sm:items-center"
-                >
-                  <div>
-                    <p className="font-semibold text-[#151313]">{row.lesson}</p>
-                    <p className="text-xs text-[#151313]/45">{row.course}</p>
-                  </div>
-                  <p className="text-sm text-[#151313]/75">{row.teacher}</p>
-                  <p className="text-sm font-medium text-[#151313]/60 sm:text-right">{row.duration}</p>
-                </li>
-              ))}
-            </ul>
+          <div className="cn-card mt-3 overflow-hidden p-0">
+            {enrollments.length > 0 ? (
+              <ul>
+                {enrollments.slice(0, 3).map((c) => (
+                  <li
+                    key={c.enrollmentId}
+                    className="grid gap-2 border-b border-cn-border px-5 py-4 last:border-0 sm:grid-cols-[1fr_auto]"
+                  >
+                    <div>
+                      <p className="font-semibold text-cn-ink">{c.title}</p>
+                      <p className="text-xs text-cn-ink-subtle">{c.progressPct}% complete</p>
+                    </div>
+                    <Link
+                      href={`/learn/${c.slug}`}
+                      className="text-sm font-semibold text-cn-orange hover:underline sm:text-right"
+                    >
+                      Continue →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-5 py-8 text-center text-sm text-cn-ink-muted">
+                Enroll in a course to see upcoming lessons here.
+              </p>
+            )}
           </div>
         </section>
 
         <section className="lg:col-span-2">
-          <div className="flex h-full min-h-[280px] flex-col justify-between rounded-[1.75rem] bg-[#151313] p-6 text-white shadow-[0_20px_50px_-28px_rgba(21,19,19,0.85)]">
+          <div className="flex h-full min-h-[280px] flex-col justify-between rounded-[1.75rem] bg-cn-sidebar p-6 text-white shadow-[var(--cn-shadow-card)]">
             <div>
-              <span className="inline-block rounded-full bg-[#fccc42] px-3 py-1 text-xs font-bold text-[#151313]">
+              <span className="inline-block rounded-full bg-cn-yellow px-3 py-1 text-xs font-bold text-cn-sidebar">
                 Spotlight
               </span>
               <h2 className="mt-4 text-xl font-bold leading-snug">
-                Microsoft Future Ready: fundamentals of big data
+                {spotlight?.title ?? "Microsoft Future Ready: fundamentals of big data"}
               </h2>
-              <p className="mt-2 text-sm text-white/55">Placeholder until catalog is seeded in Supabase.</p>
+              <p className="mt-2 text-sm text-white/55">
+                {spotlight?.description ?? "Featured course from your published catalog when seeded."}
+              </p>
             </div>
             <Link
-              href="/my-courses"
-              className="mt-6 block w-full rounded-2xl bg-[#ff5734] py-3.5 text-center text-sm font-bold text-white transition hover:bg-[#e64a2e]"
+              href={spotlight ? "/courses" : "/courses"}
+              className="mt-6 block w-full rounded-2xl bg-cn-orange py-3.5 text-center text-sm font-bold text-white transition hover:bg-cn-orange-hover"
             >
               More details
             </Link>
