@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AgentFloatingButton } from "@/components/student/agent-floating-button";
 import { StudentShell } from "@/components/student/student-shell";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
 
@@ -32,3 +33,15 @@ export default async function StudentPortalLayout({
     "Student";
 
   const stats = await loadStudentPortalStats(user.id);
+
+  return (
+    <StudentShell
+      displayName={displayName}
+      email={user.email ?? undefined}
+      creditBalance={stats.creditBalance}
+    >
+      {children}
+      <AgentFloatingButton />
+    </StudentShell>
+  );
+}

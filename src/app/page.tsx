@@ -26,7 +26,7 @@ function IconShield({ className }: { className?: string }) {
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAFAFA] text-[#0A0A0A] dark:bg-[#0A0A0A] dark:text-white">
+    <div className="flex min-h-screen flex-col bg-[#f7f7f5] text-[#0A0A0A] dark:bg-[#0A0A0A] dark:text-white">
       <header className="sticky top-0 z-20 border-b border-neutral-200/80 bg-white/80 px-6 py-3.5 backdrop-blur-md dark:border-neutral-800/80 dark:bg-[#0A0A0A]/75">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#0A0A0A] dark:text-white">
@@ -47,7 +47,7 @@ export default function Home() {
             </Link>
             <Link
               href="/register"
-              className="rounded-lg bg-[#6366F1] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#4F46E5] hover:shadow-md"
+              className="rounded-lg bg-[#ff5734] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#e64a2e] hover:shadow-md"
             >
               Get started
             </Link>
@@ -57,20 +57,20 @@ export default function Home() {
 
       <main className="relative flex-1">
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <div className="absolute -right-20 top-20 h-80 w-80 rounded-full bg-[#6366F1]/12 blur-3xl dark:bg-[#6366F1]/20" />
-          <div className="absolute -left-20 top-40 h-72 w-72 rounded-full bg-[#818CF8]/10 blur-3xl dark:bg-[#4F46E5]/10" />
+          <div className="absolute -right-20 top-20 h-80 w-80 rounded-full bg-[#ff5734]/12 blur-3xl dark:bg-[#ff5734]/20" />
+          <div className="absolute -left-20 top-40 h-72 w-72 rounded-full bg-[#be94f5]/10 blur-3xl dark:bg-[#e64a2e]/10" />
         </div>
 
         <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-16 sm:pt-24">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#6366F1]/25 bg-[#6366F1]/[0.08] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#4F46E5] shadow-sm dark:border-[#818CF8]/35 dark:bg-[#6366F1]/15 dark:text-[#A5B4FC]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#6366F1] dark:bg-[#818CF8]" aria-hidden />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#ff5734]/25 bg-[#ff5734]/[0.08] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#e64a2e] shadow-sm dark:border-[#be94f5]/35 dark:bg-[#ff5734]/15 dark:text-[#A5B4FC]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5734] dark:bg-[#be94f5]" aria-hidden />
               SDG 4 · Quality education
             </div>
 
             <h1 className="mt-8 text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl sm:leading-[1.08] lg:text-6xl">
               Where knowledge{" "}
-              <span className="bg-gradient-to-r from-[#6366F1] to-[#818CF8] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#ff5734] to-[#be94f5] bg-clip-text text-transparent">
                 finds its place.
               </span>
             </h1>
@@ -83,7 +83,7 @@ export default function Home() {
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link
                 href="/register"
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-[#6366F1] px-8 text-sm font-semibold text-white shadow-lg shadow-[#6366F1]/25 transition hover:bg-[#4F46E5] hover:shadow-xl"
+                className="inline-flex h-12 items-center justify-center rounded-xl bg-[#ff5734] px-8 text-sm font-semibold text-white shadow-lg shadow-[#ff5734]/25 transition hover:bg-[#e64a2e] hover:shadow-xl"
               >
                 Create account
               </Link>
@@ -95,7 +95,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/setup"
-                className="text-sm font-medium text-[#6366F1] underline-offset-4 hover:underline sm:ml-2"
+                className="text-sm font-medium text-[#ff5734] underline-offset-4 hover:underline sm:ml-2"
               >
                 Configure Supabase →
               </Link>
@@ -122,9 +122,9 @@ export default function Home() {
             ].map(({ title, body, icon: Icon }) => (
               <div
                 key={title}
-                className="group rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm transition hover:border-[#6366F1]/30 hover:shadow-md dark:border-neutral-800 dark:bg-[#141414] dark:hover:border-[#6366F1]/25"
+                className="group rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm transition hover:border-[#ff5734]/30 hover:shadow-md dark:border-neutral-800 dark:bg-[#141414] dark:hover:border-[#ff5734]/25"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6366F1]/10 text-[#6366F1] transition group-hover:bg-[#6366F1]/15 dark:bg-[#6366F1]/20 dark:text-[#A5B4FC]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ff5734]/10 text-[#ff5734] transition group-hover:bg-[#ff5734]/15 dark:bg-[#ff5734]/20 dark:text-[#A5B4FC]">
                   <Icon className="h-6 w-6" />
                 </div>
                 <h2 className="mt-4 text-base font-semibold text-neutral-900 dark:text-white">{title}</h2>

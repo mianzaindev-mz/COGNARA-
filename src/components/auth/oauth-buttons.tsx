@@ -53,9 +53,9 @@ export function OAuthButtons({ redirectTo }: { redirectTo?: string }) {
 
   if (!supabase) {
     return (
-      <div className="rounded-xl border border-[#6366F1]/20 bg-[#6366F1]/5 p-4 dark:border-[#818CF8]/25 dark:bg-[#6366F1]/10">
+      <div className="rounded-xl border border-[#ff5734]/20 bg-[#ff5734]/5 p-4">
         <div className="flex gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#6366F1]/15 text-[#6366F1] dark:bg-[#6366F1]/25 dark:text-[#A5B4FC]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#ff5734]/15 text-[#ff5734]">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
@@ -65,15 +65,15 @@ export function OAuthButtons({ redirectTo }: { redirectTo?: string }) {
               Social sign-in needs Supabase keys
             </p>
             <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
-              Add <span className="font-mono text-[11px] text-[#6366F1]">NEXT_PUBLIC_SUPABASE_URL</span>{" "}
+              Add               <span className="font-mono text-[11px] text-[#ff5734]">NEXT_PUBLIC_SUPABASE_URL</span>{" "}
               and{" "}
-              <span className="font-mono text-[11px] text-[#6366F1]">NEXT_PUBLIC_SUPABASE_ANON_KEY</span>{" "}
+              <span className="font-mono text-[11px] text-[#ff5734]">NEXT_PUBLIC_SUPABASE_ANON_KEY</span>{" "}
               to <span className="font-mono text-[11px]">.env.local</span>, then restart{" "}
               <span className="font-mono text-[11px]">npm run dev</span>. Trim any spaces around the values.
             </p>
             <Link
               href="/setup"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#6366F1] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#4F46E5]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#ff5734] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#e64a2e]"
             >
               Open setup checklist
               <span aria-hidden>→</span>

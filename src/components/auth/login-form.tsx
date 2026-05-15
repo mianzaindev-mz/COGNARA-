@@ -89,7 +89,7 @@ export function LoginForm() {
           </span>
           <input
             autoComplete="email"
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-11 rounded-xl border border-neutral-200 bg-white px-3 text-neutral-900 outline-none focus:ring-2 focus:ring-[#ff5734]/40 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
             type="email"
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
@@ -102,7 +102,7 @@ export function LoginForm() {
           </span>
           <input
             autoComplete="current-password"
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-11 rounded-xl border border-neutral-200 bg-white px-3 text-neutral-900 outline-none focus:ring-2 focus:ring-[#ff5734]/40 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
             type="password"
             value={password}
             onChange={(ev) => setPassword(ev.target.value)}
@@ -114,7 +114,7 @@ export function LoginForm() {
           <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
             <p>{error}</p>
             {(error.includes("Backend") || error.includes(".env.local")) ? (
-              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#6366F1] hover:underline">
+              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#ff5734] hover:underline">
                 Setup checklist →
               </Link>
             ) : null}
@@ -124,14 +124,14 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="h-11 rounded-lg bg-[#6366F1] text-sm font-semibold text-white transition hover:bg-[#4F46E5] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 w-full rounded-xl bg-[#ff5734] text-sm font-semibold text-white shadow-md transition hover:bg-[#e64a2e] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-300">
-        <Link className="font-medium text-[#6366F1] hover:underline" href="/forgot-password">
+        <Link className="font-medium text-[#ff5734] hover:underline" href="/forgot-password">
           Forgot password?
         </Link>
       </p>

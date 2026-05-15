@@ -4,14 +4,14 @@ export default function AuthLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F4F4F5] dark:bg-[#050505]">
+    <div className="relative min-h-screen overflow-hidden bg-[#f7f7f5]">
       <div
         className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-30"
         aria-hidden
       >
-        <div className="absolute -left-24 top-0 h-[28rem] w-[28rem] rounded-full bg-[#6366F1]/25 blur-3xl dark:bg-[#6366F1]/20" />
-        <div className="absolute -right-32 bottom-0 h-[24rem] w-[24rem] rounded-full bg-[#818CF8]/20 blur-3xl dark:bg-[#4F46E5]/15" />
-        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#10B981]/5 blur-2xl" />
+        <div className="absolute -left-24 top-0 h-[28rem] w-[28rem] rounded-full bg-[#ff5734]/15 blur-3xl" />
+        <div className="absolute -right-32 bottom-0 h-[24rem] w-[24rem] rounded-full bg-[#be94f5]/25 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fccc42]/20 blur-2xl" />
       </div>
 
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16 sm:px-6">

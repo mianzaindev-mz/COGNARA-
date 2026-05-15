@@ -97,7 +97,7 @@ export function ResetPasswordForm() {
           New password
         </span>
         <input
-          className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+          className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
           type="password"
           value={password}
           onChange={(ev) => setPassword(ev.target.value)}
@@ -112,7 +112,7 @@ export function ResetPasswordForm() {
           Confirm new password
         </span>
         <input
-          className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+          className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
           type="password"
           value={confirmPassword}
           onChange={(ev) => setConfirmPassword(ev.target.value)}
@@ -125,13 +125,13 @@ export function ResetPasswordForm() {
       <button
         type="submit"
         disabled={loading || !sessionReady}
-        className="h-11 rounded-lg bg-[#6366F1] text-sm font-semibold text-white transition hover:bg-[#4F46E5] disabled:cursor-not-allowed disabled:opacity-60"
+        className="h-11 rounded-lg bg-[#ff5734] text-sm font-semibold text-white transition hover:bg-[#e64a2e] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Updating…" : "Update password"}
       </button>
 
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-300">
-        <Link className="font-medium text-[#6366F1] hover:underline" href="/login">
+        <Link className="font-medium text-[#ff5734] hover:underline" href="/login">
           Back to sign in
         </Link>
       </p>

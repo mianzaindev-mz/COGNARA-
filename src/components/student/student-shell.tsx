@@ -19,10 +19,11 @@ const nav = [
 type StudentShellProps = {
   displayName: string;
   email: string | undefined;
+  creditBalance: number | null;
   children: React.ReactNode;
 };
 
-export function StudentShell({ displayName, email, children }: StudentShellProps) {
+export function StudentShell({ displayName, email, creditBalance, children }: StudentShellProps) {
   const pathname = usePathname();
 
   return (
@@ -108,15 +109,20 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
               >
                 <IconBell className="h-5 w-5" />
               </button>
-              <div className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white py-1 pl-1 pr-3 shadow-sm">
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-[#ff5734]/30"
+              >
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#be94f5]/35 text-sm font-bold text-[#151313]">
                   {displayName.charAt(0).toUpperCase()}
                 </span>
                 <div className="hidden min-w-0 sm:block">
                   <p className="truncate text-sm font-semibold text-[#151313]">{displayName}</p>
-                  <p className="truncate text-xs text-[#151313]/45">Learner</p>
+                  <p className="truncate text-xs text-[#151313]/45">
+                    {creditBalance !== null ? `${creditBalance} AI credits` : "Learner"}
+                  </p>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
         </header>

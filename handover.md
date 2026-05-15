@@ -1,91 +1,110 @@
 # COGNARA™ — Project Handover
 
-**Session:** 3 (database + local run documentation)  
-**Date:** 2026-05-14  
+**Session:** 4 (Learnify-style UI + student portal polish)  
+**Date:** 2026-05-15  
 **Repository:** `C:\GitHub\COGNARA`
 
 ---
 
 ## 1. Project overview
 
-COGNARA™ is a Next.js 15 App Router application with Supabase (Postgres + Auth + future Storage). Session 3 adds the **full baseline database schema** (master document Section 8) as ordered SQL migrations, **RLS policies**, alignment of onboarding with **`user_settings.onboarding_complete`**, and **`docs/LOCAL_SETUP.md`** + **`docs/supabase/schema_bundle.sql`** so you can run the product locally against a hosted Supabase project.
+COGNARA™ is a Next.js 15 App Router application with Supabase (Postgres + Auth). This session adds a **Learnify-inspired student experience** (warm canvas, rich-black sidebar, orange primary, Kodchasan typography), wires the dashboard to **live Supabase stats** where schema exists, and unifies **auth/landing button styling** with the new palette.
 
 ---
 
 ## 2. Current state
 
-### Done (Session 3)
+### Done (Session 4)
 
-- [x] **Nine SQL migrations** under `supabase/migrations/` (`20250514180001` … `20250514180009`): extensions, identity (`profiles`, `user_settings`, `onboarding_progress`, `handle_new_user` + `on_auth_user_created`), commerce + **`ensure_ai_credits`** trigger, courses/content + free-resource trigger, learning tools, agent/reviews, coach/live/peer, platform ops, **RLS** with `cognara_is_admin()` helper.
-- [x] **Removed** obsolete `0001_profiles_auth_trigger.sql` (replaced by the new chain).
-- [x] **`docs/supabase/schema_bundle.sql`** — concatenation of all migrations for one-shot paste in Supabase SQL Editor.
-- [x] **`docs/LOCAL_SETUP.md`** — step-by-step: create Supabase project, run SQL, configure Auth URLs, `.env.local`, `npm run dev`, admin promotion SQL, troubleshooting.
-- [x] **`supabase/config.toml`** — minimal stub for optional Supabase CLI use.
-- [x] **App alignment:** `user_settings.onboarding_complete` used in `middleware.ts`, `onboarding/actions.ts`, and `lib/auth/guards.ts` (master schema stores onboarding on `user_settings`, not `profiles`).
-- [x] **Onboarding redirect logic:** incomplete = `onboarding_complete !== true` (covers missing row); completed users hitting `/onboarding` redirect to `/dashboard`.
-- [x] **README.md** replaced with COGNARA-focused quick start linking to `docs/LOCAL_SETUP.md`.
-- [x] **Build / typecheck / lint:** `npm run build`, `npm run type-check`, `npm run lint` — pass.
+- [x] **Student route group** `(student)/` with shared `StudentShell`: dark icon rail, yellow active pill, header search/notifications/profile, billing + icon sign-out.
+- [x] **Dashboard** at `/dashboard`: stat cards (enrollments, streak/XP, AI credits), agent quick-launch, interactive course filter chips, demo course cards, next-lessons list, spotlight card.
+- [x] **`loadStudentPortalStats`** — reads `enrollments`, `ai_credits`, `user_xp`, `agent_sessions` (graceful empty state if DB unreachable).
+- [x] **`checkStudentDbHealth`** + **`DatabaseStatusBanner`** — surfaces missing migrations, profile/settings rows, or env keys on the dashboard.
+- [x] **`AgentFloatingButton`** on all student pages (links to `/agent`).
+- [x] **Global design tokens** in `globals.css` + **Kodchasan** in root `layout.tsx` (`#f7f7f5`, `#151313`, `#ff5734`, `#be94f5`, `#fccc42`).
+- [x] **Auth + landing** primary buttons/links moved from indigo to orange; auth layout warm gradients.
+- [x] **Shared `Button`** component (`src/components/ui/button.tsx`) for future reuse.
+- [x] **Build / typecheck / lint** — run before handoff (see §7).
 
-### Not done (still out of scope)
+### Done (Session 3 — still valid)
 
-- [ ] **Public** route group, legal pages, cookie banner (Day 2).
-- [ ] **Real** course CRUD UI, lesson viewer, payments, AI agent tools, Judge0, seed from Kaggle, admin UI beyond stub.
-- [ ] **RLS refinement:** e.g. students reading **published quizzes** for enrolled courses (current `quizzes` policies are coach/admin-centric); public **profile** read for `/coach/[username]` when you build it.
-- [ ] **Role immutability:** no DB trigger yet preventing `profiles.role` self-escalation to `admin` via crafted update (mitigate with trigger or strict `WITH CHECK`).
+- [x] Nine SQL migrations `20250514180001` … `20250514180009` + `docs/supabase/schema_bundle.sql` + `docs/LOCAL_SETUP.md`.
+- [x] Onboarding via `user_settings.onboarding_complete`; env helpers in `src/lib/supabase/env.ts`.
+
+### Not done
+
+- [ ] Public route group, legal pages, cookie banner.
+- [ ] Real course CRUD, lesson viewer, Stripe, full agent UI, Judge0, admin UI beyond stub.
+- [ ] RLS: student read for published quizzes; public coach profile reads.
+- [ ] Role immutability trigger on `profiles.role`.
 
 ---
 
-## 3. Files touched (Session 3)
+## 3. Files touched (Session 4)
 
 | Path | Purpose |
 |------|---------|
-| `supabase/migrations/20250514180001_extensions.sql` | `uuid-ossp`, `pg_trgm` |
-| `supabase/migrations/20250514180002_core_identity.sql` | `profiles`, `user_settings`, `onboarding_progress`, `handle_new_user` |
-| `supabase/migrations/20250514180003_commerce.sql` | billing tables + `ensure_ai_credits` trigger |
-| `supabase/migrations/20250514180004_courses_content.sql` | courses, lessons, resources, enrollments, progress, free-content trigger |
-| `supabase/migrations/20250514180005_learning_tools.sql` | code, notebooks, quizzes |
-| `supabase/migrations/20250514180006_agent_reviews.sql` | agent, voice, reviews |
-| `supabase/migrations/20250514180007_coach_live_peer.sql` | verification, live, peer |
-| `supabase/migrations/20250514180008_platform_ops.sql` | earnings, support, notifications, audit, security, gamification |
-| `supabase/migrations/20250514180009_rls.sql` | `cognara_is_admin()` + table policies |
-| `supabase/config.toml` | Optional CLI config |
-| `docs/LOCAL_SETUP.md` | Local + Supabase runbook |
-| `docs/supabase/schema_bundle.sql` | Generated bundle (concat of migrations) |
-| `README.md` | Product entry + links |
-| `src/lib/supabase/middleware.ts` | Read onboarding from `user_settings`; incomplete if not `true` |
-| `src/app/onboarding/actions.ts` | Updates `user_settings.onboarding_complete` |
-| `src/lib/auth/guards.ts` | `requireProfile` reads `user_settings` |
-| **Deleted** | `supabase/migrations/0001_profiles_auth_trigger.sql` |
+| `src/app/(student)/layout.tsx` | Student shell + portal stats + floating agent button |
+| `src/app/(student)/dashboard/page.tsx` | Learnify-style dashboard with DB-backed stats |
+| `src/components/student/student-shell.tsx` | Sidebar, header, credits in profile chip |
+| `src/components/student/dashboard-stat-card.tsx` | Stat tiles |
+| `src/components/student/course-filter-chips.tsx` | Interactive filter pills |
+| `src/components/student/database-status-banner.tsx` | DB health UI |
+| `src/components/student/agent-floating-button.tsx` | FAB → `/agent` |
+| `src/components/student/agent-quick-launch.tsx` | Agent skill shortcuts |
+| `src/lib/student/portal-stats.ts` | Supabase snapshot for dashboard |
+| `src/lib/student/db-health.ts` | Migration/profile connectivity checks |
+| `src/components/ui/button.tsx` | Shared button variants |
+| `src/components/auth/sign-out-button.tsx` | `variant="icon"` for sidebar |
+| `src/components/auth/*.tsx` | Orange primary buttons |
+| `src/app/(auth)/layout.tsx` | Warm auth backdrop |
+| `src/app/page.tsx` | Landing palette aligned |
+| `src/app/layout.tsx`, `globals.css` | Kodchasan + tokens |
+
+Student stubs under `(student)/`: `my-courses`, `editor`, `notebook`, `agent`, `quizzes`, `progress`, `certificates`, `peer`, `billing`, `support`, `settings`, `profile`.
 
 ---
 
-## 4. Decisions
+## 4. Run locally (see the UI)
 
-| Decision | Reason |
-|----------|--------|
-| Split migrations (01–09) | Easier debugging than one giant file; Supabase CLI applies in name order. |
-| `EXECUTE PROCEDURE` on triggers | Broader Postgres compatibility; swap to `EXECUTE FUNCTION` if your instance rejects `PROCEDURE`. |
-| `cognara_is_admin()` SECURITY DEFINER | Avoids infinite RLS recursion when policies reference `profiles` for admin checks. |
-| Tightened `profiles` SELECT RLS | Removed world-readable `profiles` SELECT; public coach pages will need an explicit policy or Edge/API route later. |
-| `schema_bundle.sql` in repo | Lets you paste once in SQL Editor without stitching files manually. |
+1. Copy env: `copy .env.example .env.local` (Windows) and set:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+2. In Supabase SQL Editor, run migrations or `docs/supabase/schema_bundle.sql` (see `docs/LOCAL_SETUP.md`).
+3. Configure Auth redirect URLs: `http://localhost:3000/api/auth/callback`
+4. Install & start:
+   ```bash
+   npm install
+   npm run dev
+   ```
+5. Open **http://localhost:3000** → register/login → **http://localhost:3000/dashboard**
 
----
-
-## 5. Problems / risks
-
-| Item | Mitigation |
-|------|------------|
-| Trigger keyword mismatch | Documented in `docs/LOCAL_SETUP.md` — swap `PROCEDURE` / `FUNCTION`. |
-| Quiz RLS vs enrolled students | Documented as follow-up when quiz-taking UI ships. |
-| `schema_bundle.sql` must be regenerated if migrations change | Re-run the PowerShell concat from `docs/LOCAL_SETUP.md` pattern or maintain manually. |
+If you see **ERR_CONNECTION_REFUSED**, the dev server is not running — run `npm run dev` in the project root.
 
 ---
 
-## 6. Next tasks (suggested order)
+## 5. Database checks (dashboard)
 
-1. User: create Supabase project → run SQL → configure Auth → `.env.local` → `npm run dev` (see `docs/LOCAL_SETUP.md`).
-2. Day 2: `(public)` layout, `/legal/*`, `/pricing`, `/courses` browse, cookie banner.
-3. RLS: add **student read** policies for quizzes/lessons where `enrollments` ties student to course.
+The dashboard banner reports:
+
+| Check | Table / signal |
+|-------|----------------|
+| Profile | `profiles` row for `auth.uid()` |
+| Settings | `user_settings` row (onboarding) |
+| Credits | `ai_credits` reachable (row created by `ensure_ai_credits` trigger) |
+| Enrollments | `enrollments` query (count on stat cards) |
+
+Portal stats queries match migration schema (`student_id` on enrollments/agent_sessions, `user_id` on credits/XP).
+
+---
+
+## 6. Next tasks
+
+1. User: apply SQL on Supabase if banner shows “setup needed”.
+2. Seed demo courses/enrollments for non-zero dashboard counts.
+3. Day 2: `(public)` layout, `/legal/*`, `/pricing`, `/courses` browse.
+4. RLS: student read policies for quizzes/lessons tied to enrollments.
 
 ---
 
@@ -93,19 +112,18 @@ COGNARA™ is a Next.js 15 App Router application with Supabase (Postgres + Auth
 
 | Check | Result |
 |-------|--------|
-| `npm run build` | Pass |
-| `npm run type-check` | Pass |
-| `npm run lint` | Pass |
-| SQL applied on live Supabase | **Not executed in this environment** — user must run |
+| `npm run build` | Run after Session 4 changes |
+| `npm run lint` | Run after Session 4 changes |
+| SQL on live Supabase | **User must run** |
 
 ---
 
 ## 8. Critical notes
 
-- **Never** commit `.env.local` or `SUPABASE_SERVICE_ROLE_KEY` to client bundles.
-- Onboarding flag lives in **`user_settings.onboarding_complete`** per master Section 8.
-- After schema changes, regenerate **`docs/supabase/schema_bundle.sql`** if you rely on the single-file workflow.
+- Never commit `.env.local` or service role keys.
+- Onboarding flag: **`user_settings.onboarding_complete`**.
+- Demo course cards are **placeholder UI** until catalog API ships; stat cards use **real** Supabase counts when schema exists.
 
 ---
 
-*Next session: Day 2 public shell + legal, or RLS refinements + first real `/courses` browse — pick based on demo deadline.*
+*Next session: seed data + public catalog, or lesson viewer shell.*

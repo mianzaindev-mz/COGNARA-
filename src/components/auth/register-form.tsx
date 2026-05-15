@@ -95,7 +95,7 @@ export function RegisterForm() {
             type="button"
             className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
               role === "student"
-                ? "bg-[#6366F1] text-white"
+                ? "bg-[#ff5734] text-white"
                 : "text-neutral-600 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
             }`}
             onClick={() => setRole("student")}
@@ -106,7 +106,7 @@ export function RegisterForm() {
             type="button"
             className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
               role === "coach"
-                ? "bg-[#6366F1] text-white"
+                ? "bg-[#ff5734] text-white"
                 : "text-neutral-600 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
             }`}
             onClick={() => setRole("coach")}
@@ -120,7 +120,7 @@ export function RegisterForm() {
             Full name
           </span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
             value={fullName}
             onChange={(ev) => setFullName(ev.target.value)}
             autoComplete="name"
@@ -133,7 +133,7 @@ export function RegisterForm() {
             Email
           </span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
             type="email"
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
@@ -147,7 +147,7 @@ export function RegisterForm() {
             Password
           </span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
             type="password"
             value={password}
             onChange={(ev) => setPassword(ev.target.value)}
@@ -164,7 +164,7 @@ export function RegisterForm() {
             Confirm password
           </span>
           <input
-            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#6366F1] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+            className="h-11 rounded-lg border border-neutral-200 bg-white px-3 text-neutral-900 outline-none ring-[#ff5734] focus:ring-2 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
             type="password"
             value={confirmPassword}
             onChange={(ev) => setConfirmPassword(ev.target.value)}
@@ -177,7 +177,7 @@ export function RegisterForm() {
           <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
             <p>{error}</p>
             {(error.includes("Backend") || error.includes(".env.local")) ? (
-              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#6366F1] hover:underline">
+              <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-[#ff5734] hover:underline">
                 Setup checklist →
               </Link>
             ) : null}
@@ -190,7 +190,7 @@ export function RegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="h-11 rounded-lg bg-[#6366F1] text-sm font-semibold text-white transition hover:bg-[#4F46E5] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 rounded-lg bg-[#ff5734] text-sm font-semibold text-white transition hover:bg-[#e64a2e] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Creating account…" : "Create account"}
         </button>
