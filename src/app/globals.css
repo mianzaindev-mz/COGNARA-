@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Match ThemeProvider: dark: utilities follow .dark on <html>, not prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Learnify (warm dashboard) + EDUBRINK (cream marketing) combined tokens */
 :root {
   --cn-canvas: #f7f7f5;
@@ -24,6 +27,9 @@
   --cn-callout-border: rgba(255, 87, 52, 0.22);
   --cn-shadow-card: 0 12px 40px -24px rgba(21, 19, 19, 0.35);
   --cn-radius-card: 1.75rem;
+  --cn-hero-gold: rgba(184, 134, 11, 0.42);
+  --cn-hero-gold-glow: rgba(252, 204, 66, 0.1);
+  --theme-transition: 0.42s cubic-bezier(0.4, 0, 0.2, 1);
   --background: var(--cn-canvas);
   --foreground: var(--cn-ink);
 }
@@ -50,6 +56,8 @@
   --cn-callout-bg: linear-gradient(135deg, #1f1614 0%, #1a1520 50%, #141218 100%);
   --cn-callout-border: rgba(255, 107, 74, 0.35);
   --cn-shadow-card: 0 16px 48px -28px rgba(0, 0, 0, 0.65);
+  --cn-hero-gold: rgba(252, 204, 66, 0.32);
+  --cn-hero-gold-glow: rgba(252, 204, 66, 0.06);
   --background: var(--cn-canvas);
   --foreground: var(--cn-ink);
 }
@@ -81,6 +89,30 @@ html {
   min-height: 100%;
 }
 
+html.theme-ready,
+html.theme-ready * {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, outline-color;
+  transition-duration: var(--theme-transition);
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.theme-ready *:where(button, a, input, textarea, select) {
+  transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-ready,
+  html.theme-ready * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 body {
   min-height: 100%;
   background-color: var(--cn-canvas);
@@ -106,11 +138,76 @@ pre {
   border-radius: 1.25rem;
 }
 
+.cn-hero-frame {
+  border: 1px solid var(--cn-hero-gold);
+  box-shadow: 0 0 0 1px var(--cn-hero-gold-glow);
+  transition:
+    border-color var(--theme-transition),
+    box-shadow var(--theme-transition);
+}
+
+/* Hero: light top-left → orange bottom-right (same layout as dark, swapped charcoal for white) */
+.cn-hero-bg {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(135deg, #ffffff 0%, #f7f7f5 40%, #ff5734 120%),
+    radial-gradient(circle at 80% 20%, rgba(190, 148, 245, 0.35), transparent 50%);
+}
+
+.dark .cn-hero-bg {
+  background-color: #151313;
+  background-image:
+    linear-gradient(135deg, #151313 0%, #2a1f1a 40%, #ff5734 120%),
+    radial-gradient(circle at 80% 20%, rgba(190, 148, 245, 0.35), transparent 50%);
+}
+
 .cn-hero-gradient {
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.15) 40%,
+    transparent 58%
+  );
+  color: #151313;
+}
+
+.dark .cn-hero-gradient {
   background: linear-gradient(
     115deg,
     rgba(21, 19, 19, 0.88) 0%,
     rgba(21, 19, 19, 0.55) 45%,
     rgba(255, 87, 52, 0.35) 100%
   );
+  color: #f7f7f5;
+}
+
+/* Keep accent colors on hero CTAs */
+.cn-hero-gradient .cn-hero-accent {
+  color: var(--cn-orange);
+}
+
+.cn-hero-gradient .cn-hero-cta-primary {
+  color: #ffffff;
+}
+
+.cn-hero-lede {
+  max-width: 32rem;
+  margin-top: 1.75rem;
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: #6f6868;
+}
+
+@media (min-width: 640px) {
+  .cn-hero-lede {
+    margin-top: 2.125rem;
+    font-size: 0.9375rem;
+  }
+}
+
+.dark .cn-hero-lede {
+  color: rgba(247, 247, 245, 0.68);
 }

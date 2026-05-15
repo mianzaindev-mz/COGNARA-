@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { TopBarSearch } from "@/components/shared/top-bar-search";
+import { WelcomeBrand } from "@/components/shared/welcome-brand";
 
 const nav = [
   { href: "/dashboard", label: "Home", icon: IconGrid },
@@ -24,8 +26,9 @@ type StudentShellProps = {
   children: React.ReactNode;
 };
 
-export function StudentShell({ displayName, email, creditBalance, children }: StudentShellProps) {
+export function StudentShell({ displayName, email, creditBalance: _creditBalance, children }: StudentShellProps) {
   const pathname = usePathname();
+  const handle = email?.split("@")[0] ? `@${email.split("@")[0]}` : "@learner";
 
   return (
     <div className="flex min-h-screen bg-cn-canvas font-sans text-cn-ink">
@@ -79,55 +82,40 @@ export function StudentShell({ displayName, email, creditBalance, children }: St
 
       {/* Main column */}
       <div className="flex min-h-screen flex-1 flex-col pl-[4.5rem] sm:pl-[5.25rem]">
-        <header className="sticky top-0 z-20 border-b border-cn-border bg-cn-canvas/90 px-4 py-4 backdrop-blur-md sm:px-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-cn-ink-muted">
-                Welcome to{" "}
-                <span className="font-semibold text-cn-orange">COGNARA</span>
-              </p>
-              <p className="mt-0.5 text-xs text-cn-ink-subtle">{email}</p>
+        <header className="sticky top-0 z-20 border-b border-cn-border bg-cn-canvas/95 px-4 py-3 backdrop-blur-md sm:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3">
+            <div className="flex h-14 items-center gap-4 lg:gap-6">
+            <WelcomeBrand href="/dashboard" />
+            <div className="hidden min-w-0 flex-1 md:flex md:justify-center md:px-2">
+              <TopBarSearch className="max-w-2xl" placeholder="Search courses, lessons…" />
             </div>
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-3 sm:max-w-xl sm:flex-1">
-              <div className="relative flex min-w-[200px] flex-1 items-center rounded-full border border-cn-border bg-cn-surface pl-4 pr-1 shadow-sm sm:min-w-[280px]">
-                <span className="sr-only">Search</span>
-                <input
-                  type="search"
-                  placeholder="Search courses, lessons…"
-                  className="h-11 flex-1 bg-transparent text-sm text-cn-ink outline-none placeholder:text-cn-ink-subtle"
-                  readOnly
-                  aria-readonly
-                />
-                <button
-                  type="button"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cn-orange text-white shadow-md transition hover:bg-cn-orange-hover"
-                  aria-label="Search (coming soon)"
-                >
-                  <IconSearch className="h-4 w-4" />
-                </button>
-              </div>
-              <ThemeToggle />
+
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+              <ThemeToggle className="hidden sm:inline-flex" />
               <button
                 type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cn-border bg-cn-surface text-cn-ink-muted shadow-sm transition hover:text-cn-ink"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink"
                 aria-label="Notifications"
               >
                 <IconBell className="h-5 w-5" />
               </button>
               <Link
                 href="/profile"
-                className="flex items-center gap-2 rounded-2xl border border-cn-border bg-cn-surface py-1 pl-1 pr-3 shadow-sm transition hover:border-cn-orange/30"
+                className="flex max-w-[11rem] items-center gap-2.5 sm:max-w-none"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cn-lavender/35 text-sm font-bold text-cn-ink">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cn-lavender/40 text-sm font-bold text-cn-ink ring-2 ring-cn-surface">
                   {displayName.charAt(0).toUpperCase()}
                 </span>
-                <div className="hidden min-w-0 sm:block">
-                  <p className="truncate text-sm font-semibold text-cn-ink">{displayName}</p>
-                  <p className="truncate text-xs text-cn-ink-subtle">
-                    {creditBalance !== null ? `${creditBalance} AI credits` : "Learner"}
-                  </p>
-                </div>
+                <span className="hidden min-w-0 sm:block">
+                  <span className="block truncate text-sm font-bold text-cn-ink">{displayName}</span>
+                  <span className="block truncate text-xs text-cn-ink-subtle">{handle}</span>
+                </span>
               </Link>
+            </div>
+            </div>
+
+            <div className="pb-1 md:hidden">
+              <TopBarSearch placeholder="Search courses, lessons…" />
             </div>
           </div>
         </header>
@@ -222,7 +210,11 @@ function IconSearch({ className }: { className?: string }) {
 function IconBell({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.109V8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9a4.5 4.5 0 00-9 0v.75v.7m12 6.75v1a2.25 2.25 0 01-2.25 2.25h-13.5A2.25 2.25 0 014.5 18.75v-1m16.5-9.75V9a6 6 0 00-6-6v0a6 6 0 00-6 6v.75"
+      />
     </svg>
   );
 }

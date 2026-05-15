@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LandingHeroVisual } from "@/components/public/landing-hero-visual";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
 
 const stats = [
@@ -9,6 +10,8 @@ const stats = [
 ] as const;
 
 const paths = ["Computer Science", "Business", "Design", "Languages", "Data & AI"] as const;
+
+const avatarColors = ["#e85d2a", "#7c6cf0", "#2a9d8f", "#f4a261"] as const;
 
 const steps = [
   {
@@ -39,49 +42,66 @@ export default async function HomePage() {
 
   return (
     <div className="bg-cn-cream">
-      {/* Hero — EDUBRINK overlay + Learnify warmth */}
-      <section className="relative mx-4 mt-4 overflow-hidden rounded-[2rem] sm:mx-8">
-        <div
-          className="absolute inset-0 bg-[#151313]"
-          style={{
-            backgroundImage:
-              "linear-gradient(135deg, #151313 0%, #2a1f1a 40%, #ff5734 120%), radial-gradient(circle at 80% 20%, rgba(190,148,245,0.35), transparent 50%)",
-          }}
-        />
-        <div className="cn-hero-gradient relative px-6 py-16 sm:px-14 sm:py-24">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-cn-yellow">COGNARA™ · SDG 4</p>
-          <h1 className="mt-4 max-w-2xl text-4xl font-extrabold leading-[1.06] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Discover your ideal learning path —{" "}
-            <span className="text-cn-orange">today.</span>
-          </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
-            Warm dashboards inspired by Learnify. Bold discovery flows inspired by EDUBRINK. One platform for
-            students, coaches, and admins.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Link
-              href="/register"
-              className="inline-flex h-12 items-center rounded-full bg-cn-orange px-8 text-sm font-bold text-white shadow-lg shadow-cn-orange/30 transition hover:bg-cn-orange-hover"
-            >
-              Get started now
-            </Link>
-            <Link
-              href="/courses"
-              className="inline-flex h-12 items-center rounded-full border border-white/25 bg-white/10 px-8 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
-            >
-              Browse courses
-            </Link>
-          </div>
-          <div className="mt-12 flex flex-wrap gap-3">
-            {paths.map((p) => (
-              <span
-                key={p}
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white/90"
+      {/* Hero — split copy + visual */}
+      <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-8 sm:pt-14 lg:pb-12">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#b8860b] dark:text-cn-yellow">
+              COGNARA™ · SDG 4
+            </p>
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.08] tracking-tight text-cn-ink sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem]">
+              Discover your ideal learning path —{" "}
+              <span className="text-cn-orange">today.</span>
+            </h1>
+            <p className="cn-hero-lede mt-6 max-w-xl text-cn-ink-muted">
+              Warm dashboards inspired by Learnify. Bold discovery flows inspired by EDUBRINK. One platform for
+              students, coaches, and admins.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link
+                href="/register"
+                className="inline-flex h-12 items-center rounded-full bg-cn-orange px-8 text-sm font-bold text-white shadow-lg shadow-cn-orange/30 transition hover:bg-cn-orange-hover"
               >
-                {p}
-              </span>
-            ))}
+                Join now
+              </Link>
+              <Link
+                href="/courses"
+                className="inline-flex h-12 items-center rounded-full border-2 border-cn-border bg-cn-surface px-8 text-sm font-bold text-cn-ink transition hover:border-cn-orange/40 hover:text-cn-orange"
+              >
+                Learn more
+              </Link>
+            </div>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <div className="flex -space-x-2" aria-hidden>
+                {["A", "B", "C", "D"].map((initial, i) => (
+                  <span
+                    key={initial}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-cn-cream text-xs font-bold text-white"
+                    style={{ backgroundColor: avatarColors[i] }}
+                  >
+                    {initial}
+                  </span>
+                ))}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-cn-ink">Trusted by learners & coaches</p>
+                <p className="mt-0.5 text-xs text-cn-ink-subtle" aria-label="5 out of 5 stars">
+                  <span className="text-cn-orange">★★★★★</span> 4.9 · early access cohort
+                </p>
+              </div>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-2">
+              {paths.map((p) => (
+                <span
+                  key={p}
+                  className="rounded-full border border-cn-border bg-cn-surface px-3 py-1.5 text-xs font-semibold text-cn-ink-muted"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
           </div>
+          <LandingHeroVisual />
         </div>
       </section>
 

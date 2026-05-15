@@ -1,8 +1,10 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { applyThemeClass, applyThemeWithTransition } from "@/lib/theme/apply-theme";
+import type { Theme } from "@/lib/theme/types";
 
-export type Theme = "light" | "dark";
+export type { Theme };
 
 type ThemeContextValue = {
   theme: Theme;
@@ -14,14 +16,9 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = "cognara-theme";
 
-function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  root.classList.remove("light", "dark");
-  root.classList.add(theme);
-}
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
+
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
     const initial: Theme =
@@ -31,24 +28,26 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           ? "dark"
           : "light";
     setThemeState(initial);
-    applyTheme(initial);
+    applyThemeClass(initial);
+    document.documentElement.classList.add("theme-ready");
   }, []);
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
     localStorage.setItem(STORAGE_KEY, t);
-    applyTheme(t);
+    applyThemeWithTransition(t);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "light" ? "dark" : "light");
-  }, [theme, setTheme]);
+    setThemeState((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      localStorage.setItem(STORAGE_KEY, next);
+      applyThemeWithTransition(next);
+      return next;
+    });
+  }, []);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

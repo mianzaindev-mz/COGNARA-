@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Kodchasan, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Kodchasan, Source_Serif_4 } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
@@ -12,6 +12,12 @@ const kodchasan = Kodchasan({
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
+  weight: ["400", "500"],
+});
+
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-serif",
   weight: ["400", "500"],
 });
 
@@ -32,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light" suppressHydrationWarning>
       <body
-        className={`${kodchasan.variable} ${jetbrainsMono.variable} min-h-screen bg-cn-canvas font-sans text-cn-ink antialiased`}
+        className={`${kodchasan.variable} ${jetbrainsMono.variable} ${sourceSerif.variable} min-h-screen bg-cn-canvas font-sans text-cn-ink antialiased`}
       >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
