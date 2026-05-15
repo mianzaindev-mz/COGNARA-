@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export type LessonOutline = {
   id: string;
   title: string;
+  content: string | null;
   orderIndex: number;
   durationMins: number | null;
   type: string;
@@ -17,6 +18,7 @@ export type CourseLearnContext = {
   totalLessons: number;
   lessons: LessonOutline[];
   progressPct: number;
+  completedLessonIds: string[];
 };
 
 export const loadCourseLearnContext = cache(
@@ -44,24 +46,41 @@ export const loadCourseLearnContext = cache(
 
       const { data: lessons } = await supabase
         .from("lessons")
-        .select("id, title, order_index, duration_mins, type")
+        .select("id, title, content, order_index, duration_mins, type")
         .eq("course_id", course.id)
         .order("order_index", { ascending: true });
+
+      const lessonRows = lessons ?? [];
+      const lessonIds = lessonRows.map((l) => l.id);
+
+      let completedLessonIds: string[] = [];
+      if (lessonIds.length > 0) {
+        const { data: progress } = await supabase
+          .from("lesson_progress")
+          .select("lesson_id")
+          .eq("student_id", userId)
+          .eq("completed", true)
+          .in("lesson_id", lessonIds);
+
+        completedLessonIds = (progress ?? []).map((p) => p.lesson_id);
+      }
 
       return {
         courseId: course.id,
         title: course.title,
         slug: course.slug,
         category: course.category,
-        totalLessons: course.total_lessons ?? lessons?.length ?? 0,
-        lessons: (lessons ?? []).map((l) => ({
+        totalLessons: course.total_lessons ?? lessonRows.length,
+        lessons: lessonRows.map((l) => ({
           id: l.id,
           title: l.title,
+          content: l.content,
           orderIndex: l.order_index,
           durationMins: l.duration_mins,
           type: l.type ?? "text",
         })),
         progressPct: enrollment.progress_pct ?? 0,
+        completedLessonIds,
       };
     } catch {
       return null;

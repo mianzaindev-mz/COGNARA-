@@ -42,7 +42,11 @@ export function StudentShell({ displayName, email, creditBalance, children }: St
             const active =
               href === "/dashboard"
                 ? pathname === "/dashboard"
-                : pathname === href || pathname.startsWith(`${href}/`);
+                : href === "/my-courses"
+                  ? pathname === href ||
+                    pathname.startsWith(`${href}/`) ||
+                    pathname.startsWith("/learn")
+                  : pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}
