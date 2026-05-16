@@ -17,7 +17,7 @@ export function NotebookTextEditor({ initialContent, onChange }: Props) {
         heading: { levels: [1, 2, 3] },
         codeBlock: {
           HTMLAttributes: {
-            class: "rounded-xl bg-cn-sidebar p-4 font-mono text-sm text-emerald-400",
+            class: "rounded-xl bg-stone-800 dark:bg-stone-900 p-4 font-mono text-sm text-emerald-400",
           },
         },
       }),

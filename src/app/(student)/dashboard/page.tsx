@@ -169,7 +169,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="lg:col-span-2">
-          <div className="flex h-full min-h-[280px] flex-col justify-between rounded-[1.75rem] bg-cn-sidebar p-6 text-white shadow-[var(--cn-shadow-card)]">
+          <div className="flex h-full min-h-[280px] flex-col justify-between rounded-[1.75rem] bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 p-6 text-white shadow-[var(--cn-shadow-card)] dark:from-cn-sidebar dark:via-cn-sidebar dark:to-cn-sidebar">
             <div>
               <span className="inline-block rounded-full bg-cn-yellow px-3 py-1 text-xs font-bold text-cn-sidebar">
                 Spotlight

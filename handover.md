@@ -1,88 +1,72 @@
 # COGNARA™ — Project Handover
 
-**Session:** 12 (Make Everything Actually Work)  
+**Session:** 13 (Compiler Integration, Security Hardening & UI Polish)  
 **Date:** 2026-05-16  
 **Repository:** `C:\GitHub\COGNARA`
 
 ---
 
-## 1. What Session 12 Did
+## 1. What This Session Accomplished
 
-### Database Connected
-- `.env.local` configured with real Supabase credentials
-- Project: `xoiabprezvsmiadijgoz` (ap-south-1, Mumbai)
-- **NEXT STEP FOR USER**: Run `schema_bundle.sql` then `demo_seed.sql` in Supabase SQL Editor
-
-### Code Compiler — Switched to Piston API (FREE)
-- **Removed**: Judge0 (required paid RapidAPI key)
-- **Added**: [Piston API](https://emkc.org/api/v2/piston) — 100% free, no API key, 50+ languages
-- `lib/compiler/judge0.ts` — Complete rewrite: 18 languages with richer default code starters
+### ✅ Code Compiler — JDoodle Integration (FREE, 200/day)
+- **Replaced** volatile Piston/Wandbox APIs with **JDoodle** as the primary backend
+- **Fallback chain:** JDoodle → Judge0 CE (optional) → Wandbox → Mock (offline)
+- `lib/compiler/judge0.ts` — Multi-backend execution with 18 languages mapped
 - `api/compiler/route.ts` — Rate limited (20 req/min), input sanitized, security headers
-- All editor components updated: `JUDGE0_LANGUAGES` → `PISTON_LANGUAGES`
+- **Tested:** Python, JavaScript, Java — all returning real execution results
+- **Credentials:** `JDOODLE_CLIENT_ID` and `JDOODLE_CLIENT_SECRET` in `.env.local`
 
-### Security Hardening
-- **`lib/security/rate-limiter.ts`** — In-memory sliding window rate limiter
-  - `/api/agent`: 15 req/min per IP + per user
-  - `/api/compiler`: 20 req/min per IP
-  - Auth endpoints: 5 req/min per IP
-  - Auto-cleanup every 5 minutes (no memory leaks)
-- **`lib/security/sanitize.ts`** — Input protection
-  - XSS: strips script tags, event handlers, javascript: URLs
-  - Off-platform detection: phone numbers, WhatsApp/Telegram/Discord/email DMs
-  - Code sanitization with size limits
-  - UUID validation
-- **`middleware.ts`** — Security headers on ALL responses
-  - `X-Frame-Options: DENY` (prevents clickjacking)
-  - `X-Content-Type-Options: nosniff`
-  - `Strict-Transport-Security` (HSTS)
-  - `Permissions-Policy: microphone=(self)` (voice works, camera blocked)
+### ✅ AI Agent — Groq Connected
+- **Model:** `llama-3.3-70b-versatile` via Groq SDK
+- **Credentials:** `GROQ_API_KEY` active in `.env.local`
+- Credit system: 20 free daily credits, per-action costs (1–3 cr)
+- Fallback: built-in responses for variables, loops, functions, recursion
 
-### Agent API — Hardened
-- **Auth verification**: Reads Supabase session, uses real user ID (prevents ID spoofing)
-- **Dual rate limiting**: Per-IP AND per-user (prevents one user from burning limits)
-- **Input sanitization**: All messages and code sanitized before processing
-- **Security headers**: On every response
+### ✅ Database — Supabase Fully Initialized
+- Schema bundle (`schema_bundle.sql`) executed — 30+ tables with RLS policies
+- Demo seed (`demo_seed.sql`) executed — 3 courses, 9 lessons
+- Auth URL configuration: `http://localhost:3000` + callback redirect
+- Email confirmation disabled for local development
 
-### Voice Commands — Built
-- **`components/agent/VoiceButton.tsx`** — Native Web Speech API
-  - Speech-to-text: `webkitSpeechRecognition` (Chrome/Edge)
-  - Text-to-speech: `speechSynthesis` (all browsers)
-  - States: idle → listening (red pulse) → processing (spinner) → speaking (lavender)
-  - Live transcript overlay while speaking
-  - Auto-send after voice input
-  - Auto-read responses when "Voice" skill selected
-  - Zero external dependencies
+### ✅ Security Hardening
+- **Rate limiting:** 15 req/min (agent), 20 req/min (compiler), 5 req/min (auth)
+- **Input sanitization:** XSS stripping, off-platform detection, UUID validation
+- **Auth verification:** Server reads real Supabase session (prevents ID spoofing)
+- **Security headers:** HSTS, X-Frame-Options DENY, nosniff, Permissions-Policy
+- **Middleware:** Headers injected on every response
 
-### Feature Flags Updated
-- `SUPPORT_TICKETS: true` (page built)
-- `NOTIFICATIONS: true` (bell icon)
+### ✅ Voice Commands
+- `VoiceButton.tsx` — Native Web Speech API (zero dependencies)
+- States: idle → listening (red pulse) → processing → speaking (lavender)
+- Auto-send transcript, auto-read AI responses in voice mode
+
+### ✅ UI/UX Polish
+- **Expandable sidebar** — Supabase-style: icon-only by default, smoothly expands on hover to show labels (both Student & Coach portals)
+- **Auth layout** — Vertically centered content with logo, tagline, divider, steps
+- **Dark-on-light audit** — Fixed agent cards, spotlight, CTA, code blocks, tooltips
+- **Course cards** — Full dark mode variants with category-specific tints
+- **Database banner** — Dark mode support for success/warning states
 
 ---
 
-## 2. What the USER Needs To Do
+## 2. Environment Variables (`.env.local`)
 
-### Step 1: Run SQL in Supabase (2 minutes)
-1. Open Supabase Dashboard → SQL Editor
-2. Paste `docs/supabase/schema_bundle.sql` → Run
-3. Paste `docs/supabase/demo_seed.sql` → Run
-4. Go to Authentication → URL Configuration → Set:
-   - Site URL: `http://localhost:3000`
-   - Redirect URL: `http://localhost:3000/api/auth/callback`
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xoiabprezvsmiadijgoz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 
-### Step 2: Get Groq API Key (1 minute)
-1. Go to [console.groq.com](https://console.groq.com)
-2. Sign up → Create API Key
-3. Add to `.env.local`: `GROQ_API_KEY=gsk_xxxxxxxxxx`
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-### Step 3: Test
-```bash
-npm run dev
+# AI Agent (Groq)
+GROQ_API_KEY=<your-groq-key>
+
+# Code Compiler (JDoodle — FREE, 200/day)
+JDOODLE_CLIENT_ID=<your-client-id>
+JDOODLE_CLIENT_SECRET=<your-client-secret>
 ```
-1. Register → profile created in Supabase
-2. Go to `/editor` → write code → Run → see real output from Piston
-3. Go to `/agent` → ask anything → get AI response
-4. Click mic button → speak → see transcript → response spoken aloud
-5. Open `/notebook` → create note → formatting works
 
 ---
 
@@ -90,29 +74,30 @@ npm run dev
 
 | Layer | Protection |
 |-------|-----------|
-| Auth | Supabase JWT + RLS on all 30+ tables |
-| Rate Limiting | 15 req/min agent, 20 req/min compiler, 5 req/min auth |
+| Auth | Supabase JWT + RLS on 30+ tables |
+| Rate Limiting | Per-IP + per-user sliding window |
 | Input Sanitization | XSS strip, size limits, off-platform detection |
-| ID Spoofing | Server reads real session user ID, ignores client-sent ID |
-| Headers | HSTS, X-Frame DENY, nosniff, CSP permissions |
+| ID Spoofing | Server reads real session UID |
+| Headers | HSTS, X-Frame DENY, nosniff, CSP |
 | Database | RLS on every table, SECURITY DEFINER helpers |
-| API | Zod validation on all inputs, proper error responses |
-| Middleware | Security headers injected on every response |
+| API Validation | Zod schemas, proper error responses |
 
 ---
 
-## 4. Key Files (Session 12)
+## 4. Key Files
 
 | Path | Purpose |
 |------|---------|
-| `.env.local` | Supabase credentials (gitignored) |
-| `src/lib/compiler/judge0.ts` | Piston API client (free, 50+ langs) |
+| `src/lib/compiler/judge0.ts` | Multi-backend compiler (JDoodle/Judge0/Wandbox/Mock) |
 | `src/lib/security/rate-limiter.ts` | Sliding window rate limiter |
 | `src/lib/security/sanitize.ts` | XSS, off-platform, input sanitization |
 | `src/middleware.ts` | Security headers on all responses |
-| `src/app/api/compiler/route.ts` | Hardened compiler route |
-| `src/app/api/agent/route.ts` | Hardened agent route with auth |
+| `src/app/api/compiler/route.ts` | Hardened compiler API route |
+| `src/app/api/agent/route.ts` | Hardened agent API with auth |
 | `src/components/agent/VoiceButton.tsx` | Voice input/output (Web Speech API) |
+| `src/components/student/student-shell.tsx` | Expandable sidebar (Supabase-style) |
+| `src/components/coach/coach-shell.tsx` | Coach portal expandable sidebar |
+| `src/components/shared/sidebar-tooltip.tsx` | Shared tooltip component |
 
 ---
 
@@ -120,12 +105,28 @@ npm run dev
 
 | Check | Result |
 |-------|--------|
-| `npm run build` | ✅ Exit 0, all 51 routes |
+| `npm run build` | ✅ Exit 0, all routes compile |
 | Type errors | ✅ Zero |
-| Lint errors | ✅ Zero (5 pre-existing warnings from earlier sessions) |
-| Piston compiler | ✅ Ready (no key needed) |
-| Supabase connected | ✅ Keys in .env.local |
+| JDoodle compiler | ✅ Live (Python/JS/Java tested) |
+| Groq AI agent | ✅ Connected (llama-3.3-70b) |
+| Supabase DB | ✅ Schema + seed loaded |
+| Auth flow | ✅ Register → onboard → dashboard |
 | Rate limiting | ✅ Active on agent + compiler |
 | Security headers | ✅ On every response |
 
-*Next: User runs SQL + gets Groq key → full production functionality.*
+---
+
+## 6. How to Test
+
+```bash
+npm run dev
+```
+
+1. **Register** at `/register` → profile created in Supabase
+2. **Editor** at `/editor` → write code → Run → real output from JDoodle
+3. **Agent** at `/agent` → ask anything → AI response from Groq
+4. **Voice** → click mic → speak → transcript injected → response read aloud
+5. **Sidebar** → hover over left rail → labels expand smoothly
+6. **Theme** → toggle dark/light → all components adapt
+
+*All services are operational. Platform is ready for demonstration.*

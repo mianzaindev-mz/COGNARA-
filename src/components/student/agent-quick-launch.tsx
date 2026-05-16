@@ -20,7 +20,7 @@ export function AgentQuickLaunch({ creditLabel }: AgentQuickLaunchProps) {
 
   return (
     <section
-      className="rounded-[1.75rem] border border-cn-border bg-cn-sidebar p-6 text-white shadow-[var(--cn-shadow-card)]"
+      className="rounded-[1.75rem] border border-orange-200/60 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 p-6 text-white shadow-[var(--cn-shadow-card)] dark:border-cn-border dark:from-cn-sidebar dark:via-cn-sidebar dark:to-cn-sidebar"
       aria-labelledby="agent-quick-launch-heading"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

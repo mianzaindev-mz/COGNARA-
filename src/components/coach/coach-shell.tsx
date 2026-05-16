@@ -37,38 +37,50 @@ export function CoachShell({ displayName, email, isVerified, monthlyEarnings, ch
 
   return (
     <div className="flex min-h-screen bg-cn-canvas font-sans text-cn-ink">
-      {/* Sidebar */}
-      <aside className="fixed bottom-0 left-0 top-0 z-30 flex w-[4.5rem] flex-col border-r border-white/10 bg-cn-sidebar py-6 sm:w-[5.25rem]">
+      {/* Sidebar — expands on hover like Supabase */}
+      <aside className="group/sidebar fixed bottom-0 left-0 top-0 z-30 flex w-[4.5rem] flex-col border-r border-white/10 bg-cn-sidebar py-6 transition-[width] duration-300 ease-in-out hover:w-56 hover:shadow-2xl sm:w-[5.25rem]">
+        {/* Brand */}
         <Link
           href="/coach/dashboard"
-          className="mb-6 flex justify-center px-2 text-center text-[10px] font-bold uppercase leading-tight tracking-tight text-indigo-400"
-          title="COGNARA Coach"
+          className="mb-6 flex items-center gap-3 overflow-hidden px-5 text-indigo-400"
         >
-          CN
+          <span className="shrink-0 text-sm font-bold">CN</span>
+          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+            Coach
+          </span>
         </Link>
 
-        <nav className="flex flex-1 flex-col items-center gap-2 overflow-y-auto px-2 pb-4">
+        {/* Nav items */}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
           {nav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}
                 href={href}
-                title={label}
-                className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+                className={`flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
                   active
                     ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/25"
                     : "text-white/55 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+                  {label}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto flex flex-col items-center gap-3 px-2 pb-2">
-          <SignOutButton variant="icon" />
+        {/* Bottom */}
+        <div className="flex flex-col gap-1 px-3 pb-2">
+          <div className="flex h-11 items-center gap-3 rounded-xl px-3 text-white/55 transition-colors hover:bg-white/10 hover:text-white">
+            <SignOutButton variant="icon" />
+            <span className="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+              Sign out
+            </span>
+          </div>
         </div>
       </aside>
 

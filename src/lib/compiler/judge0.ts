@@ -2,31 +2,32 @@
  * Multi-backend code execution service.
  *
  * Priority:
- * 1. Judge0 CE (if JUDGE0_API_KEY is set — RapidAPI free tier, 50 req/day)
- * 2. Wandbox (free, no key needed, stable)
- * 3. Mock (offline fallback)
+ * 1. JDoodle (if JDOODLE_CLIENT_ID is set — free, 200 req/day, no credit card)
+ * 2. Judge0 CE (if JUDGE0_API_KEY is set — RapidAPI)
+ * 3. Wandbox (free, no key needed)
+ * 4. Mock (offline fallback)
  */
 
 /* ── Language map ────────────────────────────────────────── */
 export const PISTON_LANGUAGES = {
-  python: { label: "Python 3", ext: "py", monaco: "python", wandbox: "cpython-3.10.2", judge0Id: 71 },
-  javascript: { label: "JavaScript", ext: "js", monaco: "javascript", wandbox: "nodejs-16.14.0", judge0Id: 63 },
-  typescript: { label: "TypeScript", ext: "ts", monaco: "typescript", wandbox: "typescript-4.6.2", judge0Id: 74 },
-  java: { label: "Java", ext: "java", monaco: "java", wandbox: "openjdk-jdk-17.0.0+35", judge0Id: 62 },
-  c: { label: "C (GCC)", ext: "c", monaco: "c", wandbox: "gcc-12.1.0-c", judge0Id: 50 },
-  cpp: { label: "C++ (GCC)", ext: "cpp", monaco: "cpp", wandbox: "gcc-12.1.0", judge0Id: 54 },
-  csharp: { label: "C#", ext: "cs", monaco: "csharp", wandbox: "mono-6.12.0.122", judge0Id: 51 },
-  go: { label: "Go", ext: "go", monaco: "go", wandbox: "go-1.18", judge0Id: 60 },
-  rust: { label: "Rust", ext: "rs", monaco: "rust", wandbox: "rust-1.60.0", judge0Id: 73 },
-  ruby: { label: "Ruby", ext: "rb", monaco: "ruby", wandbox: "ruby-3.1.2", judge0Id: 72 },
-  php: { label: "PHP", ext: "php", monaco: "php", wandbox: "php-8.1.5", judge0Id: 68 },
-  swift: { label: "Swift", ext: "swift", monaco: "swift", wandbox: "swift-5.6.1", judge0Id: 83 },
-  kotlin: { label: "Kotlin", ext: "kt", monaco: "kotlin", wandbox: "kotlin-1.6.20", judge0Id: 78 },
-  bash: { label: "Bash", ext: "sh", monaco: "shell", wandbox: "bash", judge0Id: 46 },
-  lua: { label: "Lua", ext: "lua", monaco: "lua", wandbox: "lua-5.4.4", judge0Id: 64 },
-  r: { label: "R", ext: "r", monaco: "r", wandbox: null, judge0Id: 80 },
-  sql: { label: "SQL", ext: "sql", monaco: "sql", wandbox: null, judge0Id: 82 },
-  dart: { label: "Dart", ext: "dart", monaco: "dart", wandbox: null, judge0Id: 90 },
+  python: { label: "Python 3", ext: "py", monaco: "python", wandbox: "cpython-3.10.2", judge0Id: 71, jdoodle: "python3", jdoodleIdx: "4" },
+  javascript: { label: "JavaScript", ext: "js", monaco: "javascript", wandbox: "nodejs-16.14.0", judge0Id: 63, jdoodle: "nodejs", jdoodleIdx: "4" },
+  typescript: { label: "TypeScript", ext: "ts", monaco: "typescript", wandbox: "typescript-4.6.2", judge0Id: 74, jdoodle: "typescript", jdoodleIdx: "0" },
+  java: { label: "Java", ext: "java", monaco: "java", wandbox: "openjdk-jdk-17.0.0+35", judge0Id: 62, jdoodle: "java", jdoodleIdx: "4" },
+  c: { label: "C (GCC)", ext: "c", monaco: "c", wandbox: "gcc-12.1.0-c", judge0Id: 50, jdoodle: "c", jdoodleIdx: "5" },
+  cpp: { label: "C++ (GCC)", ext: "cpp", monaco: "cpp", wandbox: "gcc-12.1.0", judge0Id: 54, jdoodle: "cpp17", jdoodleIdx: "1" },
+  csharp: { label: "C#", ext: "cs", monaco: "csharp", wandbox: "mono-6.12.0.122", judge0Id: 51, jdoodle: "csharp", jdoodleIdx: "4" },
+  go: { label: "Go", ext: "go", monaco: "go", wandbox: "go-1.18", judge0Id: 60, jdoodle: "go", jdoodleIdx: "4" },
+  rust: { label: "Rust", ext: "rs", monaco: "rust", wandbox: "rust-1.60.0", judge0Id: 73, jdoodle: "rust", jdoodleIdx: "4" },
+  ruby: { label: "Ruby", ext: "rb", monaco: "ruby", wandbox: "ruby-3.1.2", judge0Id: 72, jdoodle: "ruby", jdoodleIdx: "4" },
+  php: { label: "PHP", ext: "php", monaco: "php", wandbox: "php-8.1.5", judge0Id: 68, jdoodle: "php", jdoodleIdx: "4" },
+  swift: { label: "Swift", ext: "swift", monaco: "swift", wandbox: "swift-5.6.1", judge0Id: 83, jdoodle: "swift", jdoodleIdx: "4" },
+  kotlin: { label: "Kotlin", ext: "kt", monaco: "kotlin", wandbox: "kotlin-1.6.20", judge0Id: 78, jdoodle: "kotlin", jdoodleIdx: "3" },
+  bash: { label: "Bash", ext: "sh", monaco: "shell", wandbox: "bash", judge0Id: 46, jdoodle: "bash", jdoodleIdx: "4" },
+  lua: { label: "Lua", ext: "lua", monaco: "lua", wandbox: "lua-5.4.4", judge0Id: 64, jdoodle: "lua", jdoodleIdx: "3" },
+  r: { label: "R", ext: "r", monaco: "r", wandbox: null, judge0Id: 80, jdoodle: "r", jdoodleIdx: "4" },
+  sql: { label: "SQL", ext: "sql", monaco: "sql", wandbox: null, judge0Id: 82, jdoodle: "sql", jdoodleIdx: "3" },
+  dart: { label: "Dart", ext: "dart", monaco: "dart", wandbox: null, judge0Id: 90, jdoodle: "dart", jdoodleIdx: "4" },
 } as const;
 
 export type LanguageKey = keyof typeof PISTON_LANGUAGES;
@@ -72,7 +73,18 @@ export async function executeCode(
   const langInfo = PISTON_LANGUAGES[language];
   if (!langInfo) throw new Error(`Unsupported language: ${language}`);
 
-  // 1. Try Judge0 CE if API key is configured
+  // 1. Try JDoodle (free, 200/day, no credit card)
+  const jdoodleId = process.env.JDOODLE_CLIENT_ID;
+  const jdoodleSecret = process.env.JDOODLE_CLIENT_SECRET;
+  if (jdoodleId && jdoodleSecret && langInfo.jdoodle) {
+    try {
+      return await executeViaJDoodle(langInfo.jdoodle, langInfo.jdoodleIdx, code, stdin, jdoodleId, jdoodleSecret);
+    } catch (err) {
+      console.warn("[Compiler] JDoodle failed, trying next:", err);
+    }
+  }
+
+  // 2. Try Judge0 CE if API key is configured
   const judge0Key = process.env.JUDGE0_API_KEY;
   if (judge0Key) {
     try {
@@ -82,7 +94,7 @@ export async function executeCode(
     }
   }
 
-  // 2. Try Wandbox (free, no key)
+  // 3. Try Wandbox (free, no key)
   if (langInfo.wandbox) {
     try {
       return await executeViaWandbox(langInfo.wandbox, code, stdin);
@@ -91,8 +103,68 @@ export async function executeCode(
     }
   }
 
-  // 3. Fallback: mock execution
+  // 4. Fallback: mock execution
   return mockExecution(language, code, stdin);
+}
+
+/* ── JDoodle backend (free, 200/day, no credit card) ─────── */
+
+async function executeViaJDoodle(
+  language: string,
+  versionIndex: string,
+  code: string,
+  stdin: string | undefined,
+  clientId: string,
+  clientSecret: string,
+): Promise<ExecutionResult> {
+  const startTime = Date.now();
+
+  const res = await fetch("https://api.jdoodle.com/v1/execute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      clientId,
+      clientSecret,
+      script: code,
+      language,
+      versionIndex,
+      stdin: stdin || "",
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`JDoodle ${res.status}: ${await res.text()}`);
+  }
+
+  const data = await res.json();
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(3);
+
+  if (data.error) {
+    throw new Error(data.error);
+  }
+
+  const output = data.output?.trim() || "";
+  const hasError = data.statusCode !== 200 && data.statusCode !== undefined;
+
+  // JDoodle puts compile errors in the output field
+  const isCompileError = output.includes("error:") && output.includes(":");
+
+  return {
+    stdout: isCompileError ? null : (output || null),
+    stderr: null,
+    compile_output: isCompileError ? output : null,
+    status: {
+      id: isCompileError ? 6 : hasError ? 11 : 3,
+      description: isCompileError
+        ? "Compilation Error"
+        : hasError
+          ? "Runtime Error"
+          : "Accepted",
+    },
+    time: data.cpuTime?.toString() || elapsed,
+    memory: data.memory ? parseInt(data.memory) : null,
+  };
 }
 
 /* ── Wandbox backend (free, no key) ──────────────────────── */

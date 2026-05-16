@@ -65,7 +65,7 @@ function renderMarkdown(text: string): string {
   return (
     text
       // Code blocks
-      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="rounded-xl bg-cn-sidebar p-3 text-sm overflow-x-auto"><code class="text-emerald-400">$2</code></pre>')
+      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="rounded-xl bg-stone-800 dark:bg-stone-900 p-3 text-sm overflow-x-auto"><code class="text-emerald-400">$2</code></pre>')
       // Inline code
       .replace(/`([^`]+)`/g, '<code class="rounded bg-cn-border/50 px-1.5 py-0.5 text-xs font-mono text-cn-orange">$1</code>')
       // Headers

@@ -203,7 +203,7 @@ export default async function HomePage() {
 
       {/* CTA — Learnify spotlight */}
       <section className="mx-4 mb-16 sm:mx-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 rounded-[2rem] bg-cn-sidebar px-8 py-12 text-center text-white sm:flex-row sm:text-left">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 rounded-[2rem] bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 px-8 py-12 text-center text-white dark:from-cn-sidebar dark:via-cn-sidebar dark:to-cn-sidebar sm:flex-row sm:text-left">
           <div>
             <span className="rounded-full bg-cn-yellow px-3 py-1 text-xs font-bold text-cn-sidebar">
               New on COGNARA

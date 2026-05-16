@@ -201,7 +201,7 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
 
       {/* Live transcript overlay */}
       {state === "listening" && transcript && (
-        <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-xl bg-cn-sidebar px-3 py-1.5 text-xs text-white shadow-lg">
+        <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-xl bg-stone-800 dark:bg-stone-900 px-3 py-1.5 text-xs text-white shadow-lg">
           {transcript}
           <span className="animate-pulse">▋</span>
         </div>
