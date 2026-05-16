@@ -1,59 +1,53 @@
 # COGNARA™ — Project Handover
 
-**Session:** 9 (Coach Portal + Admin Portal + UI Components)  
-**Date:** 2026-05-15  
+**Session:** 10 (Code Editor + AI Agent + Digital Notebook)  
+**Date:** 2026-05-16  
 **Repository:** `C:\GitHub\COGNARA`
 
 ---
 
-## 1. What this session did (Session 9)
+## 1. What this session did (Session 10)
 
-### Coach Portal — Full Build (was a stub)
+### Code Editor — Full Build (was a stub)
 
-- **`CoachShell`** — premium sidebar layout with indigo accent, verification badge, earnings display in topbar, sign-out button
-- **`coach/layout.tsx`** — auth guard (role = coach OR admin), loads profile + verification status
-- **`coach/dashboard`** — 5 stat cards (Students, Active, Earnings, Rating, Completion), AI Coach Agent tools panel (PDF→Course, Generate Quiz, Analyze Students), 30-day earnings bar chart, performance multiplier breakdown with progress bars, course performance table, recent student activity feed
-- **`coach/courses`** — course card grid with stats (students, lessons, rating), completion bars, price display, status badges
-- **`coach/students`** — full student roster table with avatar initials, progress bars, scores, last-active timestamps, status badges (active/inactive/at-risk/completed)
-- **`coach/earnings`** — stat cards, monthly revenue chart, **live earnings calculator** (shows exact breakdown: price → platform fee → Stripe → net), transaction history
-- **`coach/analytics`** — completion funnel chart, lesson-by-lesson retention chart, stat cards (retention, completion, quiz scores, agent quality)
-- **`coach/verification`** — 4-step wizard with progress bar, document upload zones (degree, certificate, govt ID), AI pre-screening info panel
-- **`coach/quizzes`** — quiz builder page with AI Generate + Create Quiz buttons, empty state
-- **`coach/settings`** — profile form, Stripe Connect setup, notification toggles
-- **`coach/support`** — support page with empty state + create ticket
+- **`lib/compiler/judge0.ts`** — Judge0 CE API client with 18 language mappings (Python, JS, TS, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Kotlin, R, SQL, Bash, Dart, Lua), default code starters per language, mock execution fallback when API key is absent
+- **`api/compiler/route.ts`** — POST endpoint with Zod input validation (language, code, stdin), proxies to Judge0
+- **`components/editor/CodeEditor.tsx`** — Full Monaco wrapper: language selector, run button, stdin toggle, reset, dark theme, bracket pair colorization, smooth caret animation
+- **`components/editor/OutputPanel.tsx`** — stdout (emerald green), stderr (red), compile output (yellow), execution time + memory display, running spinner animation
+- **`components/editor/LanguageSelector.tsx`** — styled dropdown for all 18 languages
+- **`(student)/editor/page.tsx`** — replaced stub with full Code Lab page, "Unlimited runs — always free" badge
 
-### Admin Portal — Full Build (was a stub)
+### AI Agent System — Full Build (was a stub)
 
-- **`AdminShell`** — always-dark sidebar, rose accent, LIVE badge, platform health indicators (DB/AI/Pay pulse dots)
-- **`admin/layout.tsx`** — strict admin-only role guard
-- **`admin/dashboard`** — 5 platform health stat cards (Users, Active Today, MRR, Tickets, Uptime), 30-day revenue chart, verification queue with AI confidence scores + Review buttons, security events feed (color-coded critical/high/medium/low), platform health indicators (5 services)
-- **`admin/users`** — user management table with avatar, role badges, status badges, export CSV
-- **`admin/coaches`** — verification queue cards with AI confidence progress bars, approve/reject/view-docs actions
-- **`admin/courses`** — course moderation table with feature/unfeature actions
-- **`admin/security`** — audit log (action/user/target/IP), off-platform attempt detection alerts
-- **`admin/support`** — ticket table with priority/status badges, ticket IDs
-- **`admin/reports`** — user growth chart, revenue breakdown chart, top coaches leaderboard
-- **`admin/settings`** — feature flag toggles (8 flags), maintenance mode button
+- **`lib/ai/credit-check.ts`** — Credit cost table (ask=1, debug=2, quiz=3, voice=1/min, coach tools=0), `checkAndDeductCredits()` with Supabase balance check, transaction logging, graceful fallback
+- **`lib/ai/memory.ts`** — `loadStudentMemory()` reads agent_memory table (weak/strong topics, learning style, sessions), `updateStudentMemory()` merges new insights, `buildSystemPrompt()` injects full student context into every agent call
+- **`lib/ai/master-agent.ts`** — Router: checks credits → loads memory → routes to skill agent → updates memory. Maps skills to credit actions
+- **`lib/ai/agents/teach-agent.ts`** — Uses Groq API (llama-3.3-70b-versatile) for concept explanations. Fallback generates rich educational responses for variables, loops, functions, recursion with code examples and comprehension checks
+- **`lib/ai/agents/code-agent.ts`** — Debug skill: analyzes code with Groq, identifies bugs, shows fixes. Fallback provides basic static analysis hints (missing parens, colons)
+- **`api/agent/route.ts`** — POST endpoint with Zod validation (skill, message, studentId, context, code, language, error)
+- **`components/agent/AgentPanel.tsx`** — Full chat UI: 6-skill selector with cost labels, message history, typing indicator (bouncing dots), suggestion chips ("Explain recursion", "What are closures?"), credit balance display, Shift+Enter multiline
+- **`components/agent/AgentMessage.tsx`** — Message bubble with inline markdown rendering (headers, code blocks, bold, lists), skill badge, credit cost display
+- **`components/agent/CreditDisplay.tsx`** — Color-coded balance (green/yellow/red), "Top up" prompt when empty
+- **`(student)/agent/page.tsx`** — replaced stub, loads studentId + credits from Supabase, "7 skills · Autonomous" badge
 
-### Shared UI Components (new)
+### Digital Notebook — Full Build (was a stub)
 
-- **`stat-card.tsx`** — reusable stat card with 9 accent colors, trend indicators, hover animations, icon slots
-- **`badge.tsx`** — status badges with 7 variants + optional status dot
-- **`progress-bar.tsx`** — animated progress bar with 6 colors, 3 sizes, optional label
-- **`chart-bar.tsx`** — CSS-only bar chart (no external dependency), hover values, customizable height/color
-- **`data-table.tsx`** — typed generic data table with sorted columns, empty state, row click
-- **`empty-state.tsx`** — centered empty state with icon, title, description, action slot
-- **`format.ts`** — currency, number, compact, percent, relative date, truncate utilities
+- **`components/notebook/NotebookTextEditor.tsx`** — TipTap rich text editor with full toolbar: H1/H2/H3, bold, italic, strikethrough, highlight, bullet list, ordered list, code blocks, blockquote, horizontal rule, undo/redo. All custom SVG toolbar icons
+- **`(student)/notebook/page.tsx`** — replaced stub with notebook manager: sidebar list, create/delete notebooks, inline title editing, demo notebooks (Python Basics, Data Structures, Algorithm Notes), responsive mobile layout
+
+### Packages Added
+
+- `@monaco-editor/react` — VS Code editor component
+- `groq-sdk` — Groq API for AI agent (Llama 3.3 70B)
+- `@tiptap/react` + `@tiptap/starter-kit` + extensions — Rich text editor
 
 ---
 
-## 2. Session 8 recap (still valid)
+## 2. Previous sessions recap (still valid)
 
-- Lesson progress wired to Supabase (`markLessonComplete` server action)
-- Learn viewer loads `lessons.content`, shows checkmarks in curriculum sidebar
-- `/progress` — real enrollment breakdown with progress bars
-- `/courses` — category-tinted cards; logged-in users get **Enroll free**; enrolled users see **Open course**
-- Dashboard: filterable course grid, **My next lessons** from real data
+- Session 9: Coach portal (full), Admin portal (full), shared UI components
+- Session 8: Lesson progress wired to Supabase, learn viewer, enrollment, public catalog
+- Sessions 1-7: Auth, DB schema, landing page, student shell, theme system, legal pages
 
 ---
 
@@ -69,20 +63,22 @@
 | Learn viewer UI + mark complete | Done (Session 8) |
 | Public catalog + enroll (free) | Done (Session 8) |
 | Light/dark theme, marketing, legal, setup | Done |
-| **Coach Portal — full shell + all pages** | **Done (Session 9)** |
-| **Admin Portal — full shell + all pages** | **Done (Session 9)** |
-| **Shared UI component library** | **Done (Session 9)** |
+| Coach Portal — full shell + all pages | Done (Session 9) |
+| Admin Portal — full shell + all pages | Done (Session 9) |
+| Shared UI component library | Done (Session 9) |
+| **Code Editor — Monaco + Judge0** | **Done (Session 10)** |
+| **AI Agent — multi-skill, credits, memory** | **Done (Session 10)** |
+| **Digital Notebook — TipTap rich text** | **Done (Session 10)** |
 
 ### Not done (backlog)
 
 | Area | Notes |
 |------|-------|
 | **Mux video** | Player placeholder; wire `mux_playback_id` |
-| **Stripe** | Checkout, webhooks |
-| **AI agent** | Tools, credits debit, streaming |
-| **Code lab** | Monaco + Judge0 |
-| **Certificates** | PDF + verification |
+| **Stripe** | Checkout, webhooks, billing page |
+| **Certificates** | PDF generation + verification page |
 | **Deploy** | Vercel production |
+| **Remaining agent skills** | PDF→Quiz, Voice, Path, Support agents |
 
 ---
 
@@ -91,41 +87,39 @@
 ```bash
 npm install
 # .env.local: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_APP_URL
+# Optional: GROQ_API_KEY (for real AI responses), JUDGE0_API_KEY (for real code execution)
 npm run dev
 ```
 
 1. Apply `docs/supabase/schema_bundle.sql` in Supabase SQL editor.
-2. Run `docs/supabase/demo_seed.sql` (uncomment enrollment + your user UUID).
-3. Open **http://localhost:3000** → register → **My courses** or **/courses** → enroll → **Mark lesson complete**.
-4. Coach portal at **/coach/dashboard** (requires `role = coach` or `admin`).
-5. Admin portal at **/admin/dashboard** (requires `role = admin`).
-
-Toggle light/dark via sun/moon in headers.
+2. Run `docs/supabase/demo_seed.sql`.
+3. Open **http://localhost:3000** → register → student portal.
+4. **Code Lab** at `/editor` — write Python, run, see output.
+5. **AI Agent** at `/agent` — ask questions, get AI responses with credit tracking.
+6. **Notebook** at `/notebook` — create notebooks, rich text editing.
 
 ---
 
-## 5. Key files (Session 9)
+## 5. Key files (Session 10)
 
 | Path | Purpose |
 |------|---------|
-| `src/components/coach/coach-shell.tsx` | Coach sidebar + topbar shell |
-| `src/app/coach/layout.tsx` | Coach auth guard + shell wrapper |
-| `src/app/coach/dashboard/page.tsx` | Full coach dashboard |
-| `src/app/coach/courses/page.tsx` | Course management cards |
-| `src/app/coach/students/page.tsx` | Student roster table |
-| `src/app/coach/earnings/page.tsx` | Earnings + calculator |
-| `src/app/coach/analytics/page.tsx` | Funnel + retention charts |
-| `src/app/coach/verification/page.tsx` | 4-step verification wizard |
-| `src/components/admin/admin-shell.tsx` | Admin sidebar + topbar shell |
-| `src/app/admin/layout.tsx` | Admin auth guard |
-| `src/app/admin/dashboard/page.tsx` | Full admin dashboard |
-| `src/app/admin/users/page.tsx` | User management table |
-| `src/app/admin/coaches/page.tsx` | Verification queue |
-| `src/app/admin/security/page.tsx` | Audit log + off-platform |
-| `src/components/ui/stat-card.tsx` | Reusable stat card |
-| `src/components/ui/badge.tsx` | Status badges |
-| `src/components/ui/progress-bar.tsx` | Progress bars |
-| `src/components/ui/chart-bar.tsx` | CSS-only bar charts |
+| `src/lib/compiler/judge0.ts` | Judge0 client + 18 language mappings + mock |
+| `src/app/api/compiler/route.ts` | Code execution API endpoint |
+| `src/components/editor/CodeEditor.tsx` | Monaco editor + toolbar + output |
+| `src/components/editor/OutputPanel.tsx` | Color-coded execution output |
+| `src/components/editor/LanguageSelector.tsx` | Language dropdown |
+| `src/lib/ai/master-agent.ts` | Agent router (credit check → skill → memory) |
+| `src/lib/ai/memory.ts` | Student memory load/save + system prompt |
+| `src/lib/ai/credit-check.ts` | Credit cost table + deduction |
+| `src/lib/ai/agents/teach-agent.ts` | Teach skill (Groq + fallback) |
+| `src/lib/ai/agents/code-agent.ts` | Debug skill (Groq + fallback) |
+| `src/app/api/agent/route.ts` | Agent API endpoint |
+| `src/components/agent/AgentPanel.tsx` | Full agent chat UI |
+| `src/components/agent/AgentMessage.tsx` | Markdown message bubbles |
+| `src/components/agent/CreditDisplay.tsx` | Credit balance display |
+| `src/components/notebook/NotebookTextEditor.tsx` | TipTap editor + toolbar |
+| `src/app/(student)/notebook/page.tsx` | Notebook manager page |
 
 ---
 
@@ -134,9 +128,14 @@ Toggle light/dark via sun/moon in headers.
 | Check | Result |
 |-------|--------|
 | `npm run build` | ✅ Exit code 0, all routes compiled |
-| Coach portal | All 9 sub-pages render |
-| Admin portal | All 8 sub-pages render |
+| `/editor` compiles | ✅ 7.6 kB |
+| `/agent` compiles | ✅ 3.4 kB |
+| `/notebook` compiles | ✅ 119 kB (TipTap bundle) |
+| `/api/agent` compiles | ✅ |
+| `/api/compiler` compiles | ✅ |
+| Auth guard | ✅ Redirects to /login without session |
+| Dev server | ✅ All routes return 200 |
 
 ---
 
-*Next: Mux player, code editor (Monaco + Judge0), AI agent system, Stripe checkout, certificates.*
+*Next: Remaining agent skills (PDF→Quiz, Voice, Path), Stripe checkout, certificates, Vercel deploy.*
