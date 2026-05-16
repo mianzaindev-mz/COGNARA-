@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import { AgentMessage } from "./AgentMessage";
 import { CreditDisplay } from "./CreditDisplay";
+import { VoiceButton } from "./VoiceButton";
 import type { AgentSkill } from "@/lib/ai/master-agent";
 
 type Message = {
@@ -34,6 +35,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
   const [skill, setSkill] = useState<AgentSkill>("teach");
   const [isLoading, setIsLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(initialCredits);
+  const [lastResponse, setLastResponse] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -86,6 +88,10 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
       setMessages((prev) => [...prev, assistantMsg]);
       if (data.creditsRemaining !== undefined) {
         setCredits(data.creditsRemaining);
+      }
+      // Auto-speak response if voice skill is active
+      if (skill === "voice") {
+        setLastResponse(data.content?.replace(/[#*`_~>\[\]]/g, "").slice(0, 500) ?? null);
       }
     } catch (err) {
       const errorMsg: Message = {
@@ -225,7 +231,20 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
             rows={1}
             className="min-h-[2.5rem] max-h-32 flex-1 resize-none rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink placeholder:text-cn-ink-subtle/50 focus:border-cn-orange focus:outline-none focus:ring-2 focus:ring-cn-orange/20"
           />
+          <VoiceButton
+            onTranscript={(text) => {
+              setInput(text);
+              // Auto-send after voice input
+              setTimeout(() => {
+                const sendBtn = document.getElementById("agent-send-btn");
+                sendBtn?.click();
+              }, 100);
+            }}
+            speakText={skill === "voice" ? lastResponse : null}
+            disabled={isLoading}
+          />
           <button
+            id="agent-send-btn"
             type="button"
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}

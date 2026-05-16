@@ -1,8 +1,8 @@
 "use client";
 
-import { JUDGE0_LANGUAGES, type LanguageKey } from "@/lib/compiler/judge0";
+import { PISTON_LANGUAGES, type LanguageKey } from "@/lib/compiler/judge0";
 
-const languages = Object.entries(JUDGE0_LANGUAGES).map(([key, val]) => ({
+const languages = Object.entries(PISTON_LANGUAGES).map(([key, val]) => ({
   key: key as LanguageKey,
   label: val.label,
 }));

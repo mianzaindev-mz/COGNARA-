@@ -6,7 +6,7 @@ import type { editor as MonacoEditor } from "monaco-editor";
 import { LanguageSelector } from "./LanguageSelector";
 import { OutputPanel } from "./OutputPanel";
 import {
-  JUDGE0_LANGUAGES,
+  PISTON_LANGUAGES,
   DEFAULT_CODE,
   type LanguageKey,
   type ExecutionResult,
@@ -141,7 +141,7 @@ export function CodeEditorFull() {
         <div className="min-h-0 flex-1">
           <Editor
             height="100%"
-            language={JUDGE0_LANGUAGES[language].monaco}
+            language={PISTON_LANGUAGES[language].monaco}
             value={code}
             onChange={(v) => setCode(v ?? "")}
             onMount={handleMount}
