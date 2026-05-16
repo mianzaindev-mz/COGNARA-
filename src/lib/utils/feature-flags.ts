@@ -14,8 +14,8 @@ export const FEATURES = {
   RATINGS_REVIEWS: true,
   PAYMENTS_STRIPE: false,
   CERTIFICATES: true,
-  NOTIFICATIONS: false,
-  SUPPORT_TICKETS: false,
+  NOTIFICATIONS: true,
+  SUPPORT_TICKETS: true,
   COACH_VERIFICATION: true,
   GAMIFICATION: true,
 

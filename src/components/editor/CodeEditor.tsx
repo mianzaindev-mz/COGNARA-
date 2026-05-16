@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
 import { LanguageSelector } from "./LanguageSelector";
@@ -21,6 +21,18 @@ export function CodeEditorFull() {
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
+
+  // Ctrl+Enter to run
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleRun();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
 
   const handleMount: OnMount = (editor) => {
     editorRef.current = editor;
@@ -70,7 +82,7 @@ export function CodeEditorFull() {
   }, [language]);
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] flex-col gap-4 lg:flex-row">
+    <div className="relative flex h-[calc(100vh-10rem)] flex-col gap-4 lg:flex-row">
       {/* Left: Editor */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cn-border bg-cn-surface shadow-[var(--cn-shadow-card)]">
         {/* Toolbar */}
@@ -134,6 +146,12 @@ export function CodeEditorFull() {
             onChange={(v) => setCode(v ?? "")}
             onMount={handleMount}
             theme="vs-dark"
+            loading={
+              <div className="flex h-full flex-col items-center justify-center gap-3 bg-[#1e1e1e]">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-cn-orange" />
+                <p className="text-sm text-white/40">Loading editor…</p>
+              </div>
+            }
             options={{
               fontSize: 14,
               fontFamily: "var(--font-mono), 'JetBrains Mono', 'Fira Code', monospace",
@@ -157,6 +175,11 @@ export function CodeEditorFull() {
       {/* Right: Output */}
       <div className="flex min-h-[200px] flex-col lg:w-[38%] lg:min-h-0">
         <OutputPanel result={result} isRunning={isRunning} error={error} />
+      </div>
+
+      {/* Keyboard shortcut hint */}
+      <div className="absolute bottom-2 left-2 hidden text-[10px] text-cn-ink-subtle lg:block">
+        Ctrl+Enter to run
       </div>
     </div>
   );
