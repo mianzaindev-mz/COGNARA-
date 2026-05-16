@@ -32,9 +32,9 @@ const steps = [
 ] as const;
 
 const cardTints = [
-  "from-[#fff4d6] to-[#ffe8b8] border-cn-yellow/40",
-  "from-cn-lavender/40 to-cn-lavender/10 border-cn-lavender/35",
-  "from-cn-sky/50 to-cn-sky/20 border-sky-200/50",
+  "from-amber-100 to-amber-50 dark:from-amber-950/60 dark:to-amber-900/30 border-amber-200/50 dark:border-amber-700/40",
+  "from-violet-100 to-violet-50 dark:from-violet-950/60 dark:to-violet-900/30 border-violet-200/50 dark:border-violet-700/40",
+  "from-teal-100 to-teal-50 dark:from-teal-950/60 dark:to-teal-900/30 border-teal-200/50 dark:border-teal-700/40",
 ] as const;
 
 export default async function HomePage() {
