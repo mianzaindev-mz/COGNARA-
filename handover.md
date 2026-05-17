@@ -2,63 +2,64 @@
 
 **Session:** 14 (Fix, Refine & Polish Everything)  
 **Date:** 2026-05-17  
-**Repository:** `C:\GitHub\COGNARA`
+**Build:** ✅ Exit 0 — zero type errors
 
 ---
 
 ## 1. What Session 14 Did
 
 ### Admin Panel — Full Light Mode Fix
-- **Rewrote `admin-shell.tsx`** — theme-aware header/main (`bg-cn-canvas`, `text-cn-ink`, `border-cn-border`), sidebar stays dark
-- **Fixed all 8 admin pages** — replaced hardcoded dark colors (`bg-[#111112]`, `text-white`, `text-neutral-*`) with theme tokens
-- Pages fixed: dashboard, users, coaches, courses, reports, security, settings, support
+- Rewrote `admin-shell.tsx` with theme-aware header/main and Supabase-style expandable sidebar
+- Fixed **all 8 admin pages** — replaced `bg-[#111112]`, `text-white`, `text-neutral-*` with theme tokens
+- Fixed straggling `hover:bg-white/*`, `divide-white/*` patterns
 
-### Supabase-Style Expandable Sidebars
-- **All 3 portals** (Student, Coach, Admin) now have expandable sidebars
-- Desktop: icon-only (5.25rem) → hover expands to 14rem with labels
-- Smooth 300ms width transition with label fade-in
-- CSS-only (group/sidebar + transition), no JavaScript state needed for expand
-
-### Mobile Hamburger Sidebar
-- **All 3 shells** now have full mobile support
-- Desktop (`md+`): fixed expandable sidebar
-- Mobile (`<md`): sidebar hidden, hamburger button in header
-- Tap hamburger → full-width overlay sidebar with backdrop blur
-- Tap nav item or backdrop → auto-closes
-- Labels always visible on mobile (no hover needed)
+### Mobile Hamburger Sidebar — All 3 Portals
+- Desktop (`md+`): fixed expandable sidebar, icon-only → hover expands with labels
+- Mobile (`<md`): sidebar hidden, hamburger button in header → overlay with backdrop blur
+- Auto-closes on nav item click or backdrop tap
+- Labels always visible on mobile (no hover needed on touch)
 
 ### Sign-Out Button — Sidebar Variant
-- Added `variant="sidebar"` to `SignOutButton` component
-- Renders just the icon (no bg/border/sizing) for sidebar integration
-- All 3 shells updated from `variant="icon"` to `variant="sidebar"`
+- Added `variant="sidebar"` — renders just the icon (no bg/border) for sidebar integration
+- All 3 shells updated to use `variant="sidebar"`
+
+### Coach Portal — Wired to Supabase
+- `coach/courses/page.tsx` — queries `courses` table filtered by `coach_id`, with empty state
+- `coach/dashboard/page.tsx` — Course Performance table reads from real DB
+
+### Demo Seed Data — Enriched
+- **6 courses** (Python, React, Data Science, Creative Writing, Illustration, Public Speaking)
+- **30 lessons** across all courses (5-6 per course)
+- Enrollment template with pre-set progress values
+
+### Loading Skeletons
+- Student dashboard, my-courses, coach dashboard, admin dashboard
+- All use `animate-pulse` with theme-aware `bg-cn-border` shimmer
 
 ### Cleanup
-- Removed unused `sidebar-tooltip.tsx` (replaced by expandable sidebar)
-- Removed all hardcoded `hover:bg-white/15` patterns from admin pages
+- Removed unused `sidebar-tooltip.tsx`
+- Removed all hardcoded dark patterns from admin
 
 ---
 
 ## 2. Complete Platform Status
 
-### Working End-to-End (Live Data)
-- ✅ User registration → onboarding → dashboard
-- ✅ Course enrollment → lesson progress tracking
-- ✅ Code execution (JDoodle, 200 free/day, 18 languages)
-- ✅ AI tutoring (Groq llama-3.3-70b, credit system)
-- ✅ Voice commands (Web Speech API)
-- ✅ Rich text notebook (TipTap)
-- ✅ Dark/Light theme across all portals
-- ✅ Mobile responsive with hamburger sidebar
-- ✅ Security: rate limiting, XSS protection, HSTS, RLS
-
-### Visual UI (Hardcoded Demo Data)
-- 🟡 Coach: courses, students, analytics, earnings
-- 🟡 Admin: users, coaches, reports, security events
-- 🟡 Quiz builder, Certificates, Peer study
+| Area | Status | Details |
+|------|--------|---------|
+| Student Portal (15 pages) | ✅ **Fully functional** | Real DB, AI, compiler, voice |
+| Coach Portal (9 pages) | 🟡 **Dashboard + courses wired** | Others still visual UI |
+| Admin Panel (8 pages) | 🟡 **Visual UI, light mode fixed** | Hardcoded demo data |
+| Auth (7 pages) | ✅ **Live** | Email + OAuth, redirect, verify |
+| Public (3 pages) | ✅ **Live** | Landing, pricing, legal |
+| API (3 endpoints) | ✅ **Live** | Agent, compiler, auth callback |
+| Security | ✅ **Active** | Rate limiting, XSS, HSTS, RLS |
+| Mobile | ✅ **Responsive** | Hamburger sidebar all portals |
+| Theme | ✅ **Both modes** | Dark/light across all pages |
+| Loading states | ✅ **Skeletons** | 4 key dashboards |
 
 ---
 
-## 3. Environment Variables (`.env.local`)
+## 3. Environment Variables
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xoiabprezvsmiadijgoz.supabase.co
@@ -72,49 +73,30 @@ JDOODLE_CLIENT_SECRET=<jdoodle-client-secret>
 
 ---
 
-## 4. Build Status
+## 4. Files Changed (Session 14)
 
-| Check | Result |
-|-------|--------|
-| `npm run build` | ✅ Exit 0, all routes compile |
-| Type errors | ✅ Zero |
-| Admin light mode | ✅ All 8 pages fixed |
-| Mobile sidebar | ✅ All 3 portals |
-| Expandable sidebar | ✅ All 3 portals |
-| JDoodle compiler | ✅ Live |
-| Groq AI agent | ✅ Connected |
-| Supabase DB | ✅ Schema + seed |
-
----
-
-## 5. Key Files Changed (Session 14)
-
-| Path | Change |
+| File | Change |
 |------|--------|
-| `src/components/admin/admin-shell.tsx` | Theme-aware + expandable + mobile hamburger |
-| `src/components/student/student-shell.tsx` | Mobile hamburger sidebar overlay |
-| `src/components/coach/coach-shell.tsx` | Mobile hamburger sidebar overlay |
-| `src/components/auth/sign-out-button.tsx` | Added `sidebar` variant |
-| `src/app/admin/*/page.tsx` (8 files) | Light mode fix — all theme tokens |
-| `src/components/shared/sidebar-tooltip.tsx` | Deleted (replaced by expandable sidebar) |
+| `components/admin/admin-shell.tsx` | Rewrite: theme-aware + expandable + mobile |
+| `components/student/student-shell.tsx` | Rewrite: mobile hamburger overlay |
+| `components/coach/coach-shell.tsx` | Rewrite: mobile hamburger overlay |
+| `components/auth/sign-out-button.tsx` | Added `sidebar` variant |
+| `app/admin/*/page.tsx` (8 files) | Light mode fix |
+| `app/coach/courses/page.tsx` | Wired to Supabase |
+| `app/coach/dashboard/page.tsx` | Course table from real DB |
+| `docs/supabase/demo_seed.sql` | 6 courses, 30 lessons |
+| `app/(student)/dashboard/loading.tsx` | **New** — skeleton |
+| `app/(student)/my-courses/loading.tsx` | **New** — skeleton |
+| `app/coach/dashboard/loading.tsx` | **New** — skeleton |
+| `app/admin/dashboard/loading.tsx` | **New** — skeleton |
+| `components/shared/sidebar-tooltip.tsx` | **Deleted** |
 
 ---
 
-## 6. Codebase Metrics
+## 5. Next Steps
 
-- **143 source files** · **10,711 lines** of TypeScript/React
-- **37 pages** + 3 API endpoints + middleware
-- **30+ database tables** with RLS
-- **Build size:** ~142KB shared JS + ~190KB per page
-
----
-
-## 7. Next Steps
-
-1. **Deploy to Vercel** for a live demo URL
-2. **Wire coach courses** to real Supabase data
-3. **Add loading skeletons** to dashboard/courses
-4. **Seed more demo data** for populated demos
-5. **Add working search** to top bar
-
-*Platform is pitch-ready for student portal demos.*
+1. **Deploy to Vercel** — `npx vercel` for live URL
+2. **Run updated seed** — Execute new `demo_seed.sql` in Supabase SQL Editor
+3. **Wire remaining coach pages** — students, analytics, earnings
+4. **Add fulltext search** — Supabase `tsvector` index + search API
+5. **Stripe integration** — For real billing/credits
