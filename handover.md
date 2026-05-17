@@ -1,132 +1,120 @@
 # COGNARA™ — Project Handover
 
-**Session:** 13 (Compiler Integration, Security Hardening & UI Polish)  
-**Date:** 2026-05-16  
+**Session:** 14 (Fix, Refine & Polish Everything)  
+**Date:** 2026-05-17  
 **Repository:** `C:\GitHub\COGNARA`
 
 ---
 
-## 1. What This Session Accomplished
+## 1. What Session 14 Did
 
-### ✅ Code Compiler — JDoodle Integration (FREE, 200/day)
-- **Replaced** volatile Piston/Wandbox APIs with **JDoodle** as the primary backend
-- **Fallback chain:** JDoodle → Judge0 CE (optional) → Wandbox → Mock (offline)
-- `lib/compiler/judge0.ts` — Multi-backend execution with 18 languages mapped
-- `api/compiler/route.ts` — Rate limited (20 req/min), input sanitized, security headers
-- **Tested:** Python, JavaScript, Java — all returning real execution results
-- **Credentials:** `JDOODLE_CLIENT_ID` and `JDOODLE_CLIENT_SECRET` in `.env.local`
+### Admin Panel — Full Light Mode Fix
+- **Rewrote `admin-shell.tsx`** — theme-aware header/main (`bg-cn-canvas`, `text-cn-ink`, `border-cn-border`), sidebar stays dark
+- **Fixed all 8 admin pages** — replaced hardcoded dark colors (`bg-[#111112]`, `text-white`, `text-neutral-*`) with theme tokens
+- Pages fixed: dashboard, users, coaches, courses, reports, security, settings, support
 
-### ✅ AI Agent — Groq Connected
-- **Model:** `llama-3.3-70b-versatile` via Groq SDK
-- **Credentials:** `GROQ_API_KEY` active in `.env.local`
-- Credit system: 20 free daily credits, per-action costs (1–3 cr)
-- Fallback: built-in responses for variables, loops, functions, recursion
+### Supabase-Style Expandable Sidebars
+- **All 3 portals** (Student, Coach, Admin) now have expandable sidebars
+- Desktop: icon-only (5.25rem) → hover expands to 14rem with labels
+- Smooth 300ms width transition with label fade-in
+- CSS-only (group/sidebar + transition), no JavaScript state needed for expand
 
-### ✅ Database — Supabase Fully Initialized
-- Schema bundle (`schema_bundle.sql`) executed — 30+ tables with RLS policies
-- Demo seed (`demo_seed.sql`) executed — 3 courses, 9 lessons
-- Auth URL configuration: `http://localhost:3000` + callback redirect
-- Email confirmation disabled for local development
+### Mobile Hamburger Sidebar
+- **All 3 shells** now have full mobile support
+- Desktop (`md+`): fixed expandable sidebar
+- Mobile (`<md`): sidebar hidden, hamburger button in header
+- Tap hamburger → full-width overlay sidebar with backdrop blur
+- Tap nav item or backdrop → auto-closes
+- Labels always visible on mobile (no hover needed)
 
-### ✅ Security Hardening
-- **Rate limiting:** 15 req/min (agent), 20 req/min (compiler), 5 req/min (auth)
-- **Input sanitization:** XSS stripping, off-platform detection, UUID validation
-- **Auth verification:** Server reads real Supabase session (prevents ID spoofing)
-- **Security headers:** HSTS, X-Frame-Options DENY, nosniff, Permissions-Policy
-- **Middleware:** Headers injected on every response
+### Sign-Out Button — Sidebar Variant
+- Added `variant="sidebar"` to `SignOutButton` component
+- Renders just the icon (no bg/border/sizing) for sidebar integration
+- All 3 shells updated from `variant="icon"` to `variant="sidebar"`
 
-### ✅ Voice Commands
-- `VoiceButton.tsx` — Native Web Speech API (zero dependencies)
-- States: idle → listening (red pulse) → processing → speaking (lavender)
-- Auto-send transcript, auto-read AI responses in voice mode
-
-### ✅ UI/UX Polish
-- **Expandable sidebar** — Supabase-style: icon-only by default, smoothly expands on hover to show labels (both Student & Coach portals)
-- **Auth layout** — Vertically centered content with logo, tagline, divider, steps
-- **Dark-on-light audit** — Fixed agent cards, spotlight, CTA, code blocks, tooltips
-- **Course cards** — Full dark mode variants with category-specific tints
-- **Database banner** — Dark mode support for success/warning states
+### Cleanup
+- Removed unused `sidebar-tooltip.tsx` (replaced by expandable sidebar)
+- Removed all hardcoded `hover:bg-white/15` patterns from admin pages
 
 ---
 
-## 2. Environment Variables (`.env.local`)
+## 2. Complete Platform Status
+
+### Working End-to-End (Live Data)
+- ✅ User registration → onboarding → dashboard
+- ✅ Course enrollment → lesson progress tracking
+- ✅ Code execution (JDoodle, 200 free/day, 18 languages)
+- ✅ AI tutoring (Groq llama-3.3-70b, credit system)
+- ✅ Voice commands (Web Speech API)
+- ✅ Rich text notebook (TipTap)
+- ✅ Dark/Light theme across all portals
+- ✅ Mobile responsive with hamburger sidebar
+- ✅ Security: rate limiting, XSS protection, HSTS, RLS
+
+### Visual UI (Hardcoded Demo Data)
+- 🟡 Coach: courses, students, analytics, earnings
+- 🟡 Admin: users, coaches, reports, security events
+- 🟡 Quiz builder, Certificates, Peer study
+
+---
+
+## 3. Environment Variables (`.env.local`)
 
 ```env
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xoiabprezvsmiadijgoz.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
-
-# App
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# AI Agent (Groq)
-GROQ_API_KEY=<your-groq-key>
-
-# Code Compiler (JDoodle — FREE, 200/day)
-JDOODLE_CLIENT_ID=<your-client-id>
-JDOODLE_CLIENT_SECRET=<your-client-secret>
+GROQ_API_KEY=<groq-key>
+JDOODLE_CLIENT_ID=<jdoodle-client-id>
+JDOODLE_CLIENT_SECRET=<jdoodle-client-secret>
 ```
 
 ---
 
-## 3. Security Audit Summary
-
-| Layer | Protection |
-|-------|-----------|
-| Auth | Supabase JWT + RLS on 30+ tables |
-| Rate Limiting | Per-IP + per-user sliding window |
-| Input Sanitization | XSS strip, size limits, off-platform detection |
-| ID Spoofing | Server reads real session UID |
-| Headers | HSTS, X-Frame DENY, nosniff, CSP |
-| Database | RLS on every table, SECURITY DEFINER helpers |
-| API Validation | Zod schemas, proper error responses |
-
----
-
-## 4. Key Files
-
-| Path | Purpose |
-|------|---------|
-| `src/lib/compiler/judge0.ts` | Multi-backend compiler (JDoodle/Judge0/Wandbox/Mock) |
-| `src/lib/security/rate-limiter.ts` | Sliding window rate limiter |
-| `src/lib/security/sanitize.ts` | XSS, off-platform, input sanitization |
-| `src/middleware.ts` | Security headers on all responses |
-| `src/app/api/compiler/route.ts` | Hardened compiler API route |
-| `src/app/api/agent/route.ts` | Hardened agent API with auth |
-| `src/components/agent/VoiceButton.tsx` | Voice input/output (Web Speech API) |
-| `src/components/student/student-shell.tsx` | Expandable sidebar (Supabase-style) |
-| `src/components/coach/coach-shell.tsx` | Coach portal expandable sidebar |
-| `src/components/shared/sidebar-tooltip.tsx` | Shared tooltip component |
-
----
-
-## 5. Build Status
+## 4. Build Status
 
 | Check | Result |
 |-------|--------|
 | `npm run build` | ✅ Exit 0, all routes compile |
 | Type errors | ✅ Zero |
-| JDoodle compiler | ✅ Live (Python/JS/Java tested) |
-| Groq AI agent | ✅ Connected (llama-3.3-70b) |
-| Supabase DB | ✅ Schema + seed loaded |
-| Auth flow | ✅ Register → onboard → dashboard |
-| Rate limiting | ✅ Active on agent + compiler |
-| Security headers | ✅ On every response |
+| Admin light mode | ✅ All 8 pages fixed |
+| Mobile sidebar | ✅ All 3 portals |
+| Expandable sidebar | ✅ All 3 portals |
+| JDoodle compiler | ✅ Live |
+| Groq AI agent | ✅ Connected |
+| Supabase DB | ✅ Schema + seed |
 
 ---
 
-## 6. How to Test
+## 5. Key Files Changed (Session 14)
 
-```bash
-npm run dev
-```
+| Path | Change |
+|------|--------|
+| `src/components/admin/admin-shell.tsx` | Theme-aware + expandable + mobile hamburger |
+| `src/components/student/student-shell.tsx` | Mobile hamburger sidebar overlay |
+| `src/components/coach/coach-shell.tsx` | Mobile hamburger sidebar overlay |
+| `src/components/auth/sign-out-button.tsx` | Added `sidebar` variant |
+| `src/app/admin/*/page.tsx` (8 files) | Light mode fix — all theme tokens |
+| `src/components/shared/sidebar-tooltip.tsx` | Deleted (replaced by expandable sidebar) |
 
-1. **Register** at `/register` → profile created in Supabase
-2. **Editor** at `/editor` → write code → Run → real output from JDoodle
-3. **Agent** at `/agent` → ask anything → AI response from Groq
-4. **Voice** → click mic → speak → transcript injected → response read aloud
-5. **Sidebar** → hover over left rail → labels expand smoothly
-6. **Theme** → toggle dark/light → all components adapt
+---
 
-*All services are operational. Platform is ready for demonstration.*
+## 6. Codebase Metrics
+
+- **143 source files** · **10,711 lines** of TypeScript/React
+- **37 pages** + 3 API endpoints + middleware
+- **30+ database tables** with RLS
+- **Build size:** ~142KB shared JS + ~190KB per page
+
+---
+
+## 7. Next Steps
+
+1. **Deploy to Vercel** for a live demo URL
+2. **Wire coach courses** to real Supabase data
+3. **Add loading skeletons** to dashboard/courses
+4. **Seed more demo data** for populated demos
+5. **Add working search** to top bar
+
+*Platform is pitch-ready for student portal demos.*

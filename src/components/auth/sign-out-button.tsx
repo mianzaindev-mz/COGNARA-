@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 type SignOutButtonProps = {
   className?: string;
   /** Compact icon control for dense sidebars (e.g. student shell). */
-  variant?: "default" | "icon";
+  variant?: "default" | "icon" | "sidebar";
 };
 
 export function SignOutButton({ className, variant = "default" }: SignOutButtonProps) {
@@ -26,12 +26,17 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
   const iconBase =
     "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white";
 
+  const sidebarBase =
+    "inline-flex h-5 w-5 shrink-0 items-center justify-center text-current";
+
   const mergedClass =
     variant === "icon"
       ? [iconBase, className].filter(Boolean).join(" ")
-      : className
-        ? `${base} ${className}`
-        : base;
+      : variant === "sidebar"
+        ? [sidebarBase, className].filter(Boolean).join(" ")
+        : className
+          ? `${base} ${className}`
+          : base;
 
   return (
     <button
@@ -41,7 +46,7 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
       aria-label="Sign out"
       title="Sign out"
     >
-      {variant === "icon" ? (
+      {variant === "icon" || variant === "sidebar" ? (
         <svg
           className="h-5 w-5"
           fill="none"

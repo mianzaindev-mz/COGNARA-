@@ -26,12 +26,6 @@ const earningsData = [
   { label: "28", value: 30 }, { label: "29", value: 52 }, { label: "30", value: 43 },
 ];
 
-const mockCourses = [
-  { title: "Python for Beginners", students: 124, completion: 78, rating: 4.8, revenue: 1248.50, status: "published" as const },
-  { title: "Web Dev with React", students: 89, completion: 65, rating: 4.6, revenue: 891.20, status: "published" as const },
-  { title: "Data Science Fundamentals", students: 45, completion: 42, rating: 4.9, revenue: 445.80, status: "draft" as const },
-];
-
 const recentActivity = [
   { text: "Ahmed completed Lesson 4 of Python Basics", time: "2m ago", type: "completion" },
   { text: "Sara scored 92% on your Variables Quiz", time: "15m ago", type: "quiz" },
@@ -61,6 +55,22 @@ export default async function CoachDashboardPage() {
     .select("full_name, is_verified")
     .eq("id", user.id)
     .maybeSingle();
+
+  // Fetch coach's courses for the performance table
+  const { data: courses } = await supabase
+    .from("courses")
+    .select("title, total_enrolled, avg_rating, price_usd, is_published")
+    .eq("coach_id", user.id)
+    .order("total_enrolled", { ascending: false })
+    .limit(5);
+
+  const coachCourses = (courses ?? []).map(c => ({
+    title: c.title,
+    students: c.total_enrolled ?? 0,
+    rating: Number(c.avg_rating) || 0,
+    revenue: (c.total_enrolled ?? 0) * Number(c.price_usd || 0),
+    status: c.is_published ? ("published" as const) : ("draft" as const),
+  }));
 
   const firstName = profile?.full_name?.split(/\s+/)[0] || user.email?.split("@")[0] || "Coach";
 
@@ -225,25 +235,22 @@ export default async function CoachDashboardPage() {
               <tr className="bg-cn-canvas/50">
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Course</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Students</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Completion</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Rating</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Revenue</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-cn-border">
-              {mockCourses.map(c => (
+              {coachCourses.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-cn-ink-muted">No courses yet — create your first course to see performance data.</td>
+                </tr>
+              ) : coachCourses.map(c => (
                 <tr key={c.title} className="hover:bg-cn-canvas/60 transition-colors">
                   <td className="px-6 py-4 font-semibold text-cn-ink">{c.title}</td>
                   <td className="px-4 py-4 text-cn-ink-muted">{c.students}</td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <ProgressBar value={c.completion} size="sm" color="emerald" />
-                      <span className="text-xs font-semibold text-cn-ink-muted tabular-nums">{c.completion}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-cn-ink-muted">{c.rating} ★</td>
-                  <td className="px-4 py-4 font-semibold text-cn-ink">${c.revenue.toFixed(2)}</td>
+                  <td className="px-4 py-4 text-cn-ink-muted">{c.rating > 0 ? `${c.rating.toFixed(1)} ★` : "—"}</td>
+                  <td className="px-4 py-4 font-semibold text-cn-ink">{c.revenue > 0 ? `$${c.revenue.toFixed(2)}` : "Free"}</td>
                   <td className="px-4 py-4">
                     <Badge variant={c.status === "published" ? "success" : "warning"} dot>
                       {c.status}

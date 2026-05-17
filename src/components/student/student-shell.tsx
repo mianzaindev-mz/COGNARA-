@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -29,18 +30,27 @@ type StudentShellProps = {
 export function StudentShell({ displayName, email, creditBalance: _creditBalance, children }: StudentShellProps) {
   const pathname = usePathname();
   const handle = email?.split("@")[0] ? `@${email.split("@")[0]}` : "@learner";
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  return (
-    <div className="flex min-h-screen bg-cn-canvas font-sans text-cn-ink">
-      {/* Sidebar — expands on hover like Supabase */}
-      <aside className="group/sidebar fixed bottom-0 left-0 top-0 z-30 flex w-[4.5rem] flex-col border-r border-white/10 bg-cn-sidebar py-6 transition-[width] duration-300 ease-in-out hover:w-56 hover:shadow-2xl sm:w-[5.25rem]">
+  function isActive(href: string) {
+    if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === "/my-courses")
+      return pathname === href || pathname.startsWith(`${href}/`) || pathname.startsWith("/learn");
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  /* ---- Shared sidebar content ---- */
+  function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+    return (
+      <>
         {/* Brand */}
         <Link
           href="/"
+          onClick={onNavigate}
           className="mb-6 flex items-center gap-3 overflow-hidden px-5 text-cn-orange"
         >
           <span className="shrink-0 text-sm font-bold">CN</span>
-          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
             COGNARA
           </span>
         </Link>
@@ -48,18 +58,12 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
         {/* Nav items */}
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
           {nav.map(({ href, label, icon: Icon }) => {
-            const active =
-              href === "/dashboard"
-                ? pathname === "/dashboard"
-                : href === "/my-courses"
-                  ? pathname === href ||
-                    pathname.startsWith(`${href}/`) ||
-                    pathname.startsWith("/learn")
-                  : pathname === href || pathname.startsWith(`${href}/`);
+            const active = isActive(href);
             return (
               <Link
                 key={href}
                 href={href}
+                onClick={onNavigate}
                 className={`flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
                   active
                     ? "bg-cn-yellow text-cn-sidebar shadow-sm"
@@ -67,7 +71,7 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+                <span className="whitespace-nowrap text-sm font-medium md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
                   {label}
                 </span>
               </Link>
@@ -79,6 +83,7 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
         <div className="flex flex-col gap-1 px-3 pb-2">
           <Link
             href="/billing"
+            onClick={onNavigate}
             className={`flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
               pathname.startsWith("/billing")
                 ? "bg-cn-yellow text-cn-sidebar"
@@ -86,51 +91,85 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
             }`}
           >
             <IconCard className="h-5 w-5 shrink-0" />
-            <span className="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+            <span className="whitespace-nowrap text-sm font-medium md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
               Billing
             </span>
           </Link>
           <div className="flex h-11 items-center gap-3 rounded-xl px-3 text-white/55 transition-colors hover:bg-white/10 hover:text-white">
-            <SignOutButton variant="icon" />
-            <span className="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
+            <SignOutButton variant="sidebar" />
+            <span className="whitespace-nowrap text-sm font-medium md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
               Sign out
             </span>
           </div>
         </div>
+      </>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen bg-cn-canvas font-sans text-cn-ink">
+      {/* Desktop sidebar — expandable on hover */}
+      <aside className="group/sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-[5.25rem] flex-col border-r border-white/10 bg-cn-sidebar py-6 transition-[width] duration-300 ease-in-out hover:w-56 hover:shadow-2xl md:flex">
+        <SidebarContent />
       </aside>
 
-      {/* Main column — offset by collapsed sidebar width */}
-      <div className="flex min-h-screen flex-1 flex-col pl-[4.5rem] sm:pl-[5.25rem]">
+      {/* Mobile sidebar — overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <aside
+            className="absolute bottom-0 left-0 top-0 flex w-64 flex-col bg-cn-sidebar py-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SidebarContent onNavigate={() => setMobileOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      {/* Main column */}
+      <div className="flex min-h-screen flex-1 flex-col md:pl-[5.25rem]">
         <header className="sticky top-0 z-20 border-b border-cn-border bg-cn-canvas/95 px-4 py-3 backdrop-blur-md sm:px-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-3">
             <div className="flex h-14 items-center gap-4 lg:gap-6">
-            <WelcomeBrand href="/dashboard" />
-            <div className="hidden min-w-0 flex-1 md:flex md:justify-center md:px-2">
-              <TopBarSearch className="max-w-2xl" placeholder="Search courses, lessons…" />
-            </div>
-
-            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-              <ThemeToggle className="hidden sm:inline-flex" />
+              {/* Mobile hamburger */}
               <button
                 type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink"
-                aria-label="Notifications"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink md:hidden"
+                onClick={() => setMobileOpen(true)}
+                aria-label="Open menu"
               >
-                <IconBell className="h-5 w-5" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
               </button>
-              <Link
-                href="/profile"
-                className="flex max-w-[11rem] items-center gap-2.5 sm:max-w-none"
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cn-lavender/40 text-sm font-bold text-cn-ink ring-2 ring-cn-surface">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
-                <span className="hidden min-w-0 sm:block">
-                  <span className="block truncate text-sm font-bold text-cn-ink">{displayName}</span>
-                  <span className="block truncate text-xs text-cn-ink-subtle">{handle}</span>
-                </span>
-              </Link>
-            </div>
+
+              <WelcomeBrand href="/dashboard" />
+              <div className="hidden min-w-0 flex-1 md:flex md:justify-center md:px-2">
+                <TopBarSearch className="max-w-2xl" placeholder="Search courses, lessons…" />
+              </div>
+
+              <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+                <ThemeToggle className="hidden sm:inline-flex" />
+                <button
+                  type="button"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink"
+                  aria-label="Notifications"
+                >
+                  <IconBell className="h-5 w-5" />
+                </button>
+                <Link
+                  href="/profile"
+                  className="flex max-w-[11rem] items-center gap-2.5 sm:max-w-none"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cn-lavender/40 text-sm font-bold text-cn-ink ring-2 ring-cn-surface">
+                    {displayName.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="hidden min-w-0 sm:block">
+                    <span className="block truncate text-sm font-bold text-cn-ink">{displayName}</span>
+                    <span className="block truncate text-xs text-cn-ink-subtle">{handle}</span>
+                  </span>
+                </Link>
+              </div>
             </div>
 
             <div className="pb-1 md:hidden">
@@ -144,6 +183,8 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
     </div>
   );
 }
+
+/* ── Icons ───────────────────────────────────── */
 
 function IconGrid({ className }: { className?: string }) {
   return (
@@ -196,7 +237,7 @@ function IconQuiz({ className }: { className?: string }) {
 function IconUsers({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.433-2.367M18 14a2.25 2.25 0 11-4.5 0m4.5 0a2.25 2.25 0 10-4.5 0M6.75 9a3.75 3.75 0 116 2.652M6.75 9a3.75 3.75 0 10-6 2.652m0 0a3 3 0 105.25 2.382A3 3 0 006.75 9z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.433-2.367M18 14a2.25 2.25 0 11-4.5 0m4.5 0a2.25 2.25 0 10-4.5 0M6.75 9a3.75 3.75 0 116 2.652M6.75 9a3.75 3.25 0 10-6 2.652m0 0a3 3 0 105.25 2.382A3 3 0 006.75 9z" />
     </svg>
   );
 }
@@ -214,14 +255,6 @@ function IconCard({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-    </svg>
-  );
-}
-
-function IconSearch({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
     </svg>
   );
 }
