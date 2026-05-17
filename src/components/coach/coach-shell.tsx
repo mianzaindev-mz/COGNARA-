@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 const nav = [
   { href: "/coach/dashboard", label: "Dashboard", icon: IconGrid },
@@ -35,9 +36,9 @@ export function CoachShell({ displayName, email, isVerified, monthlyEarnings, ch
   function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     return (
       <>
-        <Link href="/coach/dashboard" onClick={onNavigate} className="mb-6 flex items-center gap-3 overflow-hidden px-5 text-indigo-400">
-          <span className="shrink-0 text-sm font-bold">CN</span>
-          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">Coach</span>
+        <Link href="/coach/dashboard" onClick={onNavigate} className="mb-6 flex items-center gap-3 overflow-hidden px-4">
+          <CognaraLogo variant="icon" size={28} />
+          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider text-white md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">Coach</span>
         </Link>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">

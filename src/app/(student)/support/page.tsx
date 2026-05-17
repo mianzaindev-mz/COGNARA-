@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const CATEGORIES = ["billing", "technical", "course_issue", "account", "verification", "abuse_report", "other"] as const;
 
@@ -9,10 +10,36 @@ export default function SupportPage() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error("Unable to connect");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("You must be logged in");
+
+      const { error: insertError } = await supabase.from("support_tickets").insert({
+        user_id: user.id,
+        category,
+        subject: subject.trim(),
+        message: message.trim(),
+        status: "open",
+      });
+
+      if (insertError) throw new Error(insertError.message);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -28,7 +55,7 @@ export default function SupportPage() {
           </p>
           <button
             type="button"
-            onClick={() => { setSubmitted(false); setSubject(""); setMessage(""); }}
+            onClick={() => { setSubmitted(false); setSubject(""); setMessage(""); setError(null); }}
             className="mt-6 rounded-xl bg-cn-orange px-4 py-2 text-sm font-bold text-white transition hover:bg-cn-orange-hover"
           >
             Submit Another Ticket
@@ -47,7 +74,13 @@ export default function SupportPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mx-auto w-full max-w-lg space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="mx-auto w-full max-w-lg space-y-4">
+        {error && (
+          <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-600 dark:text-rose-400">
+            {error}
+          </div>
+        )}
+
         <div>
           <label htmlFor="support-category" className="mb-1.5 block text-sm font-semibold text-cn-ink">Category</label>
           <select
@@ -92,10 +125,10 @@ export default function SupportPage() {
 
         <button
           type="submit"
-          disabled={!subject.trim() || !message.trim()}
+          disabled={!subject.trim() || !message.trim() || loading}
           className="w-full rounded-xl bg-cn-orange py-3 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50"
         >
-          Submit Ticket
+          {loading ? "Submitting…" : "Submit Ticket"}
         </button>
       </form>
     </div>

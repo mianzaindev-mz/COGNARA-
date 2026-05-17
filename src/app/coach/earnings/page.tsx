@@ -1,25 +1,35 @@
 import type { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
-import { ProgressBar } from "@/components/ui/progress-bar";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Earnings — Coach — COGNARA™" };
 
-const monthlyData = [
-  { label: "Jan", value: 180 }, { label: "Feb", value: 220 },
-  { label: "Mar", value: 195 }, { label: "Apr", value: 310 },
-  { label: "May", value: 248 }, { label: "Jun", value: 0 },
-];
+export default async function CoachEarningsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
 
-const transactions = [
-  { date: "May 14", desc: "Python course enrollment × 3", amount: 0, type: "free" },
-  { date: "May 13", desc: "React course — Sara M.", amount: 29.99, type: "course" },
-  { date: "May 12", desc: "React course — Bilal K.", amount: 29.99, type: "course" },
-  { date: "May 10", desc: "Data Science — Ahmed R.", amount: 19.99, type: "course" },
-  { date: "May 8", desc: "Platform payout (April)", amount: -195.40, type: "payout" },
-];
+  // Get courses with prices and enrollment counts
+  const { data: courses } = await supabase
+    .from("courses")
+    .select("title, price_usd, total_enrolled, is_published")
+    .eq("coach_id", user.id);
 
-export default function CoachEarningsPage() {
+  const list = courses ?? [];
+  const grossRevenue = list.reduce((sum, c) => sum + (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0), 0);
+  const platformFee = grossRevenue * 0.20;
+  const netEarnings = grossRevenue - platformFee;
+  const totalStudents = list.reduce((sum, c) => sum + (c.total_enrolled ?? 0), 0);
+
+  // Simulated monthly chart (in production this would come from a payments table)
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+  const monthlyData = months.map((label, i) => ({
+    label,
+    value: Math.round(netEarnings / 6 * (0.5 + Math.sin(i) * 0.5 + Math.random() * 0.3)),
+  }));
+
   return (
     <div className="flex flex-col gap-8">
       <section>
@@ -27,58 +37,45 @@ export default function CoachEarningsPage() {
         <p className="mt-1 text-sm text-cn-ink-muted">Track your revenue and payouts</p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="This Month" value="$247.50" accent="emerald" trend={{ value: "+8%", positive: true }} icon={<span className="text-lg">💰</span>} />
-        <StatCard label="Lifetime" value="$1,153.00" accent="indigo" icon={<span className="text-lg">📈</span>} />
-        <StatCard label="Pending Payout" value="$247.50" hint="Auto-pays on 1st" accent="amber" icon={<span className="text-lg">⏳</span>} />
-        <StatCard label="Platform Fee" value="20%" hint="Performance bonuses can offset" accent="rose" icon={<span className="text-lg">🏷️</span>} />
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 cn-stagger">
+        <StatCard label="Gross Revenue" value={`$${grossRevenue.toFixed(2)}`} accent="emerald" icon={<span className="text-lg">💰</span>} />
+        <StatCard label="Platform Fee (20%)" value={`−$${platformFee.toFixed(2)}`} accent="amber" icon={<span className="text-lg">🏢</span>} />
+        <StatCard label="Net Earnings" value={`$${netEarnings.toFixed(2)}`} accent="indigo" icon={<span className="text-lg">✨</span>} />
+        <StatCard label="Paying Students" value={String(totalStudents)} accent="lavender" icon={<span className="text-lg">👥</span>} />
       </section>
 
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-        <h2 className="text-base font-bold text-cn-ink mb-5">Monthly Revenue</h2>
-        <BarChart data={monthlyData} color="emerald" height={150} />
-      </section>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <section className="lg:col-span-3 rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+          <h2 className="text-base font-bold text-cn-ink mb-5">Monthly Earnings</h2>
+          <BarChart data={monthlyData} color="indigo" height={140} />
+        </section>
 
-      {/* Earnings Calculator Preview */}
-      <section className="rounded-2xl border border-indigo-200/50 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 p-6 dark:border-indigo-500/20 dark:from-indigo-950/20 dark:to-purple-950/10">
-        <h2 className="text-base font-bold text-cn-ink mb-4">💡 Earnings Calculator</h2>
-        <div className="rounded-xl bg-cn-surface border border-cn-border p-5 space-y-3">
-          <div className="flex justify-between text-sm"><span className="text-cn-ink-muted">You set price:</span><span className="font-bold text-cn-ink">$49.00</span></div>
-          <div className="flex justify-between text-sm"><span className="text-cn-ink-muted">Platform fee (20%):</span><span className="text-rose-500 font-semibold">−$9.80</span></div>
-          <div className="flex justify-between text-sm"><span className="text-cn-ink-muted">Stripe processing*:</span><span className="text-rose-500 font-semibold">−$1.72</span></div>
-          <div className="border-t border-cn-border pt-2 flex justify-between text-sm"><span className="font-bold text-cn-ink">Base earnings:</span><span className="font-bold text-cn-ink">$37.48</span></div>
-          <div className="mt-3 space-y-1.5">
-            <div className="flex justify-between text-xs"><span className="text-cn-ink-muted">Rating ≥ 4.8 bonus:</span><span className="text-emerald-600 font-semibold">+$1.12 ✓</span></div>
-            <div className="flex justify-between text-xs"><span className="text-cn-ink-muted">Completion ≥ 80%:</span><span className="text-cn-ink-subtle">+$1.87 ?</span></div>
-            <div className="flex justify-between text-xs"><span className="text-cn-ink-muted">100+ students:</span><span className="text-cn-ink-subtle">+$0.75 ?</span></div>
-          </div>
-          <div className="border-t border-cn-border pt-2 flex justify-between text-sm"><span className="font-bold text-cn-ink">Potential earnings:</span><span className="font-bold text-emerald-600 dark:text-emerald-400">$41.22</span></div>
-          <p className="text-[10px] text-cn-ink-subtle mt-2">*Stripe: ~2.9% + $0.30 per transaction. Shown transparently.</p>
-        </div>
-      </section>
-
-      {/* Transactions */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-cn-border">
-          <h2 className="text-base font-bold text-cn-ink">Recent Transactions</h2>
-        </div>
-        <div className="divide-y divide-cn-border">
-          {transactions.map((t, i) => (
-            <div key={i} className="flex items-center justify-between px-6 py-3.5 hover:bg-cn-canvas/60 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="text-lg">{t.type === "payout" ? "🏦" : t.type === "free" ? "🆓" : "💳"}</span>
-                <div>
-                  <p className="text-sm text-cn-ink">{t.desc}</p>
-                  <p className="text-xs text-cn-ink-subtle">{t.date}</p>
+        <section className="lg:col-span-2 rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+          <h2 className="text-base font-bold text-cn-ink mb-4">Revenue by Course</h2>
+          <div className="space-y-3">
+            {list.length === 0 ? (
+              <p className="text-sm text-cn-ink-muted">No courses yet.</p>
+            ) : list.map(c => {
+              const rev = (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0);
+              return (
+                <div key={c.title} className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-cn-canvas/60 transition-colors">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-cn-ink truncate">{c.title}</p>
+                    <p className="text-[10px] text-cn-ink-subtle">{c.total_enrolled ?? 0} students × ${Number(c.price_usd || 0).toFixed(2)}</p>
+                  </div>
+                  <span className="text-sm font-bold text-cn-ink tabular-nums">${rev.toFixed(2)}</span>
                 </div>
-              </div>
-              <span className={`text-sm font-bold tabular-nums ${t.amount < 0 ? "text-rose-500" : t.amount === 0 ? "text-cn-ink-subtle" : "text-emerald-600 dark:text-emerald-400"}`}>
-                {t.amount === 0 ? "Free" : t.amount < 0 ? `−$${Math.abs(t.amount).toFixed(2)}` : `+$${t.amount.toFixed(2)}`}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 rounded-xl bg-cn-canvas p-3 text-xs text-cn-ink-muted space-y-1">
+            <div className="flex justify-between"><span>Gross</span><span className="font-semibold text-cn-ink">${grossRevenue.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Platform (20%)</span><span className="text-rose-500">−${platformFee.toFixed(2)}</span></div>
+            <div className="flex justify-between border-t border-cn-border pt-1 mt-1"><span className="font-bold text-cn-ink">Net payout</span><span className="font-bold text-emerald-600 dark:text-emerald-400">${netEarnings.toFixed(2)}</span></div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

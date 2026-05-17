@@ -7,6 +7,8 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { TopBarSearch } from "@/components/shared/top-bar-search";
 import { WelcomeBrand } from "@/components/shared/welcome-brand";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
+import { PageTransition } from "@/components/shared/page-transition";
 
 const nav = [
   { href: "/dashboard", label: "Home", icon: IconGrid },
@@ -47,10 +49,10 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
         <Link
           href="/"
           onClick={onNavigate}
-          className="mb-6 flex items-center gap-3 overflow-hidden px-5 text-cn-orange"
+          className="mb-6 flex items-center gap-3 overflow-hidden px-4"
         >
-          <span className="shrink-0 text-sm font-bold">CN</span>
-          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
+          <CognaraLogo variant="icon" size={28} />
+          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider text-white md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
             COGNARA
           </span>
         </Link>
@@ -220,8 +222,19 @@ function IconNotebook({ className }: { className?: string }) {
 
 function IconSpark({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      {/* Head */}
+      <rect x="4" y="5" width="16" height="13" rx="3" />
+      {/* Eyes */}
+      <circle cx="9.5" cy="10.5" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="14.5" cy="10.5" r="1.25" fill="currentColor" stroke="none" />
+      {/* Sparkle mouth */}
+      <path d="M12 13.5l.4 1.1 1.1.4-1.1.4-.4 1.1-.4-1.1-1.1-.4 1.1-.4.4-1.1z" fill="currentColor" stroke="none" />
+      {/* Antenna */}
+      <line x1="12" y1="5" x2="12" y2="2.5" />
+      <circle cx="12" cy="2" r="1" fill="currentColor" stroke="none" />
+      {/* Base */}
+      <path d="M8 18v1.5h8V18" />
     </svg>
   );
 }

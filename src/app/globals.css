@@ -211,3 +211,54 @@ pre {
 .dark .cn-hero-lede {
   color: rgba(247, 247, 245, 0.68);
 }
+
+/* ── Page transitions ── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-4px); }
+}
+
+/* ── Staggered fade-in for grids ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cn-stagger > * {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+.cn-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.cn-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.cn-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.cn-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.cn-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.cn-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.cn-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.cn-stagger > *:nth-child(8) { animation-delay: 420ms; }
+.cn-stagger > *:nth-child(9) { animation-delay: 480ms; }
+
+/* ── Card hover lift ── */
+.cn-card-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.cn-card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px -16px rgba(0, 0, 0, 0.15);
+}
+.dark .cn-card-lift:hover {
+  box-shadow: 0 16px 48px -16px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Pulse glow for active sidebar ── */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(252, 204, 66, 0.3); }
+  50%      { box-shadow: 0 0 8px 2px rgba(252, 204, 66, 0.15); }
+}
+.cn-sidebar-active {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
