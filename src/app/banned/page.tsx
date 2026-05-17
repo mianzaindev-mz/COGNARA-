@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -21,12 +22,13 @@ export default async function BannedPage() {
     .maybeSingle();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAFAFA] px-6 py-16 dark:bg-[#0A0A0A]">
-      <div className="max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center dark:border-red-900 dark:bg-[#141414]">
-        <h1 className="text-2xl font-semibold text-red-700 dark:text-red-400">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-cn-canvas px-6 py-16">
+      <div className="max-w-md rounded-2xl border border-rose-500/30 bg-cn-surface p-8 text-center shadow-sm">
+        <CognaraLogo variant="icon" size={36} className="mx-auto mb-4" />
+        <h1 className="text-2xl font-bold text-rose-700 dark:text-rose-400">
           Account restricted
         </h1>
-        <p className="mt-4 text-sm text-neutral-700 dark:text-neutral-200">
+        <p className="mt-4 text-sm text-cn-ink-muted">
           {profile?.ban_reason?.trim()
             ? profile.ban_reason
             : "This account is not permitted to use COGNARA right now. Contact support if you believe this is a mistake."}

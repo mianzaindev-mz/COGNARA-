@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -53,19 +54,17 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAFAFA] px-4 py-16 dark:bg-[#0A0A0A]">
-      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-[#141414]">
-        <div className="flex flex-col gap-6 text-center">
-          <div>
-            <p className="text-sm font-medium tracking-[0.15em] text-[#6366F1]">
-              COGNARA™
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold text-[#0A0A0A] dark:text-white">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-cn-canvas px-4 py-16">
+      <div className="w-full max-w-md rounded-2xl border border-cn-border bg-cn-surface p-8 shadow-sm">
+        <div className="flex flex-col gap-6 text-center items-center">
+          <div className="flex flex-col items-center">
+            <CognaraLogo variant="icon" size={40} className="mb-3" />
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-cn-ink">
               Verify your email
             </h1>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+            <p className="mt-3 text-sm leading-relaxed text-cn-ink-muted">
               Confirm the link we sent to{" "}
-              <span className="font-medium text-neutral-900 dark:text-white">
+              <span className="font-medium text-cn-ink">
                 {email ?? "your inbox"}
               </span>{" "}
               before accessing dashboards.
@@ -86,7 +85,7 @@ export default function VerifyEmailPage() {
               type="button"
               disabled={loading || !email}
               onClick={() => void resend()}
-              className="h-11 rounded-lg bg-[#6366F1] text-sm font-semibold text-white transition hover:bg-[#4F46E5] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 rounded-xl bg-cn-orange text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Sending…" : "Resend confirmation email"}
             </button>
