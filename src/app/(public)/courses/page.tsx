@@ -33,8 +33,10 @@ const demoCourses = [
   },
 ] as const;
 
-export default async function CoursesPage() {
-  const courses = await loadPublishedCourses(12);
+export default async function CoursesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const params = await searchParams;
+  const searchQuery = params.q ?? "";
+  const courses = await loadPublishedCourses(12, searchQuery);
 
   let isLoggedIn = false;
   let enrolledIds = new Set<string>();

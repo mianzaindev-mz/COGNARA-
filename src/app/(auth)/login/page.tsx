@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 export const metadata = {
   title: "Sign in — COGNARA™",
@@ -9,9 +10,9 @@ export const metadata = {
 export default function LoginPage() {
   return (
     <>
-      <div className="mb-8 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-cn-orange">COGNARA™</p>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-cn-ink">Welcome back</h1>
+      <div className="mb-8 text-center flex flex-col items-center">
+        <CognaraLogo variant="icon" size={40} className="mb-3" />
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-cn-ink">Welcome back</h1>
         <p className="mt-2 text-sm text-cn-ink-muted">
           Sign in to your student or coach workspace.
         </p>

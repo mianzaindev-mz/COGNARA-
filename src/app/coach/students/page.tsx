@@ -20,6 +20,7 @@ export default async function CoachStudentsPage() {
   const courseMap = Object.fromEntries((courses ?? []).map(c => [c.id, c.title]));
 
   // Get enrollments for those courses
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let enrollments: Array<{
     student_id: string;
     course_id: string;
@@ -35,7 +36,7 @@ export default async function CoachStudentsPage() {
       .in("course_id", courseIds)
       .order("enrolled_at", { ascending: false })
       .limit(50);
-    enrollments = (data as typeof enrollments) ?? [];
+    enrollments = (data as unknown as typeof enrollments) ?? [];
   }
 
   const totalStudents = new Set(enrollments.map(e => e.student_id)).size;

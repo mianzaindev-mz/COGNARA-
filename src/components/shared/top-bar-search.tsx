@@ -1,4 +1,7 @@
-import type { RefObject } from "react";
+"use client";
+
+import { useState, type RefObject } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 
 type TopBarSearchProps = {
@@ -14,10 +17,22 @@ export function TopBarSearch({
   inputRef,
   onClose,
 }: TopBarSearchProps) {
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = () => {
+    const q = query.trim();
+    if (!q) return;
+    router.push(`/courses?q=${encodeURIComponent(q)}`);
+    setQuery("");
+    onClose?.();
+  };
+
   return (
-    <label
+    <form
+      onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
       className={cn(
-        "flex w-full items-center gap-2 rounded-full border border-cn-border bg-cn-surface py-1 pl-5 pr-1.5 shadow-sm transition-colors duration-300",
+        "flex w-full items-center gap-2 rounded-full border border-cn-border bg-cn-surface py-1 pl-5 pr-1.5 shadow-sm transition-colors duration-300 focus-within:border-cn-orange/50 focus-within:ring-2 focus-within:ring-cn-orange/10",
         className,
       )}
     >
@@ -25,10 +40,10 @@ export function TopBarSearch({
       <input
         ref={inputRef}
         type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
         className="min-w-0 flex-1 bg-transparent text-sm text-cn-ink outline-none placeholder:text-cn-ink-subtle"
-        readOnly={!inputRef}
-        aria-readonly={!inputRef}
       />
       {onClose ? (
         <button
@@ -43,9 +58,9 @@ export function TopBarSearch({
         </button>
       ) : null}
       <button
-        type="button"
+        type="submit"
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cn-orange text-white transition-colors duration-300 hover:bg-cn-orange-hover"
-        aria-label="Search (coming soon)"
+        aria-label="Search"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
           <path
@@ -55,6 +70,6 @@ export function TopBarSearch({
           />
         </svg>
       </button>
-    </label>
+    </form>
   );
 }

@@ -15,20 +15,26 @@ export type PublicCourse = {
   avg_rating: number | null;
 };
 
-export async function loadPublishedCourses(limit = 12): Promise<PublicCourse[]> {
+export async function loadPublishedCourses(limit = 12, search?: string): Promise<PublicCourse[]> {
   if (!isSupabaseConfigured()) {
     return [];
   }
 
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("courses")
       .select(
         "id, title, slug, description, category, difficulty, price_usd, is_free, total_lessons, total_enrolled, avg_rating",
       )
       .eq("is_published", true)
-      .is("deleted_at", null)
+      .is("deleted_at", null);
+
+    if (search && search.trim().length > 0) {
+      query = query.ilike("title", `%${search.trim()}%`);
+    }
+
+    const { data, error } = await query
       .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(limit);

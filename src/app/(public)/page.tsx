@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LandingHeroVisual } from "@/components/public/landing-hero-visual";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 const stats = [
   { n: "01", label: "Years building", value: "2+", hint: "Product iterations" },
@@ -46,9 +47,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-8 sm:pt-14 lg:pb-12">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#b8860b] dark:text-cn-yellow">
-              COGNARA™ · SDG 4
-            </p>
+            <CognaraLogo variant="tagline" size={32} />
             <h1 className="mt-4 text-4xl font-extrabold leading-[1.08] tracking-tight text-cn-ink sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem]">
               Discover your ideal learning path —{" "}
               <span className="text-cn-orange">today.</span>

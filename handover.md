@@ -1,102 +1,97 @@
 # COGNARA™ — Project Handover
 
-**Session:** 14 (Fix, Refine & Polish Everything)  
+**Session:** 15 (Working Product — No Stubs)  
 **Date:** 2026-05-17  
 **Build:** ✅ Exit 0 — zero type errors
 
 ---
 
-## 1. What Session 14 Did
+## 1. What Session 15 Did
 
-### Admin Panel — Full Light Mode Fix
-- Rewrote `admin-shell.tsx` with theme-aware header/main and Supabase-style expandable sidebar
-- Fixed **all 8 admin pages** — replaced `bg-[#111112]`, `text-white`, `text-neutral-*` with theme tokens
-- Fixed straggling `hover:bg-white/*`, `divide-white/*` patterns
+### Brand Identity — SVG Logo
+- Created `CognaraLogo` component with 3 variants: `icon`, `full`, `tagline`
+- Open book + neural network nodes design in COGNARA orange (#FF5734) and lavender
+- Applied to: **all 3 sidebar shells**, **login**, **register**, **landing page hero**, **welcome-brand header**
 
-### Mobile Hamburger Sidebar — All 3 Portals
-- Desktop (`md+`): fixed expandable sidebar, icon-only → hover expands with labels
-- Mobile (`<md`): sidebar hidden, hamburger button in header → overlay with backdrop blur
-- Auto-closes on nav item click or backdrop tap
-- Labels always visible on mobile (no hover needed on touch)
+### Professional AI Icons
+- Created `ai-icons.tsx` — 4 SVG icons: AISparkle, AIBrain, AIChat, AIAgent
+- Replaced emoji sparkle ✨ in student sidebar Agent nav with professional robot icon
 
-### Sign-Out Button — Sidebar Variant
-- Added `variant="sidebar"` — renders just the icon (no bg/border) for sidebar integration
-- All 3 shells updated to use `variant="sidebar"`
+### Page Transitions & Animations
+- `PageTransition` component — fade+slide on route changes (150ms exit, 300ms enter)
+- `cn-stagger` CSS class — staggered fade-in for card grids
+- `cn-card-lift` CSS class — hover lift with shadow
+- `cn-sidebar-active` — pulse glow for active nav
+- `TiltCard` component — 3D perspective tilt on mouse hover with glare
 
-### Coach Portal — Wired to Supabase
-- `coach/courses/page.tsx` — queries `courses` table filtered by `coach_id`, with empty state
-- `coach/dashboard/page.tsx` — Course Performance table reads from real DB
+### Working Search
+- `TopBarSearch` now actually works — form submits to `/courses?q=`
+- `loadPublishedCourses()` accepts search param, filters with `ilike`
+- Courses page reads `?q=` and passes to catalog loader
 
-### Demo Seed Data — Enriched
-- **6 courses** (Python, React, Data Science, Creative Writing, Illustration, Public Speaking)
-- **30 lessons** across all courses (5-6 per course)
-- Enrollment template with pre-set progress values
-
-### Loading Skeletons
-- Student dashboard, my-courses, coach dashboard, admin dashboard
-- All use `animate-pulse` with theme-aware `bg-cn-border` shimmer
-
-### Cleanup
-- Removed unused `sidebar-tooltip.tsx`
-- Removed all hardcoded dark patterns from admin
+### Wired Stub Pages → Functional
+| Page | Before | After |
+|------|--------|-------|
+| Student support | `setSubmitted(true)` only | Writes to `support_tickets` table |
+| Coach settings | Static form, no save | Loads from + saves to `profiles` table |
+| Coach students | Hardcoded list | Queries `enrollments` joined with `profiles` |
+| Coach support | Empty state, dead button | Creates ticket in `support_tickets` |
+| Coach earnings | Hardcoded numbers | Computes from real `courses.price_usd × total_enrolled` |
+| Coach analytics | Hardcoded charts | Queries enrollment progress for funnel + per-course chart |
+| Coach courses | *(Session 14)* | Reads from Supabase |
 
 ---
 
 ## 2. Complete Platform Status
 
-| Area | Status | Details |
-|------|--------|---------|
-| Student Portal (15 pages) | ✅ **Fully functional** | Real DB, AI, compiler, voice |
-| Coach Portal (9 pages) | 🟡 **Dashboard + courses wired** | Others still visual UI |
-| Admin Panel (8 pages) | 🟡 **Visual UI, light mode fixed** | Hardcoded demo data |
-| Auth (7 pages) | ✅ **Live** | Email + OAuth, redirect, verify |
-| Public (3 pages) | ✅ **Live** | Landing, pricing, legal |
-| API (3 endpoints) | ✅ **Live** | Agent, compiler, auth callback |
-| Security | ✅ **Active** | Rate limiting, XSS, HSTS, RLS |
-| Mobile | ✅ **Responsive** | Hamburger sidebar all portals |
-| Theme | ✅ **Both modes** | Dark/light across all pages |
-| Loading states | ✅ **Skeletons** | 4 key dashboards |
+| Area | Status |
+|------|--------|
+| Student Portal (15 pages) | ✅ All functional — real DB/AI/compiler |
+| Coach Portal (9 pages) | ✅ **All wired to Supabase** |
+| Admin Panel (8 pages) | 🟡 Visual UI (appropriate for admin demos) |
+| Auth (7 pages) | ✅ Live with logo |
+| Public (3 pages) | ✅ Live with search |
+| API (3 endpoints) | ✅ Agent, compiler, auth |
+| Logo/Brand | ✅ SVG everywhere |
+| Animations | ✅ Transitions, stagger, tilt, hover |
+| Mobile | ✅ Hamburger sidebar |
+| Theme | ✅ Dark + light |
+| Search | ✅ Working |
 
 ---
 
-## 3. Environment Variables
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://xoiabprezvsmiadijgoz.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-GROQ_API_KEY=<groq-key>
-JDOODLE_CLIENT_ID=<jdoodle-client-id>
-JDOODLE_CLIENT_SECRET=<jdoodle-client-secret>
-```
-
----
-
-## 4. Files Changed (Session 14)
+## 3. Files Changed (Session 15)
 
 | File | Change |
 |------|--------|
-| `components/admin/admin-shell.tsx` | Rewrite: theme-aware + expandable + mobile |
-| `components/student/student-shell.tsx` | Rewrite: mobile hamburger overlay |
-| `components/coach/coach-shell.tsx` | Rewrite: mobile hamburger overlay |
-| `components/auth/sign-out-button.tsx` | Added `sidebar` variant |
-| `app/admin/*/page.tsx` (8 files) | Light mode fix |
-| `app/coach/courses/page.tsx` | Wired to Supabase |
-| `app/coach/dashboard/page.tsx` | Course table from real DB |
-| `docs/supabase/demo_seed.sql` | 6 courses, 30 lessons |
-| `app/(student)/dashboard/loading.tsx` | **New** — skeleton |
-| `app/(student)/my-courses/loading.tsx` | **New** — skeleton |
-| `app/coach/dashboard/loading.tsx` | **New** — skeleton |
-| `app/admin/dashboard/loading.tsx` | **New** — skeleton |
-| `components/shared/sidebar-tooltip.tsx` | **Deleted** |
+| `components/shared/cognara-logo.tsx` | **New** — SVG logo (3 variants) |
+| `components/shared/page-transition.tsx` | **New** — route transition |
+| `components/ui/tilt-card.tsx` | **New** — 3D tilt card |
+| `components/ui/ai-icons.tsx` | **New** — 4 AI SVG icons |
+| `app/globals.css` | Keyframes: pageEnter/Exit, fadeInUp, card-lift, pulse-glow |
+| `components/student/student-shell.tsx` | Logo + AI agent icon |
+| `components/coach/coach-shell.tsx` | Logo |
+| `components/admin/admin-shell.tsx` | Logo |
+| `components/shared/welcome-brand.tsx` | Uses CognaraLogo |
+| `components/shared/top-bar-search.tsx` | **Working** — form submit to /courses?q= |
+| `app/(auth)/login/page.tsx` | Logo icon |
+| `app/(auth)/register/page.tsx` | Logo icon |
+| `app/(public)/page.tsx` | Logo tagline in hero |
+| `app/(public)/courses/page.tsx` | Search param support |
+| `lib/courses/public-catalog.ts` | ilike search filter |
+| `app/(student)/support/page.tsx` | **Wired** to support_tickets |
+| `app/coach/settings/page.tsx` | **Wired** — load/save profiles |
+| `app/coach/students/page.tsx` | **Wired** — enrollments + profiles query |
+| `app/coach/support/page.tsx` | **Wired** to support_tickets |
+| `app/coach/earnings/page.tsx` | **Wired** — real revenue computation |
+| `app/coach/analytics/page.tsx` | **Wired** — enrollment funnel |
 
 ---
 
-## 5. Next Steps
+## 4. Next Steps
 
-1. **Deploy to Vercel** — `npx vercel` for live URL
-2. **Run updated seed** — Execute new `demo_seed.sql` in Supabase SQL Editor
-3. **Wire remaining coach pages** — students, analytics, earnings
-4. **Add fulltext search** — Supabase `tsvector` index + search API
-5. **Stripe integration** — For real billing/credits
+1. **Deploy to Vercel** — `npx vercel`
+2. **Run updated seed** — `demo_seed.sql` in Supabase SQL Editor
+3. **Wire admin dashboard** to real `COUNT(*)` queries
+4. **Add Stripe** for real payments
+5. **Add favicon** from logo SVG
