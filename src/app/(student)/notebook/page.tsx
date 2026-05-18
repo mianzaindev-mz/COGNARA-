@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { NotebookTextEditor } from "@/components/notebook/NotebookTextEditor";
 
 type Notebook = {
@@ -10,91 +11,122 @@ type Notebook = {
   updatedAt: string;
 };
 
-const STORAGE_KEY = "cognara_notebooks";
-
-function loadNotebooks(): Notebook[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* empty */ }
-  return [];
-}
-
-function saveNotebooks(notebooks: Notebook[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notebooks));
-  } catch { /* quota exceeded */ }
-}
-
 export default function NotebookPage() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Load from localStorage on mount
+  // Load notebooks from Supabase
   useEffect(() => {
-    const saved = loadNotebooks();
-    if (saved.length > 0) {
-      setNotebooks(saved);
+    async function load() {
+      const supabase = createClient();
+      if (!supabase) { setLoading(false); return; }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      const { data } = await supabase
+        .from("notebooks")
+        .select("id, title, content, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+
+      if (data) {
+        setNotebooks(data.map((n: { id: string; title: string; content: string; updated_at: string }) => ({
+          id: n.id,
+          title: n.title,
+          content: n.content ?? "",
+          updatedAt: new Date(n.updated_at).toLocaleString(),
+        })));
+      }
+      setLoading(false);
     }
-    setLoaded(true);
+    void load();
   }, []);
-
-  // Auto-save to localStorage on change
-  useEffect(() => {
-    if (loaded && notebooks.length >= 0) {
-      saveNotebooks(notebooks);
-    }
-  }, [notebooks, loaded]);
 
   const active = notebooks.find((n) => n.id === activeId);
 
-  const createNotebook = useCallback(() => {
-    const nb: Notebook = {
-      id: crypto.randomUUID(),
-      title: "Untitled Notebook",
-      content: "",
-      updatedAt: new Date().toLocaleString(),
-    };
-    setNotebooks((prev) => [nb, ...prev]);
-    setActiveId(nb.id);
-    setEditingTitle(nb.id);
+  const createNotebook = useCallback(async () => {
+    const supabase = createClient();
+    if (!supabase) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("notebooks")
+      .insert({ user_id: user.id, title: "Untitled Notebook", content: "" })
+      .select("id, title, content, updated_at")
+      .single();
+
+    if (data && !error) {
+      const nb: Notebook = {
+        id: data.id,
+        title: data.title,
+        content: data.content ?? "",
+        updatedAt: new Date(data.updated_at).toLocaleString(),
+      };
+      setNotebooks((prev) => [nb, ...prev]);
+      setActiveId(nb.id);
+      setEditingTitle(nb.id);
+    }
   }, []);
 
   const updateContent = useCallback(
-    (html: string) => {
+    async (html: string) => {
       if (!activeId) return;
+      setSaving(true);
+
+      // Update local state immediately
       setNotebooks((prev) =>
         prev.map((n) =>
           n.id === activeId ? { ...n, content: html, updatedAt: new Date().toLocaleString() } : n,
         ),
       );
+
+      // Persist to Supabase (debounced effect would be better, but this is reliable)
+      const supabase = createClient();
+      if (supabase) {
+        await supabase
+          .from("notebooks")
+          .update({ content: html, updated_at: new Date().toISOString() })
+          .eq("id", activeId);
+      }
+      setSaving(false);
     },
     [activeId],
   );
 
   const updateTitle = useCallback(
-    (id: string, title: string) => {
+    async (id: string, title: string) => {
+      const finalTitle = title || "Untitled";
       setNotebooks((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, title: title || "Untitled" } : n)),
+        prev.map((n) => (n.id === id ? { ...n, title: finalTitle } : n)),
       );
       setEditingTitle(null);
+
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.from("notebooks").update({ title: finalTitle }).eq("id", id);
+      }
     },
     [],
   );
 
   const deleteNotebook = useCallback(
-    (id: string) => {
+    async (id: string) => {
       setNotebooks((prev) => prev.filter((n) => n.id !== id));
       if (activeId === id) setActiveId(null);
+
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.from("notebooks").delete().eq("id", id);
+      }
     },
     [activeId],
   );
 
-  if (!loaded) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-cn-orange border-t-transparent" />
@@ -106,16 +138,14 @@ export default function NotebookPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-cn-ink">
-            Notebook
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Notebook</h1>
           <p className="mt-0.5 text-sm text-cn-ink-muted">
-            Rich text notes with formatting, code blocks &amp; highlights. Auto-saved locally.
+            Rich text notes with formatting, code blocks &amp; highlights. Synced to cloud.
           </p>
         </div>
         <button
           type="button"
-          onClick={createNotebook}
+          onClick={() => void createNotebook()}
           className="flex items-center gap-1.5 rounded-xl bg-cn-orange px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-cn-orange-hover"
         >
           <PlusIcon className="h-4 w-4" />
@@ -144,27 +174,23 @@ export default function NotebookPage() {
                     <input
                       autoFocus
                       defaultValue={nb.title}
-                      onBlur={(e) => updateTitle(nb.id, e.target.value)}
+                      onBlur={(e) => void updateTitle(nb.id, e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") updateTitle(nb.id, e.currentTarget.value);
+                        if (e.key === "Enter") void updateTitle(nb.id, e.currentTarget.value);
                       }}
                       className="w-full rounded bg-cn-canvas px-1 text-sm font-semibold text-cn-ink outline-none ring-1 ring-cn-orange"
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
-                    <span className="block truncate text-sm font-semibold">
-                      {nb.title}
-                    </span>
+                    <span className="block truncate text-sm font-semibold">{nb.title}</span>
                   )}
-                  <span className="block text-[11px] text-cn-ink-subtle">
-                    {nb.updatedAt}
-                  </span>
+                  <span className="block text-[11px] text-cn-ink-subtle">{nb.updatedAt}</span>
                 </div>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteNotebook(nb.id);
+                    void deleteNotebook(nb.id);
                   }}
                   className="mt-0.5 hidden h-5 w-5 shrink-0 items-center justify-center rounded text-cn-ink-subtle transition hover:bg-red-500/10 hover:text-red-500 group-hover:flex"
                   title="Delete"
@@ -190,14 +216,18 @@ export default function NotebookPage() {
                 </button>
                 <span className="text-xs text-cn-ink-subtle">·</span>
                 <span className="text-xs text-cn-ink-subtle">{active.updatedAt}</span>
-                <span className="ml-auto rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
-                  ✓ Auto-saved
+                <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  saving
+                    ? "bg-cn-yellow/15 text-cn-yellow"
+                    : "bg-emerald-500/10 text-emerald-500"
+                }`}>
+                  {saving ? "Saving…" : "✓ Synced"}
                 </span>
               </div>
               <NotebookTextEditor
                 key={active.id}
                 initialContent={active.content}
-                onChange={updateContent}
+                onChange={(html) => void updateContent(html)}
               />
             </div>
           ) : (
@@ -205,10 +235,9 @@ export default function NotebookPage() {
               <NotebookIcon className="mb-3 h-10 w-10 text-cn-ink-subtle/50" />
               <h3 className="text-lg font-bold text-cn-ink">Select or create a notebook</h3>
               <p className="mt-1 max-w-sm text-sm text-cn-ink-muted">
-                Your notes are saved automatically to your browser. Use the toolbar for headings, code blocks,
+                Your notes are synced to the cloud automatically. Use the toolbar for headings, code blocks,
                 highlights, and more.
               </p>
-              {/* Mobile: show notebook list */}
               <div className="mt-6 flex flex-col gap-1 lg:hidden">
                 {notebooks.map((nb) => (
                   <button

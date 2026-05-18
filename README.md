@@ -11,15 +11,14 @@ AI-native EdTech platform built with **Next.js 15**, **Supabase**, and **Groq AI
 | Feature | Description |
 |---------|-------------|
 | **AI Agent** | Groq-powered tutor (llama-3.3-70b) with skill routing: teach, debug, quiz, voice |
+| **Study Board** | Full-screen chalkboard teaching with step-by-step reveal + TTS narration |
 | **Code Lab** | In-browser editor with real execution via JDoodle (200 free runs/day, 18+ languages) |
-| **Voice Mode** | Native speech-to-text & text-to-speech — zero external dependencies |
-| **Three Portals** | Student dashboard, Coach portal, Admin panel — role-based access, all wired to Supabase |
-| **Custom SVG Logo** | Book + neural sparkle mark with `icon`, `full`, `tagline` variants and `onDark` mode |
-| **Working Search** | Real-time course search via Supabase `ilike` filtering |
-| **Page Transitions** | Smooth fade+slide animations, staggered card grids, 3D tilt cards |
+| **Voice Mode** | Bilingual speech (English + Urdu) — STT & TTS with language toggle |
+| **Three Portals** | Student dashboard, Coach portal, Admin panel — all wired to Supabase |
+| **Cloud Notebooks** | Rich text editor synced to Supabase — code blocks, headings, highlights |
+| **File Uploads** | Coach verification docs stored in Supabase Storage (not local) |
 | **Credit System** | AI usage tracked with daily free credits and per-action costs |
 | **Certificates** | Earned from completed courses with verifiable codes and LinkedIn sharing |
-| **Notebooks** | Rich text editor with code blocks, headings, highlights |
 | **Dark/Light Theme** | Full theme support across every component and page |
 | **Security** | Rate limiting, XSS protection, HSTS, RLS on 30+ database tables |
 
@@ -119,6 +118,7 @@ src/
 |----------|---------|
 | [docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md) | Supabase setup, auth config, smoke tests |
 | [handover.md](./handover.md) | Engineering continuity and session history |
+| [SECURITY.md](./SECURITY.md) | Security policy, vulnerability reporting, architecture |
 
 ---
 
