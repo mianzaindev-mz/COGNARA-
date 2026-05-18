@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState, useEffect } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import { AgentMessage } from "./AgentMessage";
 import { CreditDisplay } from "./CreditDisplay";
 import { VoiceButton } from "./VoiceButton";
+import { StudyBoard } from "./StudyBoard";
 import type { AgentSkill } from "@/lib/ai/master-agent";
 
 type Message = {
@@ -15,13 +16,13 @@ type Message = {
   timestamp: string;
 };
 
-const SKILLS: { key: AgentSkill; icon: string; label: string; cost: string }[] = [
-  { key: "teach", icon: "🧠", label: "Teach Me", cost: "1 credit" },
-  { key: "debug", icon: "🐛", label: "Debug Code", cost: "2 credits" },
-  { key: "quiz", icon: "📄", label: "PDF → Quiz", cost: "3 credits" },
-  { key: "voice", icon: "🎤", label: "Voice", cost: "1 cr/min" },
-  { key: "path", icon: "🗺️", label: "Learning Path", cost: "3 credits" },
-  { key: "support", icon: "🎫", label: "Support", cost: "1 credit" },
+const SKILLS: { key: AgentSkill; icon: string; label: string; desc: string; cost: string }[] = [
+  { key: "teach", icon: "🧠", label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr" },
+  { key: "debug", icon: "🐛", label: "Debug", desc: "Fix your code issues", cost: "2 cr" },
+  { key: "quiz", icon: "📝", label: "Quiz", desc: "Generate practice problems", cost: "3 cr" },
+  { key: "voice", icon: "🎤", label: "Voice", desc: "Spoken conversation", cost: "1 cr/min" },
+  { key: "path", icon: "🗺️", label: "Path", desc: "Create learning roadmap", cost: "3 cr" },
+  { key: "support", icon: "🎫", label: "Support", desc: "Get help with the platform", cost: "1 cr" },
 ];
 
 type Props = {
@@ -36,12 +37,27 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(initialCredits);
   const [lastResponse, setLastResponse] = useState<string | null>(null);
+  const [showSkillMenu, setShowSkillMenu] = useState(false);
+  const [studyBoardContent, setStudyBoardContent] = useState<string | null>(null);
+  const [voiceLang] = useState<"en" | "ur">("en");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const skillMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Close skill menu on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (skillMenuRef.current && !skillMenuRef.current.contains(e.target as Node)) {
+        setShowSkillMenu(false);
+      }
+    };
+    if (showSkillMenu) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSkillMenu]);
 
   const sendMessage = useCallback(async () => {
     const trimmed = input.trim();
@@ -89,7 +105,6 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
       if (data.creditsRemaining !== undefined) {
         setCredits(data.creditsRemaining);
       }
-      // Auto-speak response if voice skill is active
       if (skill === "voice") {
         setLastResponse(data.content?.replace(/[#*`_~>\[\]]/g, "").slice(0, 500) ?? null);
       }
@@ -115,160 +130,233 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
     }
   };
 
+  const activeSkill = SKILLS.find((s) => s.key === skill) ?? SKILLS[0];
+
+  // Find last assistant message for study board
+  const lastAssistantMsg = [...messages].reverse().find(m => m.role === "assistant" && m.skill !== "error");
+
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-2xl border border-cn-border bg-cn-surface shadow-[var(--cn-shadow-card)]">
-      {/* Header */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-cn-border px-5 py-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-sm font-bold text-white">
-            C
-          </span>
-          <div>
-            <h2 className="text-sm font-bold text-cn-ink">COGNARA Agent</h2>
-            <p className="text-[11px] text-cn-ink-subtle">AI-powered learning assistant</p>
-          </div>
-        </div>
-        <div className="ml-auto">
-          <CreditDisplay balance={credits} />
-        </div>
-      </div>
-
-      {/* Skill Selector */}
-      <div className="flex gap-1.5 overflow-x-auto border-b border-cn-border px-4 py-2">
-        {SKILLS.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => setSkill(s.key)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition ${
-              skill === s.key
-                ? "bg-cn-orange text-white shadow-sm"
-                : "text-cn-ink-muted hover:bg-cn-border/50 hover:text-cn-ink"
-            }`}
-          >
-            <span>{s.icon}</span>
-            <span className="hidden sm:inline">{s.label}</span>
-            <span className={`text-[10px] ${skill === s.key ? "text-white/70" : "text-cn-ink-subtle"}`}>
-              {s.cost}
+    <>
+      <div className="flex h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-2xl border border-cn-border bg-cn-surface shadow-[var(--cn-shadow-card)]">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-cn-border px-5 py-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-sm font-bold text-white">
+              C
             </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <span className="mb-3 text-4xl">🤖</span>
-            <h3 className="text-lg font-bold text-cn-ink">
-              What would you like to learn today?
-            </h3>
-            <p className="mt-1 max-w-sm text-sm text-cn-ink-muted">
-              I&apos;m your AI tutor. Ask me anything — I&apos;ll explain concepts, debug your code,
-              or generate practice problems.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {[
-                "Explain recursion in Python",
-                "What are closures?",
-                "Help me with sorting algorithms",
-                "Explain Big O notation",
-              ].map((suggestion) => (
-                <button
-                  key={suggestion}
-                  type="button"
-                  onClick={() => {
-                    setInput(suggestion);
-                    inputRef.current?.focus();
-                  }}
-                  className="rounded-xl border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink-muted transition hover:border-cn-orange hover:text-cn-orange"
-                >
-                  {suggestion}
-                </button>
-              ))}
+            <div>
+              <h2 className="text-sm font-bold text-cn-ink">COGNARA Agent</h2>
+              <p className="text-[11px] text-cn-ink-subtle">AI-powered learning assistant</p>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {messages.map((msg) => (
-              <AgentMessage
-                key={msg.id}
-                role={msg.role}
-                content={msg.content}
-                skill={msg.skill}
-                creditsUsed={msg.creditsUsed}
-                timestamp={msg.timestamp}
-              />
-            ))}
-            {isLoading && (
-              <div className="flex gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-sm font-bold text-white">
-                  C
-                </div>
-                <div className="rounded-2xl rounded-tl-md bg-cn-surface px-4 py-3 shadow-sm ring-1 ring-cn-border">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:0ms]" />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:150ms]" />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:300ms]" />
+          <div className="ml-auto flex items-center gap-2">
+            {/* Study Board trigger */}
+            {lastAssistantMsg && (
+              <button
+                type="button"
+                onClick={() => setStudyBoardContent(lastAssistantMsg.content)}
+                className="flex items-center gap-1.5 rounded-xl border border-cn-border bg-cn-canvas px-3 py-1.5 text-[11px] font-bold text-cn-ink-muted transition hover:border-cn-orange/40 hover:text-cn-orange"
+                title="Open Study Board — visual teaching mode"
+              >
+                <BoardIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Study Board</span>
+              </button>
+            )}
+            <CreditDisplay balance={credits} />
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {messages.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cn-orange/20 to-cn-pink/20">
+                <span className="text-3xl">🤖</span>
+              </div>
+              <h3 className="text-lg font-bold text-cn-ink">
+                What would you like to learn today?
+              </h3>
+              <p className="mt-1 max-w-sm text-sm text-cn-ink-muted">
+                I&apos;ll explain concepts, debug your code, or generate practice problems.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {[
+                  "Explain recursion in Python",
+                  "What are closures?",
+                  "Help me with sorting algorithms",
+                  "Explain Big O notation",
+                ].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => {
+                      setInput(suggestion);
+                      inputRef.current?.focus();
+                    }}
+                    className="rounded-xl border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink-muted transition hover:border-cn-orange hover:text-cn-orange"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {messages.map((msg) => (
+                <AgentMessage
+                  key={msg.id}
+                  role={msg.role}
+                  content={msg.content}
+                  skill={msg.skill}
+                  creditsUsed={msg.creditsUsed}
+                  timestamp={msg.timestamp}
+                />
+              ))}
+              {isLoading && (
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-sm font-bold text-white">
+                    C
+                  </div>
+                  <div className="rounded-2xl rounded-tl-md bg-cn-surface px-4 py-3 shadow-sm ring-1 ring-cn-border">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:0ms]" />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:150ms]" />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:300ms]" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
+              )}
+              <div ref={chatEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* Input bar */}
+        <div className="border-t border-cn-border px-4 py-3">
+          <div className="flex items-end gap-2">
+            {/* Skill popup trigger */}
+            <div className="relative" ref={skillMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowSkillMenu(!showSkillMenu)}
+                className={`flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition ${
+                  showSkillMenu
+                    ? "border-cn-orange bg-cn-orange/10 text-cn-orange"
+                    : "border-cn-border bg-cn-canvas text-cn-ink-muted hover:border-cn-orange/40 hover:text-cn-ink"
+                }`}
+                title="Change skill mode"
+              >
+                <span>{activeSkill.icon}</span>
+                <span className="hidden sm:inline">{activeSkill.label}</span>
+                <ChevronIcon className="h-3 w-3" up={showSkillMenu} />
+              </button>
+
+              {/* Popup menu */}
+              {showSkillMenu && (
+                <div className="absolute bottom-full left-0 mb-2 w-56 overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-1.5 shadow-xl shadow-black/20 animate-in fade-in slide-in-from-bottom-2">
+                  {SKILLS.map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => {
+                        setSkill(s.key);
+                        setShowSkillMenu(false);
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
+                        skill === s.key
+                          ? "bg-cn-orange/10 text-cn-orange"
+                          : "text-cn-ink-muted hover:bg-cn-border/30 hover:text-cn-ink"
+                      }`}
+                    >
+                      <span className="text-base">{s.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold">{s.label}</p>
+                        <p className="text-[10px] opacity-60">{s.desc}</p>
+                      </div>
+                      <span className="text-[10px] font-medium opacity-40">{s.cost}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Text input */}
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={`Ask the ${activeSkill.label} agent…`}
+              rows={1}
+              className="min-h-[2.5rem] max-h-32 flex-1 resize-none rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink placeholder:text-cn-ink-subtle/50 focus:border-cn-orange focus:outline-none focus:ring-2 focus:ring-cn-orange/20"
+            />
+
+            {/* Voice button */}
+            <VoiceButton
+              onTranscript={(text) => {
+                setInput(text);
+                setTimeout(() => {
+                  const sendBtn = document.getElementById("agent-send-btn");
+                  sendBtn?.click();
+                }, 100);
+              }}
+              speakText={skill === "voice" ? lastResponse : null}
+              disabled={isLoading}
+            />
+
+            {/* Send button */}
+            <button
+              id="agent-send-btn"
+              type="button"
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cn-orange text-white shadow-sm transition hover:bg-cn-orange-hover disabled:opacity-40"
+            >
+              <SendIcon className="h-4 w-4" />
+            </button>
           </div>
-        )}
+          <p className="mt-1.5 text-[11px] text-cn-ink-subtle">
+            Shift+Enter for new line · {activeSkill.icon} {activeSkill.label} mode ·{" "}
+            <span className="font-medium text-cn-ink-muted">{activeSkill.cost}</span> per message
+          </p>
+        </div>
       </div>
 
-      {/* Input */}
-      <div className="border-t border-cn-border px-4 py-3">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={`Ask the ${SKILLS.find((s) => s.key === skill)?.label ?? "Teach"} agent…`}
-            rows={1}
-            className="min-h-[2.5rem] max-h-32 flex-1 resize-none rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink placeholder:text-cn-ink-subtle/50 focus:border-cn-orange focus:outline-none focus:ring-2 focus:ring-cn-orange/20"
-          />
-          <VoiceButton
-            onTranscript={(text) => {
-              setInput(text);
-              // Auto-send after voice input
-              setTimeout(() => {
-                const sendBtn = document.getElementById("agent-send-btn");
-                sendBtn?.click();
-              }, 100);
-            }}
-            speakText={skill === "voice" ? lastResponse : null}
-            disabled={isLoading}
-          />
-          <button
-            id="agent-send-btn"
-            type="button"
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cn-orange text-white shadow-sm transition hover:bg-cn-orange-hover disabled:opacity-40"
-          >
-            <SendIcon className="h-4 w-4" />
-          </button>
-        </div>
-        <p className="mt-1.5 text-[11px] text-cn-ink-subtle">
-          Shift+Enter for new line · Agent uses{" "}
-          <span className="font-medium text-cn-ink-muted">
-            {SKILLS.find((s) => s.key === skill)?.cost}
-          </span>{" "}
-          per message
-        </p>
-      </div>
-    </div>
+      {/* Study Board overlay */}
+      {studyBoardContent && (
+        <StudyBoard
+          content={studyBoardContent}
+          onClose={() => setStudyBoardContent(null)}
+          lang={voiceLang}
+        />
+      )}
+    </>
   );
 }
+
+/* ─── Icons ─── */
 
 function SendIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 16 16" fill="currentColor">
       <path d="M1.724 1.053a.5.5 0 01.545-.065l12 6a.5.5 0 010 .894l-12 6A.5.5 0 011.5 13.5v-4.379l6.854-1.027a.125.125 0 000-.248L1.5 6.879V2.5a.5.5 0 01.224-.447z" />
+    </svg>
+  );
+}
+
+function BoardIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" strokeWidth={1.5} stroke="currentColor">
+      <rect x="1.5" y="2" width="13" height="9" rx="1.5" />
+      <path strokeLinecap="round" d="M5 14h6M8 11v3M4 5.5h3M4 7.5h5" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className, up }: { className?: string; up: boolean }) {
+  return (
+    <svg className={`${className} transition-transform ${up ? "rotate-180" : ""}`} fill="none" viewBox="0 0 12 12" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5l3 3 3-3" />
     </svg>
   );
 }
