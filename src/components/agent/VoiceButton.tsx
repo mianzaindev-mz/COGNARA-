@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 
 type VoiceState = "idle" | "listening" | "processing" | "speaking";
+type VoiceLang = "en" | "ur";
 
 interface VoiceButtonProps {
   /** Called with transcribed text when user finishes speaking */
@@ -16,23 +17,20 @@ interface VoiceButtonProps {
 
 /**
  * Voice input/output button using native Web Speech API.
- * - Speech-to-text: webkitSpeechRecognition / SpeechRecognition
- * - Text-to-speech: speechSynthesis
- * No external APIs or keys needed.
+ * Supports English (en-US) and Urdu (ur-PK) speech recognition and synthesis.
  */
 export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonProps) {
   const [state, setState] = useState<VoiceState>("idle");
   const [transcript, setTranscript] = useState("");
   const [supported, setSupported] = useState(true);
+  const [lang, setLang] = useState<VoiceLang>("en");
   const recognitionRef = useRef<any>(null);
   const latestTranscript = useRef("");
 
-  // Keep latest transcript in sync for the onend callback
   useEffect(() => {
     latestTranscript.current = transcript;
   }, [transcript]);
 
-  // Check browser support
   useEffect(() => {
     const w = window as any;
     const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
@@ -46,17 +44,29 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
 
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(speakText);
-    utterance.rate = 1.0;
+    // Strip markdown for clean speech
+    const clean = speakText
+      .replace(/```[\s\S]*?```/g, " code block omitted ")
+      .replace(/[#*`_~>\[\]|]/g, "")
+      .replace(/\n+/g, ". ")
+      .slice(0, 800);
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = lang === "ur" ? "ur-PK" : "en-US";
+    utterance.rate = lang === "ur" ? 0.9 : 1.0;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
-    utterance.lang = "en-US";
 
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(
-      (v) => v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Alex"),
-    );
-    if (preferred) utterance.voice = preferred;
+    if (lang === "ur") {
+      const urduVoice = voices.find(v => v.lang.startsWith("ur"));
+      if (urduVoice) utterance.voice = urduVoice;
+    } else {
+      const preferred = voices.find(
+        (v) => v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Microsoft"),
+      );
+      if (preferred) utterance.voice = preferred;
+    }
 
     utterance.onstart = () => setState("speaking");
     utterance.onend = () => setState("idle");
@@ -67,7 +77,7 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [speakText]);
+  }, [speakText, lang]);
 
   const startListening = useCallback(() => {
     if (state !== "idle" || disabled) return;
@@ -79,7 +89,7 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
     window.speechSynthesis?.cancel();
 
     const recognition = new SR();
-    recognition.lang = "en-US";
+    recognition.lang = lang === "ur" ? "ur-PK" : "en-US";
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
@@ -124,7 +134,7 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [state, disabled, onTranscript]);
+  }, [state, disabled, onTranscript, lang]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
@@ -165,7 +175,7 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
   const stateConfig = {
     idle: {
       className: "border border-cn-border text-cn-ink-muted hover:bg-cn-border/30 hover:text-cn-ink",
-      title: "Click to speak (Voice Mode)",
+      title: `Click to speak (${lang === "ur" ? "Urdu" : "English"})`,
       icon: <MicIcon className="h-4 w-4" />,
     },
     listening: {
@@ -188,7 +198,18 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
   const config = stateConfig[state];
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center gap-1">
+      {/* Language toggle */}
+      <button
+        type="button"
+        onClick={() => setLang(l => l === "en" ? "ur" : "en")}
+        className="flex h-10 items-center rounded-xl border border-cn-border px-2 text-[11px] font-bold text-cn-ink-subtle transition hover:bg-cn-border/30 hover:text-cn-ink"
+        title={`Switch to ${lang === "en" ? "Urdu" : "English"} voice`}
+      >
+        {lang === "en" ? "EN" : "UR"}
+      </button>
+
+      {/* Main voice button */}
       <button
         type="button"
         onClick={handleClick}
