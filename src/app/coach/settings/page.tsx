@@ -108,10 +108,20 @@ export default function CoachSettingsPage() {
         {/* Payment */}
         <div className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-4">Payment Setup</h2>
-          <p className="text-sm text-cn-ink-muted mb-4">Connect Stripe to receive payouts for your courses.</p>
-          <button className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 shadow-md shadow-indigo-500/20" disabled>
-            Connect Stripe Account (Coming Soon)
-          </button>
+          <p className="text-sm text-cn-ink-muted mb-4">Connect Stripe to receive payouts for your courses. COGNARA takes a 15% platform fee.</p>
+          <div className="flex items-center gap-4 rounded-xl border border-cn-border bg-cn-canvas p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
+              <svg className="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="currentColor"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-cn-ink">Stripe Connect</p>
+              <p className="text-xs text-cn-ink-muted">Not connected — set up to start receiving payments</p>
+            </div>
+            <button className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 shadow-md shadow-indigo-500/20">
+              Connect Stripe
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] text-cn-ink-subtle">Revenue share: 85% to you, 15% platform fee. Payouts every 2 weeks.</p>
         </div>
 
         {/* Notifications */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { NotebookTextEditor } from "@/components/notebook/NotebookTextEditor";
 
 type Notebook = {
@@ -10,33 +10,45 @@ type Notebook = {
   updatedAt: string;
 };
 
-const DEMO_NOTEBOOKS: Notebook[] = [
-  {
-    id: "1",
-    title: "Python Basics Notes",
-    content:
-      "<h2>Variables &amp; Types</h2><p>Python is dynamically typed — you don't need to declare types.</p><pre><code>name = 'COGNARA'\nage = 2\npi = 3.14</code></pre>",
-    updatedAt: "2 hours ago",
-  },
-  {
-    id: "2",
-    title: "Data Structures",
-    content:
-      "<h2>Lists vs Tuples</h2><p>Lists are mutable, tuples are immutable.</p><ul><li>Lists: <code>[1, 2, 3]</code></li><li>Tuples: <code>(1, 2, 3)</code></li></ul>",
-    updatedAt: "1 day ago",
-  },
-  {
-    id: "3",
-    title: "Algorithm Notes",
-    content: "",
-    updatedAt: "3 days ago",
-  },
-];
+const STORAGE_KEY = "cognara_notebooks";
+
+function loadNotebooks(): Notebook[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* empty */ }
+  return [];
+}
+
+function saveNotebooks(notebooks: Notebook[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notebooks));
+  } catch { /* quota exceeded */ }
+}
 
 export default function NotebookPage() {
-  const [notebooks, setNotebooks] = useState<Notebook[]>(DEMO_NOTEBOOKS);
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = loadNotebooks();
+    if (saved.length > 0) {
+      setNotebooks(saved);
+    }
+    setLoaded(true);
+  }, []);
+
+  // Auto-save to localStorage on change
+  useEffect(() => {
+    if (loaded && notebooks.length >= 0) {
+      saveNotebooks(notebooks);
+    }
+  }, [notebooks, loaded]);
 
   const active = notebooks.find((n) => n.id === activeId);
 
@@ -45,7 +57,7 @@ export default function NotebookPage() {
       id: crypto.randomUUID(),
       title: "Untitled Notebook",
       content: "",
-      updatedAt: "Just now",
+      updatedAt: new Date().toLocaleString(),
     };
     setNotebooks((prev) => [nb, ...prev]);
     setActiveId(nb.id);
@@ -57,7 +69,7 @@ export default function NotebookPage() {
       if (!activeId) return;
       setNotebooks((prev) =>
         prev.map((n) =>
-          n.id === activeId ? { ...n, content: html, updatedAt: "Just now" } : n,
+          n.id === activeId ? { ...n, content: html, updatedAt: new Date().toLocaleString() } : n,
         ),
       );
     },
@@ -82,6 +94,14 @@ export default function NotebookPage() {
     [activeId],
   );
 
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cn-orange border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -90,7 +110,7 @@ export default function NotebookPage() {
             Notebook
           </h1>
           <p className="mt-0.5 text-sm text-cn-ink-muted">
-            Rich text notes with formatting, code blocks &amp; highlights.
+            Rich text notes with formatting, code blocks &amp; highlights. Auto-saved locally.
           </p>
         </div>
         <button
@@ -170,6 +190,9 @@ export default function NotebookPage() {
                 </button>
                 <span className="text-xs text-cn-ink-subtle">·</span>
                 <span className="text-xs text-cn-ink-subtle">{active.updatedAt}</span>
+                <span className="ml-auto rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
+                  ✓ Auto-saved
+                </span>
               </div>
               <NotebookTextEditor
                 key={active.id}
@@ -182,7 +205,7 @@ export default function NotebookPage() {
               <NotebookIcon className="mb-3 h-10 w-10 text-cn-ink-subtle/50" />
               <h3 className="text-lg font-bold text-cn-ink">Select or create a notebook</h3>
               <p className="mt-1 max-w-sm text-sm text-cn-ink-muted">
-                Your notes are saved automatically. Use the toolbar for headings, code blocks,
+                Your notes are saved automatically to your browser. Use the toolbar for headings, code blocks,
                 highlights, and more.
               </p>
               {/* Mobile: show notebook list */}

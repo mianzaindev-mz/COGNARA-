@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const CREDIT_PACKS = [
   { id: "starter", credits: 100, price: "$1.99", perCredit: "$0.020", popular: false },
@@ -19,16 +20,71 @@ const CREDIT_COSTS = [
   { action: "Voice (per min)", cost: 1, icon: "🎤" },
 ];
 
-const DEMO_TRANSACTIONS = [
-  { id: "1", action: "Ask question", amount: -1, balance: 49, date: "2 hours ago" },
-  { id: "2", action: "Debug code", amount: -2, balance: 50, date: "5 hours ago" },
-  { id: "3", action: "Daily free reset", amount: 20, balance: 52, date: "Today 00:00" },
-  { id: "4", action: "Generate quiz", amount: -3, balance: 32, date: "Yesterday" },
-  { id: "5", action: "Credit pack (100)", amount: 100, balance: 35, date: "3 days ago" },
-];
+type Transaction = {
+  id: string;
+  action: string;
+  amount: number;
+  balance: number;
+  date: string;
+};
 
 export default function BillingPage() {
-  const [balance] = useState(47);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      if (!supabase) { setLoading(false); return; }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      // Load credit balance
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("ai_credits")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      setBalance(profile?.ai_credits ?? 20);
+
+      // Load credit transactions
+      const { data: txns } = await supabase
+        .from("credit_transactions")
+        .select("id, action, amount, balance_after, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (txns && txns.length > 0) {
+        setTransactions(txns.map((t: { id: string; action: string; amount: number; balance_after: number; created_at: string }) => {
+          const ago = Math.round((Date.now() - new Date(t.created_at).getTime()) / 3600000);
+          const timeStr = ago < 1 ? "Just now" : ago < 24 ? `${ago}h ago` : `${Math.round(ago / 24)}d ago`;
+          return {
+            id: t.id,
+            action: t.action,
+            amount: t.amount,
+            balance: t.balance_after,
+            date: timeStr,
+          };
+        }));
+      }
+
+      setLoading(false);
+    }
+    void load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cn-orange border-t-transparent" />
+      </div>
+    );
+  }
+
+  const creditBalance = balance ?? 20;
 
   return (
     <div className="flex flex-col gap-8">
@@ -46,7 +102,7 @@ export default function BillingPage() {
         <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-cn-orange/10 blur-3xl" />
         <div className="relative">
           <p className="text-sm font-medium text-white/60">AI Credit Balance</p>
-          <p className="mt-1 text-4xl font-bold tabular-nums">{balance}</p>
+          <p className="mt-1 text-4xl font-bold tabular-nums">{creditBalance}</p>
           <p className="mt-0.5 text-xs text-white/40">
             20 free credits reset daily at midnight UTC
           </p>
@@ -54,10 +110,10 @@ export default function BillingPage() {
             <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-cn-orange to-cn-pink transition-all"
-                style={{ width: `${Math.min(100, (balance / 100) * 100)}%` }}
+                style={{ width: `${Math.min(100, (creditBalance / 100) * 100)}%` }}
               />
             </div>
-            <span className="text-xs tabular-nums text-white/50">{balance}/100</span>
+            <span className="text-xs tabular-nums text-white/50">{creditBalance}/100</span>
           </div>
         </div>
       </div>
@@ -135,32 +191,40 @@ export default function BillingPage() {
       {/* Transaction history */}
       <section>
         <h2 className="mb-4 text-lg font-bold text-cn-ink">Recent Transactions</h2>
-        <div className="overflow-hidden rounded-2xl border border-cn-border bg-cn-surface">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-cn-border bg-cn-canvas/50">
-                <th className="px-4 py-3 text-left font-semibold text-cn-ink-muted">Action</th>
-                <th className="px-4 py-3 text-right font-semibold text-cn-ink-muted">Amount</th>
-                <th className="hidden px-4 py-3 text-right font-semibold text-cn-ink-muted sm:table-cell">Balance After</th>
-                <th className="px-4 py-3 text-right font-semibold text-cn-ink-muted">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {DEMO_TRANSACTIONS.map((tx, i) => (
-                <tr key={tx.id} className={i < DEMO_TRANSACTIONS.length - 1 ? "border-b border-cn-border" : ""}>
-                  <td className="px-4 py-3 text-cn-ink">{tx.action}</td>
-                  <td className={`px-4 py-3 text-right font-mono font-semibold ${tx.amount > 0 ? "text-emerald-500" : "text-red-400"}`}>
-                    {tx.amount > 0 ? "+" : ""}{tx.amount}
-                  </td>
-                  <td className="hidden px-4 py-3 text-right font-mono text-cn-ink-muted sm:table-cell">
-                    {tx.balance}
-                  </td>
-                  <td className="px-4 py-3 text-right text-cn-ink-subtle">{tx.date}</td>
+        {transactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-12 text-center">
+            <span className="text-3xl mb-3">📊</span>
+            <h3 className="font-bold text-cn-ink">No transactions yet</h3>
+            <p className="mt-1 text-sm text-cn-ink-muted max-w-xs">Your credit usage history will appear here as you use the AI agent.</p>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-cn-border bg-cn-surface">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-cn-border bg-cn-canvas/50">
+                  <th className="px-4 py-3 text-left font-semibold text-cn-ink-muted">Action</th>
+                  <th className="px-4 py-3 text-right font-semibold text-cn-ink-muted">Amount</th>
+                  <th className="hidden px-4 py-3 text-right font-semibold text-cn-ink-muted sm:table-cell">Balance After</th>
+                  <th className="px-4 py-3 text-right font-semibold text-cn-ink-muted">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {transactions.map((tx, i) => (
+                  <tr key={tx.id} className={i < transactions.length - 1 ? "border-b border-cn-border" : ""}>
+                    <td className="px-4 py-3 text-cn-ink">{tx.action}</td>
+                    <td className={`px-4 py-3 text-right font-mono font-semibold ${tx.amount > 0 ? "text-emerald-500" : "text-red-400"}`}>
+                      {tx.amount > 0 ? "+" : ""}{tx.amount}
+                    </td>
+                    <td className="hidden px-4 py-3 text-right font-mono text-cn-ink-muted sm:table-cell">
+                      {tx.balance}
+                    </td>
+                    <td className="px-4 py-3 text-right text-cn-ink-subtle">{tx.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {/* Free tier info */}
