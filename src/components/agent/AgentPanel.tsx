@@ -6,6 +6,10 @@ import { CreditDisplay } from "./CreditDisplay";
 import { VoiceButton } from "./VoiceButton";
 import { StudyBoard } from "./StudyBoard";
 import { AgentIcon } from "@/components/ui/agent-icon";
+import {
+  IconBrain, IconBug, IconClipboard, IconMicrophone,
+  IconTarget, IconTicket,
+} from "@/components/ui/icons";
 import type { AgentSkill } from "@/lib/ai/master-agent";
 
 type Message = {
@@ -17,13 +21,13 @@ type Message = {
   timestamp: string;
 };
 
-const SKILLS: { key: AgentSkill; icon: string; label: string; desc: string; cost: string }[] = [
-  { key: "teach", icon: "🧠", label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr" },
-  { key: "debug", icon: "🐛", label: "Debug", desc: "Fix your code issues", cost: "2 cr" },
-  { key: "quiz", icon: "📝", label: "Quiz", desc: "Generate practice problems", cost: "3 cr" },
-  { key: "voice", icon: "🎤", label: "Voice", desc: "Spoken conversation", cost: "1 cr/min" },
-  { key: "path", icon: "🗺️", label: "Path", desc: "Create learning roadmap", cost: "3 cr" },
-  { key: "support", icon: "🎫", label: "Support", desc: "Get help with the platform", cost: "1 cr" },
+const SKILLS: { key: AgentSkill; Icon: React.FC<{ className?: string }>; label: string; desc: string; cost: string }[] = [
+  { key: "teach", Icon: IconBrain, label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr" },
+  { key: "debug", Icon: IconBug, label: "Debug", desc: "Fix your code issues", cost: "2 cr" },
+  { key: "quiz", Icon: IconClipboard, label: "Quiz", desc: "Generate practice problems", cost: "3 cr" },
+  { key: "voice", Icon: IconMicrophone, label: "Voice", desc: "Spoken conversation", cost: "1 cr/min" },
+  { key: "path", Icon: IconTarget, label: "Path", desc: "Create learning roadmap", cost: "3 cr" },
+  { key: "support", Icon: IconTicket, label: "Support", desc: "Get help with the platform", cost: "1 cr" },
 ];
 
 type Props = {
@@ -49,7 +53,6 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Close skill menu on click outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (skillMenuRef.current && !skillMenuRef.current.contains(e.target as Node)) {
@@ -113,7 +116,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
       const errorMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: `## ⚠️ Error\n\n${err instanceof Error ? err.message : "Something went wrong. Please try again."}`,
+        content: `## Error\n\n${err instanceof Error ? err.message : "Something went wrong. Please try again."}`,
         skill: "error",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
@@ -132,38 +135,46 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
   };
 
   const activeSkill = SKILLS.find((s) => s.key === skill) ?? SKILLS[0];
-
-  // Find last assistant message for study board
   const lastAssistantMsg = [...messages].reverse().find(m => m.role === "assistant" && m.skill !== "error");
 
   return (
     <>
       <div className="flex h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-2xl border border-cn-border bg-cn-surface shadow-[var(--cn-shadow-card)]">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-cn-border px-5 py-3">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-sm font-bold text-white">
-              C
-            </span>
-            <div>
-              <h2 className="text-sm font-bold text-cn-ink">COGNARA Agent</h2>
-              <p className="text-[11px] text-cn-ink-subtle">AI-powered learning assistant</p>
+        <div className="relative overflow-hidden border-b border-cn-border">
+          <div className="absolute inset-0 bg-gradient-to-r from-cn-orange/5 via-transparent to-purple-500/5 pointer-events-none" />
+          <div className="relative flex items-center gap-3 px-5 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="relative">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink shadow-sm shadow-cn-orange/20">
+                  <AgentIcon size={20} />
+                </span>
+                <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-cn-surface" />
+                </span>
+              </div>
+              <div>
+                <h2 className="text-sm font-bold tracking-tight text-cn-ink">COGNARA AI</h2>
+                <p className="text-[11px] text-cn-ink-subtle">
+                  {isLoading ? "Thinking\u2026" : "Online \u2014 ready to teach"}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            {/* Study Board trigger */}
-            {lastAssistantMsg && (
-              <button
-                type="button"
-                onClick={() => setStudyBoardContent(lastAssistantMsg.content)}
-                className="flex items-center gap-1.5 rounded-xl border border-cn-border bg-cn-canvas px-3 py-1.5 text-[11px] font-bold text-cn-ink-muted transition hover:border-cn-orange/40 hover:text-cn-orange"
-                title="Open Study Board — visual teaching mode"
-              >
-                <BoardIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Study Board</span>
-              </button>
-            )}
-            <CreditDisplay balance={credits} />
+            <div className="ml-auto flex items-center gap-2">
+              {lastAssistantMsg && (
+                <button
+                  type="button"
+                  onClick={() => setStudyBoardContent(lastAssistantMsg.content)}
+                  className="cn-btn flex items-center gap-1.5 rounded-xl border border-cn-border bg-cn-canvas px-3 py-1.5 text-[11px] font-bold text-cn-ink-muted transition hover:border-cn-orange/40 hover:text-cn-orange"
+                  title="Open Study Board"
+                >
+                  <BoardIcon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Study Board</span>
+                </button>
+              )}
+              <CreditDisplay balance={credits} />
+            </div>
           </div>
         </div>
 
@@ -171,21 +182,25 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/15 to-violet-500/15">
-                <AgentIcon size={36} />
+              <div className="relative mb-5">
+                <div className="absolute inset-0 scale-150 rounded-full bg-gradient-to-br from-purple-500/10 to-cn-orange/10 blur-2xl" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/10 via-violet-500/10 to-cn-orange/10 ring-1 ring-purple-500/10">
+                  <AgentIcon size={44} />
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-cn-ink">
-                What would you like to learn today?
+              <h3 className="text-xl font-bold tracking-tight text-cn-ink">
+                What would you like to learn?
               </h3>
-              <p className="mt-1 max-w-sm text-sm text-cn-ink-muted">
-                I&apos;ll explain concepts, debug your code, or generate practice problems.
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-cn-ink-muted">
+                I&apos;m COGNARA AI &mdash; your personal tutor. I explain concepts, debug code,
+                generate quizzes, and build learning paths tailored to you.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <div className="mt-8 flex flex-wrap justify-center gap-2">
                 {[
-                  "Explain recursion in Python",
-                  "What are closures?",
-                  "Help me with sorting algorithms",
-                  "Explain Big O notation",
+                  "Explain recursion step by step",
+                  "What are closures in JavaScript?",
+                  "Help me understand Big O notation",
+                  "Debug my Python code",
                 ].map((suggestion) => (
                   <button
                     key={suggestion}
@@ -194,7 +209,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
                       setInput(suggestion);
                       inputRef.current?.focus();
                     }}
-                    className="rounded-xl border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink-muted transition hover:border-cn-orange hover:text-cn-orange"
+                    className="cn-btn rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-xs font-medium text-cn-ink-muted transition hover:border-cn-orange/50 hover:bg-cn-orange/5 hover:text-cn-orange"
                   >
                     {suggestion}
                   </button>
@@ -214,15 +229,18 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
                 />
               ))}
               {isLoading && (
-                <div className="flex gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-sm font-bold text-white">
-                    C
-                  </div>
+                <div className="flex gap-3 items-start">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink shadow-sm shadow-cn-orange/20">
+                    <AgentIcon size={16} />
+                  </span>
                   <div className="rounded-2xl rounded-tl-md bg-cn-surface px-4 py-3 shadow-sm ring-1 ring-cn-border">
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:0ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:150ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:300ms]" />
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:0ms]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:150ms]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-cn-orange [animation-delay:300ms]" />
+                      </div>
+                      <span className="text-xs text-cn-ink-subtle animate-pulse">Thinking&hellip;</span>
                     </div>
                   </div>
                 </div>
@@ -233,28 +251,29 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
         </div>
 
         {/* Input bar */}
-        <div className="border-t border-cn-border px-4 py-3">
+        <div className="border-t border-cn-border bg-cn-surface/80 backdrop-blur-sm px-4 py-3">
           <div className="flex items-end gap-2">
-            {/* Skill popup trigger */}
             <div className="relative" ref={skillMenuRef}>
               <button
                 type="button"
                 onClick={() => setShowSkillMenu(!showSkillMenu)}
-                className={`flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition ${
+                className={`cn-btn flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition ${
                   showSkillMenu
                     ? "border-cn-orange bg-cn-orange/10 text-cn-orange"
                     : "border-cn-border bg-cn-canvas text-cn-ink-muted hover:border-cn-orange/40 hover:text-cn-ink"
                 }`}
                 title="Change skill mode"
               >
-                <span>{activeSkill.icon}</span>
+                <activeSkill.Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{activeSkill.label}</span>
                 <ChevronIcon className="h-3 w-3" up={showSkillMenu} />
               </button>
 
-              {/* Popup menu */}
               {showSkillMenu && (
-                <div className="absolute bottom-full left-0 mb-2 w-56 overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-1.5 shadow-xl shadow-black/20 animate-in fade-in slide-in-from-bottom-2">
+                <div className="cn-popover-enter absolute bottom-full left-0 mb-2 w-64 overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-1.5 shadow-xl shadow-black/15">
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cn-ink-subtle">
+                    Select Skill
+                  </p>
                   {SKILLS.map((s) => (
                     <button
                       key={s.key}
@@ -263,13 +282,17 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
                         setSkill(s.key);
                         setShowSkillMenu(false);
                       }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
+                      className={`cn-row-hover flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
                         skill === s.key
                           ? "bg-cn-orange/10 text-cn-orange"
-                          : "text-cn-ink-muted hover:bg-cn-border/30 hover:text-cn-ink"
+                          : "text-cn-ink-muted hover:text-cn-ink"
                       }`}
                     >
-                      <span className="text-base">{s.icon}</span>
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                        skill === s.key ? "bg-cn-orange/15" : "bg-cn-canvas"
+                      }`}>
+                        <s.Icon className="h-4 w-4" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold">{s.label}</p>
                         <p className="text-[10px] opacity-60">{s.desc}</p>
@@ -281,18 +304,16 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
               )}
             </div>
 
-            {/* Text input */}
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Ask the ${activeSkill.label} agent…`}
+              placeholder={`Ask the ${activeSkill.label} agent\u2026`}
               rows={1}
-              className="min-h-[2.5rem] max-h-32 flex-1 resize-none rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink placeholder:text-cn-ink-subtle/50 focus:border-cn-orange focus:outline-none focus:ring-2 focus:ring-cn-orange/20"
+              className="cn-input-glow min-h-[2.5rem] max-h-32 flex-1 resize-none rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink placeholder:text-cn-ink-subtle/50 focus:border-cn-orange focus:outline-none focus:ring-2 focus:ring-cn-orange/20"
             />
 
-            {/* Voice button */}
             <VoiceButton
               onTranscript={(text) => {
                 setInput(text);
@@ -305,25 +326,27 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
               disabled={isLoading}
             />
 
-            {/* Send button */}
             <button
               id="agent-send-btn"
               type="button"
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cn-orange text-white shadow-sm transition hover:bg-cn-orange-hover disabled:opacity-40"
+              className="cn-btn flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cn-orange text-white shadow-sm shadow-cn-orange/20 transition hover:bg-cn-orange-hover active:scale-95 disabled:opacity-40 disabled:shadow-none"
             >
               <SendIcon className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-1.5 text-[11px] text-cn-ink-subtle">
-            Shift+Enter for new line · {activeSkill.icon} {activeSkill.label} mode ·{" "}
-            <span className="font-medium text-cn-ink-muted">{activeSkill.cost}</span> per message
-          </p>
+          <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-cn-ink-subtle">
+            <activeSkill.Icon className="h-3 w-3 opacity-50" />
+            <span>{activeSkill.label} mode</span>
+            <span className="mx-1 opacity-30">&middot;</span>
+            <span className="font-medium text-cn-ink-muted">{activeSkill.cost}</span>
+            <span className="mx-1 opacity-30">&middot;</span>
+            <span>Shift+Enter for new line</span>
+          </div>
         </div>
       </div>
 
-      {/* Study Board overlay */}
       {studyBoardContent && (
         <StudyBoard
           content={studyBoardContent}

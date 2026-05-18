@@ -379,26 +379,49 @@ function ExplainButton({ text }: { text: string }) {
 
     // Strip markdown for clean speech
     const clean = text
-      .replace(/```[\s\S]*?```/g, " code block omitted ")
-      .replace(/[#*`_~>\[\]|]/g, "")
+      .replace(/```[\s\S]*?```/g, " code example omitted ")
+      .replace(/\|[^\n]+\|/g, "")
+      .replace(/---+/g, "")
+      .replace(/#{1,6}\s*/g, "")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/[`~>\[\]|]/g, "")
       .replace(/\n+/g, ". ")
-      .slice(0, 1000);
+      .replace(/\s{2,}/g, " ")
+      .trim()
+      .slice(0, 1200);
 
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = lang === "ur" ? "ur-PK" : "en-US";
-    utterance.rate = lang === "ur" ? 0.9 : 1.0;
-    utterance.pitch = 1.0;
 
-    // Try to find a good voice
+    if (lang === "ur") {
+      utterance.lang = "ur-PK";
+      utterance.rate = 0.82;
+      utterance.pitch = 1.05;
+    } else {
+      utterance.lang = "en-US";
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
+    }
+
     const voices = window.speechSynthesis.getVoices();
     if (lang === "ur") {
-      const urduVoice = voices.find(v => v.lang.startsWith("ur"));
-      if (urduVoice) utterance.voice = urduVoice;
+      const v =
+        voices.find(v => v.name.includes("Microsoft") && v.lang.startsWith("ur")) ||
+        voices.find(v => v.lang === "ur-PK") ||
+        voices.find(v => v.lang.startsWith("ur")) ||
+        voices.find(v => v.name.includes("Microsoft") && v.lang.startsWith("hi")) ||
+        voices.find(v => v.lang.startsWith("hi"));
+      if (v) utterance.voice = v;
     } else {
-      const englishVoice = voices.find(v =>
-        v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Microsoft")
-      );
-      if (englishVoice) utterance.voice = englishVoice;
+      const v =
+        voices.find(v => v.name.includes("Microsoft Aria") && v.lang.startsWith("en")) ||
+        voices.find(v => v.name.includes("Microsoft Jenny") && v.lang.startsWith("en")) ||
+        voices.find(v => v.name.includes("Google UK English Female")) ||
+        voices.find(v => v.name.includes("Google US English")) ||
+        voices.find(v => v.name.includes("Samantha")) ||
+        voices.find(v => v.lang === "en-US" && !v.localService) ||
+        voices.find(v => v.lang.startsWith("en"));
+      if (v) utterance.voice = v;
     }
 
     utterance.onstart = () => setSpeaking(true);
