@@ -25,7 +25,7 @@ export function StatCard({ label, value, hint, icon, accent = "default", trend }
   const a = accentMap[accent] || accentMap.default;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-cn-border-strong">
+    <div className="cn-card-lift cn-card-shine group relative overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-sm">
       {/* Subtle gradient overlay on hover */}
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{ background: "linear-gradient(135deg, transparent 60%, rgba(99,102,241,0.04) 100%)" }}
@@ -33,7 +33,7 @@ export function StatCard({ label, value, hint, icon, accent = "default", trend }
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">{label}</p>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-cn-ink">{value}</p>
+          <p className="cn-count-up mt-2 text-2xl font-bold tracking-tight text-cn-ink">{value}</p>
           {hint && <p className="mt-1 text-xs text-cn-ink-muted">{hint}</p>}
           {trend && (
             <p className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${

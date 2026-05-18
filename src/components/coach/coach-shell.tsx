@@ -41,12 +41,12 @@ export function CoachShell({ displayName, email, isVerified, monthlyEarnings, ch
           <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider text-white md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">Coach</span>
         </Link>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
+        <nav className="cn-stagger-left flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
           {nav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link key={href} href={href} onClick={onNavigate}
-                className={`flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
+                className={`cn-sidebar-link flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
                   active ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/25" : "text-white/55 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -120,7 +120,7 @@ export function CoachShell({ displayName, email, isVerified, monthlyEarnings, ch
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">{children}</main>
+        <main className="cn-page-enter mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">{children}</main>
       </div>
     </div>
   );

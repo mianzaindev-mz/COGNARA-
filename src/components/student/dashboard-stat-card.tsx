@@ -23,12 +23,12 @@ export function DashboardStatCard({
   return (
     <div
       className={cn(
-        "cn-card p-5 transition hover:-translate-y-0.5 hover:shadow-md",
+        "cn-card cn-card-lift cn-card-shine p-5",
         accentRing[accent],
       )}
     >
       <p className="text-xs font-bold uppercase tracking-wide text-cn-ink-subtle">{label}</p>
-      <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-cn-ink">{value}</p>
+      <p className="cn-count-up mt-2 text-2xl font-bold tabular-nums tracking-tight text-cn-ink">{value}</p>
       {hint ? <p className="mt-1 text-xs text-cn-ink-muted">{hint}</p> : null}
     </div>
   );

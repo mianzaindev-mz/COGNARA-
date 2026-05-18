@@ -58,7 +58,7 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
         </Link>
 
         {/* Nav items */}
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
+        <nav className="cn-stagger-left flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
           {nav.map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (
@@ -66,7 +66,7 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
                 key={href}
                 href={href}
                 onClick={onNavigate}
-                className={`flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
+                className={`cn-sidebar-link flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
                   active
                     ? "bg-cn-yellow text-cn-sidebar shadow-sm"
                     : "text-white/55 hover:bg-white/10 hover:text-white"
@@ -180,7 +180,7 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">{children}</main>
+        <main className="cn-page-enter mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">{children}</main>
       </div>
     </div>
   );

@@ -108,7 +108,7 @@ export default async function CoachDashboardPage() {
       )}
 
       {/* Stats */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <section className="cn-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           label="Total Students"
           value="124"

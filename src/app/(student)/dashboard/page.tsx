@@ -108,7 +108,7 @@ export default async function DashboardPage() {
 
       <DatabaseStatusBanner health={health} />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="cn-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardStatCard
           label="Enrolled"
           value={enrolledLabel}
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-5">
+      <div className="cn-stagger grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
           <div className="cn-card flex flex-wrap items-center justify-between gap-2 px-5 py-4">
             <h2 className="text-lg font-bold text-cn-ink">My next lessons</h2>
@@ -169,7 +169,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="lg:col-span-2">
-          <div className="flex h-full min-h-[280px] flex-col justify-between rounded-[1.75rem] bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 p-6 text-white shadow-[var(--cn-shadow-card)] dark:from-cn-sidebar dark:via-cn-sidebar dark:to-cn-sidebar">
+          <div className="cn-card-lift cn-card-shine flex h-full min-h-[280px] flex-col justify-between rounded-[1.75rem] bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 p-6 text-white shadow-[var(--cn-shadow-card)] dark:from-cn-sidebar dark:via-cn-sidebar dark:to-cn-sidebar">
             <div>
               <span className="inline-block rounded-full bg-cn-yellow px-3 py-1 text-xs font-bold text-cn-sidebar">
                 Spotlight
