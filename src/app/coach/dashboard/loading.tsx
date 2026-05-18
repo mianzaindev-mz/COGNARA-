@@ -17,7 +17,7 @@ export default function CoachDashboardLoading() {
       </div>
 
       {/* AI Tools */}
-      <div className="rounded-2xl border border-cn-border bg-cn-surface p-6">
+      <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
         <div className="h-5 w-36 rounded bg-cn-border mb-5" />
         <div className="grid gap-3 sm:grid-cols-3">
           {[1, 2, 3].map(i => (
@@ -32,11 +32,11 @@ export default function CoachDashboardLoading() {
 
       {/* Chart + performance */}
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3 rounded-2xl border border-cn-border bg-cn-surface p-6">
+        <div className="lg:col-span-3 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
           <div className="h-5 w-40 rounded bg-cn-border mb-4" />
           <div className="h-36 w-full rounded-xl bg-cn-border" />
         </div>
-        <div className="lg:col-span-2 rounded-2xl border border-cn-border bg-cn-surface p-6">
+        <div className="lg:col-span-2 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
           <div className="h-5 w-36 rounded bg-cn-border mb-4" />
           <div className="space-y-4">
             {[1, 2, 3].map(i => (

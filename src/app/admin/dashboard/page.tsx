@@ -82,7 +82,7 @@ export default async function AdminDashboardPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">
-        <section className="lg:col-span-3 rounded-2xl border border-cn-border bg-cn-surface p-6">
+        <section className="lg:col-span-3 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-bold text-cn-ink">Revenue — Last 30 days</h2>
             <span className="text-xs text-cn-ink-subtle">Daily ($)</span>
@@ -90,7 +90,7 @@ export default async function AdminDashboardPage() {
           <BarChart data={days} color="emerald" height={150} />
         </section>
 
-        <section className="lg:col-span-2 rounded-2xl border border-cn-border bg-cn-surface p-6">
+        <section className="lg:col-span-2 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-cn-ink">Verification Queue</h2>
             <Badge variant="warning" size="sm">{(pendingCoaches ?? []).length} pending</Badge>
@@ -119,7 +119,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Recent Support Tickets */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-6">
+      <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-bold text-cn-ink">Recent Support Tickets</h2>
           <Link href="/admin/support" className="text-xs font-semibold text-cn-orange hover:underline">View all →</Link>
@@ -145,7 +145,7 @@ export default async function AdminDashboardPage() {
       </section>
 
       {/* Platform Health */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-6">
+      <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
         <h2 className="text-base font-bold text-cn-ink mb-4">Platform Health</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[

@@ -11,7 +11,7 @@ export default function AdminSettingsPage() {
       </section>
 
       {/* Feature Flags */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-6">
+      <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
         <h2 className="text-base font-bold text-cn-ink mb-4">Feature Flags</h2>
         <div className="space-y-2">
           {[

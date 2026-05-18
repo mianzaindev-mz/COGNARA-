@@ -125,11 +125,26 @@ pre {
   font-family: var(--font-mono);
 }
 
+/* ── Card base — subtle 3D depth ── */
 .cn-card {
   background: var(--cn-surface);
   border: 1px solid var(--cn-border);
   border-radius: var(--cn-radius-card);
-  box-shadow: var(--cn-shadow-card);
+  box-shadow:
+    var(--cn-shadow-card),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+.cn-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .cn-card::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, transparent 40%);
 }
 
 .cn-callout {
@@ -272,17 +287,47 @@ pre {
 .cn-stagger-left > *:nth-child(7) { animation-delay: 210ms; }
 .cn-stagger-left > *:nth-child(8) { animation-delay: 240ms; }
 
-/* ── Card hover lift (subtle scale + shadow) ── */
+/* ── Card hover lift — subtle 3D with shadow depth ── */
 .cn-card-lift {
   transition: transform var(--cn-duration) var(--cn-ease),
-              box-shadow var(--cn-duration) var(--cn-ease);
+              box-shadow var(--cn-duration) var(--cn-ease),
+              border-color var(--cn-duration) var(--cn-ease);
+  will-change: transform;
 }
 .cn-card-lift:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.18);
+  transform: translateY(-6px) scale(1.012);
+  box-shadow:
+    0 24px 56px -20px rgba(0, 0, 0, 0.15),
+    0 8px 16px -8px rgba(0, 0, 0, 0.08);
+  border-color: var(--cn-border-strong);
 }
 .dark .cn-card-lift:hover {
-  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 24px 56px -20px rgba(0, 0, 0, 0.55),
+    0 8px 16px -8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Interactive row hover — for list items, table rows ── */
+.cn-row-hover {
+  transition: background-color var(--cn-duration-fast) var(--cn-ease),
+              transform var(--cn-duration-fast) var(--cn-ease);
+}
+.cn-row-hover:hover {
+  background-color: rgba(255, 87, 52, 0.04);
+  transform: translateX(2px);
+}
+.dark .cn-row-hover:hover {
+  background-color: rgba(255, 107, 74, 0.06);
+}
+
+/* ── Icon hover pop ── */
+.cn-icon-hover {
+  transition: transform var(--cn-duration-fast) var(--cn-ease-spring),
+              color var(--cn-duration-fast) var(--cn-ease);
+}
+.cn-icon-hover:hover {
+  transform: scale(1.15) rotate(-3deg);
+  color: var(--cn-orange);
 }
 
 /* ── Stat card shine sweep ── */

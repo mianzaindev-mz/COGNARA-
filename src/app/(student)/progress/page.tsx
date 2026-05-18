@@ -90,7 +90,7 @@ export default async function ProgressPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* XP Chart */}
-        <section className="rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
+        <section className="cn-card-lift rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
           <h2 className="mb-4 text-sm font-bold text-cn-ink">Weekly XP</h2>
           <div className="flex items-end justify-between gap-2" style={{ height: 160 }}>
             {WEEKLY_XP.map((d) => {
@@ -117,7 +117,7 @@ export default async function ProgressPage() {
         </section>
 
         {/* Streak Grid */}
-        <section className="rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
+        <section className="cn-card-lift rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold text-cn-ink">28-Day Streak Map</h2>
             <span className="rounded-full bg-cn-orange/10 px-2.5 py-0.5 text-xs font-bold text-cn-orange">
@@ -166,7 +166,7 @@ export default async function ProgressPage() {
       </section>
 
       {/* Level progress */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
+      <section className="cn-card-lift rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-cn-ink">Level {stats.level}</h2>
@@ -203,7 +203,7 @@ export default async function ProgressPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {enrollments.map((c) => (
-              <div key={c.enrollmentId} className="rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
+              <div key={c.enrollmentId} className="cn-card-lift rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-bold text-cn-ink">{c.title}</p>

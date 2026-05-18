@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { TopBarSearch } from "@/components/shared/top-bar-search";
-import { PublicLogo } from "@/components/public/public-logo";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 import { cn } from "@/lib/utils/cn";
 
 const navLinks = [
@@ -39,7 +39,9 @@ export function PublicHeaderBar() {
     <header className="sticky top-0 z-30 border-b border-cn-border bg-cn-surface/98 backdrop-blur-md transition-colors duration-300">
       <div className="w-full px-6 sm:px-12 lg:px-16 xl:px-24">
         <div className="flex h-16 items-center gap-4 lg:gap-8">
-          <PublicLogo href="/" showWordmark className="shrink-0" />
+          <Link href="/" className="shrink-0 transition-opacity hover:opacity-90">
+            <CognaraLogo variant="full" />
+          </Link>
 
           <nav
             className="hidden flex-1 items-center justify-center gap-1 lg:flex"

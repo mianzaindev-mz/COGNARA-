@@ -70,7 +70,7 @@ export default async function CoachAnalyticsPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-5">Completion Funnel</h2>
           {totalEnrolled > 0 ? (
             <BarChart data={funnelData} color="indigo" height={140} />
@@ -78,7 +78,7 @@ export default async function CoachAnalyticsPage() {
             <p className="text-sm text-cn-ink-muted py-8 text-center">No enrollment data yet.</p>
           )}
         </section>
-        <section className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-5">Students per Course</h2>
           {courseChart.length > 0 ? (
             <BarChart data={courseChart} color="emerald" height={140} />

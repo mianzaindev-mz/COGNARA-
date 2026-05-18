@@ -46,12 +46,12 @@ export default async function CoachEarningsPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">
-        <section className="lg:col-span-3 rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <section className="lg:col-span-3 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-5">Monthly Earnings</h2>
           <BarChart data={monthlyData} color="indigo" height={140} />
         </section>
 
-        <section className="lg:col-span-2 rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <section className="lg:col-span-2 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-4">Revenue by Course</h2>
           <div className="space-y-3">
             {list.length === 0 ? (
@@ -59,7 +59,7 @@ export default async function CoachEarningsPage() {
             ) : list.map(c => {
               const rev = (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0);
               return (
-                <div key={c.title} className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-cn-canvas/60 transition-colors">
+                <div key={c.title} className="flex items-center justify-between cn-row-hover rounded-xl px-3 py-2.5 transition-colors">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-cn-ink truncate">{c.title}</p>
                     <p className="text-[10px] text-cn-ink-subtle">{c.total_enrolled ?? 0} students × ${Number(c.price_usd || 0).toFixed(2)}</p>

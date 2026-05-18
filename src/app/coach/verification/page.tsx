@@ -148,7 +148,7 @@ export default function CoachVerificationPage() {
       </section>
 
       {/* Progress */}
-      <div className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+      <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <Badge
             variant={verificationStatus === "approved" ? "success" : "warning"}
@@ -176,7 +176,7 @@ export default function CoachVerificationPage() {
       </div>
 
       {/* Upload Section */}
-      <div className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+      <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
         <h2 className="text-base font-bold text-cn-ink mb-4">Upload Verification Documents</h2>
         <p className="text-sm text-cn-ink-muted mb-5">Accepted: Degree certificate, professional certification, government ID</p>
         <div className="grid gap-4 sm:grid-cols-3">

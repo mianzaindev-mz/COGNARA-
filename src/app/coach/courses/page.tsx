@@ -51,7 +51,7 @@ export default async function CoachCoursesPage() {
             const status = course.is_published ? "published" : "draft";
 
             return (
-              <div key={course.id} className="group relative overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-sm transition-all hover:shadow-md hover:border-cn-border-strong">
+              <div key={course.id} className="cn-card-lift cn-card-shine group relative overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-sm transition-all">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">{course.category ?? "Uncategorized"}</span>

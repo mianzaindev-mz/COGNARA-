@@ -62,7 +62,7 @@ export default function CoachSettingsPage() {
     return (
       <div className="flex flex-col gap-8 animate-pulse">
         <div><div className="h-8 w-40 rounded-lg bg-cn-border" /><div className="mt-2 h-4 w-56 rounded bg-cn-border" /></div>
-        <div className="rounded-2xl border border-cn-border bg-cn-surface p-6"><div className="h-5 w-32 rounded bg-cn-border mb-4" /><div className="grid gap-4 sm:grid-cols-2">{[1,2,3].map(i=><div key={i} className="h-10 rounded-xl bg-cn-border" />)}</div></div>
+        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6"><div className="h-5 w-32 rounded bg-cn-border mb-4" /><div className="grid gap-4 sm:grid-cols-2">{[1,2,3].map(i=><div key={i} className="h-10 rounded-xl bg-cn-border" />)}</div></div>
       </div>
     );
   }
@@ -87,7 +87,7 @@ export default function CoachSettingsPage() {
 
       <div className="space-y-6">
         {/* Profile */}
-        <div className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-4">Profile Information</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -106,7 +106,7 @@ export default function CoachSettingsPage() {
         </div>
 
         {/* Payment */}
-        <div className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-4">Payment Setup</h2>
           <p className="text-sm text-cn-ink-muted mb-4">Connect Stripe to receive payouts for your courses. COGNARA takes a 15% platform fee.</p>
           <div className="flex items-center gap-4 rounded-xl border border-cn-border bg-cn-canvas p-4">
@@ -125,7 +125,7 @@ export default function CoachSettingsPage() {
         </div>
 
         {/* Notifications */}
-        <div className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-4">Notifications</h2>
           <div className="space-y-3">
             {(["enrollment", "completion", "review", "payout"] as const).map(key => {

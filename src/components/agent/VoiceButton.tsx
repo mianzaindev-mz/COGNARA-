@@ -46,33 +46,78 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
 
     // Strip markdown for clean speech
     const clean = speakText
-      .replace(/```[\s\S]*?```/g, " code block omitted ")
-      .replace(/[#*`_~>\[\]|]/g, "")
-      .replace(/\n+/g, ". ")
-      .slice(0, 800);
+      .replace(/```[\s\S]*?```/g, " code example omitted for brevity ")
+      .replace(/\|[^\n]+\|/g, "")                    // Remove table rows
+      .replace(/---+/g, "")                           // Remove horizontal rules
+      .replace(/#{1,6}\s*/g, "")                      // Remove header markers
+      .replace(/\*\*([^*]+)\*\*/g, "$1")              // Bold → plain
+      .replace(/\*([^*]+)\*/g, "$1")                  // Italic → plain
+      .replace(/[`~>\[\]|]/g, "")                     // Remove formatting chars
+      .replace(/\n+/g, ". ")                          // Newlines → pauses
+      .replace(/\s{2,}/g, " ")                        // Collapse whitespace
+      .trim()
+      .slice(0, 1200);
 
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = lang === "ur" ? "ur-PK" : "en-US";
-    utterance.rate = lang === "ur" ? 0.9 : 1.0;
-    utterance.pitch = 1.0;
+
+    // Configure language-specific settings
+    if (lang === "ur") {
+      utterance.lang = "ur-PK";
+      utterance.rate = 0.85;     // Slightly slower for Urdu clarity
+      utterance.pitch = 1.05;    // Slightly higher for natural Urdu intonation
+    } else {
+      utterance.lang = "en-US";
+      utterance.rate = 0.95;     // Natural speaking pace
+      utterance.pitch = 1.0;
+    }
     utterance.volume = 1.0;
 
-    const voices = window.speechSynthesis.getVoices();
-    if (lang === "ur") {
-      const urduVoice = voices.find(v => v.lang.startsWith("ur"));
-      if (urduVoice) utterance.voice = urduVoice;
+    // Select best available voice
+    const pickVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) return;
+
+      if (lang === "ur") {
+        // Priority order for Urdu voices
+        const urduVoice =
+          voices.find(v => v.name.includes("Microsoft") && v.lang.startsWith("ur")) ||
+          voices.find(v => v.name.includes("Google") && v.lang.startsWith("ur")) ||
+          voices.find(v => v.lang === "ur-PK") ||
+          voices.find(v => v.lang.startsWith("ur")) ||
+          voices.find(v => v.lang.startsWith("hi"));   // Hindi as fallback for Urdu
+        if (urduVoice) utterance.voice = urduVoice;
+      } else {
+        // Priority order for English voices — prefer natural/neural voices
+        const englishVoice =
+          voices.find(v => v.name.includes("Microsoft Aria") && v.lang.startsWith("en")) ||
+          voices.find(v => v.name.includes("Microsoft Jenny") && v.lang.startsWith("en")) ||
+          voices.find(v => v.name.includes("Google UK English Female")) ||
+          voices.find(v => v.name.includes("Google US English")) ||
+          voices.find(v => v.name.includes("Samantha")) ||                  // macOS
+          voices.find(v => v.name.includes("Microsoft Zira")) ||            // Windows fallback
+          voices.find(v => v.name.includes("Microsoft David")) ||           // Windows fallback
+          voices.find(v => v.lang.startsWith("en") && v.name.includes("Natural")) ||
+          voices.find(v => v.lang === "en-US" && !v.localService) ||        // Cloud voice
+          voices.find(v => v.lang.startsWith("en"));                        // Any English
+        if (englishVoice) utterance.voice = englishVoice;
+      }
+    };
+
+    // Voices may not be loaded yet — try immediately, then on voiceschanged
+    pickVoice();
+    if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        pickVoice();
+        window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.onvoiceschanged = null;
+      };
     } else {
-      const preferred = voices.find(
-        (v) => v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Microsoft"),
-      );
-      if (preferred) utterance.voice = preferred;
+      window.speechSynthesis.speak(utterance);
     }
 
     utterance.onstart = () => setState("speaking");
     utterance.onend = () => setState("idle");
     utterance.onerror = () => setState("idle");
-
-    window.speechSynthesis.speak(utterance);
 
     return () => {
       window.speechSynthesis.cancel();

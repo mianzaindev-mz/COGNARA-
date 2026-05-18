@@ -177,7 +177,7 @@ export default async function CoachDashboardPage() {
 
       {/* Earnings Chart + Performance */}
       <div className="grid gap-6 lg:grid-cols-5">
-        <section className="lg:col-span-3 rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <section className="lg:col-span-3 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-bold text-cn-ink">Earnings — Last 30 days</h2>
             <span className="text-xs text-cn-ink-subtle">Daily revenue ($)</span>
@@ -185,7 +185,7 @@ export default async function CoachDashboardPage() {
           <BarChart data={earningsData} color="indigo" height={140} />
         </section>
 
-        <section className="lg:col-span-2 rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <section className="lg:col-span-2 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
           <h2 className="text-base font-bold text-cn-ink mb-4">Performance Multiplier</h2>
           <div className="flex items-center gap-2 mb-5">
             <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">1.08×</span>
@@ -265,11 +265,11 @@ export default async function CoachDashboardPage() {
       </section>
 
       {/* Recent Activity */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+      <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
         <h2 className="text-base font-bold text-cn-ink mb-4">Recent Student Activity</h2>
         <div className="space-y-3">
           {recentActivity.map((item, i) => (
-            <div key={i} className="flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-cn-canvas/60">
+            <div key={i} className="flex items-start gap-3 cn-row-hover rounded-xl px-3 py-2.5 transition-colors">
               <span className="mt-0.5 text-lg text-cn-orange">{activityIcons[item.type] || "•"}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-cn-ink">{item.text}</p>

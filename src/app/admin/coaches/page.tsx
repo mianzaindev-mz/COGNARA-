@@ -19,7 +19,7 @@ export default function AdminCoachesPage() {
         <p className="mt-1 text-sm text-cn-ink-muted">Review verification applications and manage coaches</p>
       </section>
 
-      <section className="rounded-2xl border border-cn-border bg-cn-surface p-6">
+      <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6">
         <h2 className="text-base font-bold text-cn-ink mb-4">Verification Queue</h2>
         <div className="space-y-3">
           {applications.map((app, i) => (
