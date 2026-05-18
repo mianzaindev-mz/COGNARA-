@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
+import { AgentIcon } from "@/components/ui/agent-icon";
 
 export const metadata: Metadata = { title: "Reports — Admin — COGNARA™" };
 
@@ -23,11 +24,11 @@ export default function AdminReportsPage() {
         <p className="mt-1 text-sm text-cn-ink-muted">Platform analytics and growth metrics</p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="cn-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Revenue" value="$4,201" accent="emerald" trend={{ value: "+34%", positive: true }} icon={<span className="text-lg">💰</span>} />
         <StatCard label="User Growth" value="+210" hint="This month" accent="indigo" trend={{ value: "+31%", positive: true }} icon={<span className="text-lg">📈</span>} />
         <StatCard label="Churn Rate" value="2.1%" accent="rose" trend={{ value: "-0.3%", positive: true }} icon={<span className="text-lg">📉</span>} />
-        <StatCard label="Agent Usage" value="4,821" hint="Sessions this month" accent="lavender" icon={<span className="text-lg">🤖</span>} />
+        <StatCard label="Agent Usage" value="4,821" hint="Sessions this month" accent="lavender" icon={<AgentIcon size={22} />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

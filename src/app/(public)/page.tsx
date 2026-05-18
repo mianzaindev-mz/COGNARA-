@@ -43,8 +43,8 @@ export default async function HomePage() {
 
   return (
     <div className="bg-cn-cream">
-      {/* Hero — split copy + visual */}
-      <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-8 sm:pt-14 lg:pb-12">
+      {/* Hero — full bleed, text left-aligned */}
+      <section className="w-full px-6 pb-8 pt-10 sm:px-12 sm:pt-14 lg:px-16 lg:pb-12 xl:px-24">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <CognaraLogo variant="tagline" size={32} />

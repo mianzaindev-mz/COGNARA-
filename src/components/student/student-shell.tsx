@@ -222,19 +222,11 @@ function IconNotebook({ className }: { className?: string }) {
 
 function IconSpark({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-      {/* Head */}
-      <rect x="4" y="5" width="16" height="13" rx="3" />
-      {/* Eyes */}
-      <circle cx="9.5" cy="10.5" r="1.25" fill="currentColor" stroke="none" />
-      <circle cx="14.5" cy="10.5" r="1.25" fill="currentColor" stroke="none" />
-      {/* Sparkle mouth */}
-      <path d="M12 13.5l.4 1.1 1.1.4-1.1.4-.4 1.1-.4-1.1-1.1-.4 1.1-.4.4-1.1z" fill="currentColor" stroke="none" />
-      {/* Antenna */}
-      <line x1="12" y1="5" x2="12" y2="2.5" />
-      <circle cx="12" cy="2" r="1" fill="currentColor" stroke="none" />
-      {/* Base */}
-      <path d="M8 18v1.5h8V18" />
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      {/* Main 4-point sparkle */}
+      <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" />
+      {/* Small sparkle */}
+      <path d="M19 14L19.75 16.25L22 17L19.75 17.75L19 20L18.25 17.75L16 17L18.25 16.25L19 14Z" opacity="0.7" />
     </svg>
   );
 }

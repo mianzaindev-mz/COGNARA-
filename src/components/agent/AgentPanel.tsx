@@ -5,6 +5,7 @@ import { AgentMessage } from "./AgentMessage";
 import { CreditDisplay } from "./CreditDisplay";
 import { VoiceButton } from "./VoiceButton";
 import { StudyBoard } from "./StudyBoard";
+import { AgentIcon } from "@/components/ui/agent-icon";
 import type { AgentSkill } from "@/lib/ai/master-agent";
 
 type Message = {
@@ -170,8 +171,8 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cn-orange/20 to-cn-pink/20">
-                <span className="text-3xl">🤖</span>
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/15 to-violet-500/15">
+                <AgentIcon size={36} />
               </div>
               <h3 className="text-lg font-bold text-cn-ink">
                 What would you like to learn today?

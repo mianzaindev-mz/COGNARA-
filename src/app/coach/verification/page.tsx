@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { AgentIcon } from "@/components/ui/agent-icon";
 
 type UploadedDoc = {
   name: string;
@@ -237,7 +238,7 @@ export default function CoachVerificationPage() {
       {/* AI Screening Info */}
       <div className="rounded-2xl border border-indigo-200/30 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 p-6 dark:border-indigo-500/15 dark:from-indigo-950/20 dark:to-purple-950/10">
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 text-2xl">🤖</span>
+          <span className="mt-0.5"><AgentIcon size={28} /></span>
           <div>
             <h3 className="text-sm font-bold text-cn-ink">AI Pre-Screening</h3>
             <p className="mt-1 text-xs text-cn-ink-muted leading-relaxed">

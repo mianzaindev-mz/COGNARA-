@@ -5,6 +5,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { AgentIcon } from "@/components/ui/agent-icon";
 
 export const dynamic = "force-dynamic";
 
@@ -152,7 +153,7 @@ export default async function CoachDashboardPage() {
       {/* AI Coach Agent Tools */}
       <section className="rounded-2xl border border-indigo-200/50 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/50 p-6 dark:border-indigo-500/20 dark:from-indigo-950/30 dark:via-cn-surface dark:to-purple-950/20">
         <div className="flex items-center gap-2 mb-5">
-          <span className="text-xl">🤖</span>
+          <AgentIcon size={24} />
           <h2 className="text-base font-bold text-cn-ink">Coach Agent Tools</h2>
           <Badge variant="success" size="sm">FREE for coaches</Badge>
         </div>
