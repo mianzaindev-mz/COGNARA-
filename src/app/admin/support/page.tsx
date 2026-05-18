@@ -1,56 +1,84 @@
 import type { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Support — Admin — COGNARA™" };
 
-const tickets = [
-  { id: "TKT-0047", subject: "Cannot access purchased course", user: "ahmed@example.com", category: "technical", priority: "high", status: "open", created: "1h ago" },
-  { id: "TKT-0046", subject: "Refund request for React course", user: "sara@example.com", category: "billing", priority: "normal", status: "in_progress", created: "3h ago" },
-  { id: "TKT-0045", subject: "Coach impersonation report", user: "fatima@example.com", category: "abuse_report", priority: "urgent", status: "open", created: "5h ago" },
-  { id: "TKT-0044", subject: "Password reset not working", user: "usman@example.com", category: "account", priority: "normal", status: "ai_resolved", created: "1d ago" },
-  { id: "TKT-0043", subject: "Course video not loading", user: "bilal@example.com", category: "technical", priority: "low", status: "resolved", created: "2d ago" },
-];
+const priorityMap: Record<string, "danger" | "warning" | "default" | "info"> = { urgent: "danger", high: "warning", normal: "default", low: "info" };
+const statusMap: Record<string, "danger" | "warning" | "success" | "indigo" | "default"> = { open: "danger", in_progress: "warning", ai_resolved: "indigo", resolved: "success", closed: "default" };
+const statusLabel: Record<string, string> = { open: "Open", in_progress: "In progress", ai_resolved: "AI resolved", resolved: "Resolved", closed: "Closed" };
 
-const priorityVariant: Record<string, "danger" | "warning" | "default" | "info"> = { urgent: "danger", high: "warning", normal: "default", low: "info" };
-const statusVariant: Record<string, "danger" | "warning" | "success" | "indigo" | "default"> = { open: "danger", in_progress: "warning", ai_resolved: "indigo", resolved: "success", closed: "default" };
+export default async function AdminSupportPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
 
-export default function AdminSupportPage() {
+  const { data: tickets } = await supabase
+    .from("support_tickets")
+    .select("id, subject, category, status, created_at, profiles!support_tickets_user_id_fkey(full_name, email)")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  const list = ((tickets ?? []) as unknown) as Array<{
+    id: string;
+    subject: string;
+    category: string;
+    status: string;
+    created_at: string;
+    profiles: { full_name: string | null; email: string | null } | null;
+  }>;
+
+  const openCount = list.filter(t => t.status === "open").length;
+
   return (
     <div className="flex flex-col gap-8">
       <section>
         <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Support Tickets</h1>
-        <p className="mt-1 text-sm text-cn-ink-muted">{tickets.filter(t => t.status === "open").length} open · {tickets.length} total</p>
+        <p className="mt-1 text-sm text-cn-ink-muted">{openCount} open · {list.length} total</p>
       </section>
 
-      <div className="overflow-hidden rounded-2xl border border-cn-border bg-cn-surface">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-cn-border">
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Ticket</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Subject</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Priority</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cn-border">
-              {tickets.map(t => (
-                <tr key={t.id} className="transition-colors hover:bg-cn-canvas cursor-pointer">
-                  <td className="px-5 py-3.5 font-mono text-xs text-indigo-400">{t.id}</td>
-                  <td className="px-4 py-3.5">
-                    <p className="font-semibold text-cn-ink">{t.subject}</p>
-                    <p className="text-xs text-cn-ink-subtle">{t.user} · {t.category}</p>
-                  </td>
-                  <td className="px-4 py-3.5"><Badge variant={priorityVariant[t.priority]}>{t.priority}</Badge></td>
-                  <td className="px-4 py-3.5"><Badge variant={statusVariant[t.status] || "default"} dot>{t.status.replace("_", " ")}</Badge></td>
-                  <td className="px-4 py-3.5 text-xs text-cn-ink-subtle">{t.created}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {list.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center">
+          <span className="text-4xl mb-4">🎫</span>
+          <h2 className="text-lg font-bold text-cn-ink">No tickets yet</h2>
+          <p className="mt-1 text-sm text-cn-ink-muted">Support tickets from students and coaches will appear here.</p>
         </div>
-      </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-cn-border bg-cn-surface">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-cn-border">
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Subject</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">User</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Created</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-cn-border">
+                {list.map(t => {
+                  const profile = t.profiles;
+                  const ago = Math.round((Date.now() - new Date(t.created_at).getTime()) / 3600000);
+                  const timeStr = ago < 1 ? "Just now" : ago < 24 ? `${ago}h ago` : `${Math.round(ago / 24)}d ago`;
+                  return (
+                    <tr key={t.id} className="transition-colors hover:bg-cn-canvas">
+                      <td className="px-5 py-3.5">
+                        <p className="font-semibold text-cn-ink truncate max-w-[260px]">{t.subject}</p>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-cn-ink-muted">{profile?.email ?? "Unknown"}</td>
+                      <td className="px-4 py-3.5"><Badge variant="default" size="sm">{t.category}</Badge></td>
+                      <td className="px-4 py-3.5"><Badge variant={statusMap[t.status] ?? "default"} size="sm" dot>{statusLabel[t.status] ?? t.status}</Badge></td>
+                      <td className="px-4 py-3.5 text-xs text-cn-ink-subtle">{timeStr}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

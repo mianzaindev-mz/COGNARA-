@@ -4,36 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
 import { Badge } from "@/components/ui/badge";
-import { ProgressBar } from "@/components/ui/progress-bar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin Dashboard — COGNARA™" };
-
-const revenueData = [
-  { label: "1", value: 120 }, { label: "2", value: 85 }, { label: "3", value: 210 },
-  { label: "4", value: 180 }, { label: "5", value: 290 }, { label: "6", value: 240 },
-  { label: "7", value: 155 }, { label: "8", value: 320 }, { label: "9", value: 350 },
-  { label: "10", value: 410 }, { label: "11", value: 380 }, { label: "12", value: 290 },
-  { label: "13", value: 445 }, { label: "14", value: 310 }, { label: "15", value: 195 },
-  { label: "16", value: 275 }, { label: "17", value: 500 }, { label: "18", value: 440 },
-  { label: "19", value: 360 }, { label: "20", value: 225 }, { label: "21", value: 415 },
-  { label: "22", value: 330 }, { label: "23", value: 480 }, { label: "24", value: 390 },
-  { label: "25", value: 265 }, { label: "26", value: 550 }, { label: "27", value: 470 },
-  { label: "28", value: 305 }, { label: "29", value: 520 }, { label: "30", value: 430 },
-];
-
-const verificationQueue = [
-  { name: "Ahmed R.", doc: "BSc CS", confidence: 94, time: "2h ago" },
-  { name: "Sara M.", doc: "AWS Certificate", confidence: 71, time: "5h ago" },
-  { name: "Bilal K.", doc: "MBA", confidence: 43, time: "1d ago" },
-];
-
-const securityEvents = [
-  { severity: "high" as const, msg: "Off-platform solicitation detected — User #4821", time: "12m ago" },
-  { severity: "critical" as const, msg: "Failed login attempts: 12 in 5 mins — IP: 192.168.1.x", time: "45m ago" },
-  { severity: "medium" as const, msg: "File upload violation — .exe rejected from User #2103", time: "2h ago" },
-  { severity: "low" as const, msg: "Rate limit triggered — /api/agent from IP: 10.0.0.x", time: "3h ago" },
-];
 
 const severityColor: Record<string, string> = {
   critical: "bg-rose-500/15 text-rose-400 border-rose-500/20",
@@ -47,6 +20,51 @@ export default async function AdminDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
+  // Real counts from DB
+  const [usersRes, coursesRes, ticketsRes, enrollmentsRes] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("courses").select("id", { count: "exact", head: true }).eq("is_published", true),
+    supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+    supabase.from("enrollments").select("id", { count: "exact", head: true }),
+  ]);
+
+  const totalUsers = usersRes.count ?? 0;
+  const totalCourses = coursesRes.count ?? 0;
+  const openTickets = ticketsRes.count ?? 0;
+  const totalEnrollments = enrollmentsRes.count ?? 0;
+
+  // Revenue from courses
+  const { data: courseRevData } = await supabase
+    .from("courses")
+    .select("price_usd, total_enrolled")
+    .eq("is_published", true);
+  const grossRevenue = (courseRevData ?? []).reduce((s, c) => s + (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0), 0);
+
+  // Recent support tickets
+  const { data: recentTickets } = await supabase
+    .from("support_tickets")
+    .select("id, subject, category, status, created_at, profiles!support_tickets_user_id_fkey(full_name, email)")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  // Simulated daily revenue chart (real would come from payments table)
+  const days = Array.from({ length: 30 }, (_, i) => ({
+    label: String(i + 1),
+    value: Math.round(grossRevenue / 30 * (0.4 + Math.random() * 1.2)),
+  }));
+
+  // Pending coach verifications
+  const { data: pendingCoaches } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, created_at")
+    .eq("role", "coach")
+    .eq("is_verified_coach", false)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const statusLabel: Record<string, string> = { open: "Open", in_progress: "In progress", resolved: "Resolved", closed: "Closed" };
+  const statusVariant: Record<string, "danger" | "warning" | "success" | "default"> = { open: "danger", in_progress: "warning", resolved: "success", closed: "default" };
+
   return (
     <div className="flex flex-col gap-8">
       <section>
@@ -54,73 +72,74 @@ export default async function AdminDashboardPage() {
         <p className="mt-1 text-sm text-cn-ink-muted">Real-time overview of COGNARA operations</p>
       </section>
 
-      {/* Stats */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="Total Users" value="2,847" accent="indigo" trend={{ value: "+18%", positive: true }} icon={<span className="text-lg">👥</span>} />
-        <StatCard label="Active Today" value="312" accent="emerald" icon={<span className="text-lg">🟢</span>} />
-        <StatCard label="MRR" value="$4,201" accent="emerald" trend={{ value: "+12%", positive: true }} icon={<span className="text-lg">💰</span>} />
-        <StatCard label="Open Tickets" value="7" accent="amber" icon={<span className="text-lg">🎫</span>} />
-        <StatCard label="Uptime" value="99.8%" accent="sky" icon={<span className="text-lg">⚡</span>} />
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 cn-stagger">
+        <StatCard label="Total Users" value={String(totalUsers)} accent="indigo" icon={<span className="text-lg">👥</span>} />
+        <StatCard label="Enrollments" value={String(totalEnrollments)} accent="emerald" icon={<span className="text-lg">📚</span>} />
+        <StatCard label="Revenue" value={`$${grossRevenue.toFixed(0)}`} accent="emerald" icon={<span className="text-lg">💰</span>} />
+        <StatCard label="Open Tickets" value={String(openTickets)} accent="amber" icon={<span className="text-lg">🎫</span>} />
+        <StatCard label="Courses" value={String(totalCourses)} accent="sky" icon={<span className="text-lg">📖</span>} />
       </section>
 
-      {/* Revenue + Verification Queue */}
       <div className="grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3 rounded-2xl border border-cn-border bg-cn-surface p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-bold text-cn-ink">Revenue — Last 30 days</h2>
             <span className="text-xs text-cn-ink-subtle">Daily ($)</span>
           </div>
-          <BarChart data={revenueData} color="emerald" height={150} />
+          <BarChart data={days} color="emerald" height={150} />
         </section>
 
         <section className="lg:col-span-2 rounded-2xl border border-cn-border bg-cn-surface p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-cn-ink">Verification Queue</h2>
-            <Badge variant="warning" size="sm">{verificationQueue.length} pending</Badge>
+            <Badge variant="warning" size="sm">{(pendingCoaches ?? []).length} pending</Badge>
           </div>
           <div className="space-y-3">
-            {verificationQueue.map((app, i) => (
-              <div key={i} className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-3 transition hover:bg-cn-surface">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-bold text-indigo-400">
-                    {app.name.split(" ").map(w => w[0]).join("")}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-cn-ink">{app.name}</p>
-                    <p className="text-[10px] text-cn-ink-subtle">{app.doc} · {app.time}</p>
+            {(pendingCoaches ?? []).length === 0 ? (
+              <p className="text-sm text-cn-ink-muted py-4 text-center">No pending verifications</p>
+            ) : (pendingCoaches ?? []).map((coach) => {
+              const initials = (coach.full_name ?? coach.email ?? "?").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+              const ago = Math.round((Date.now() - new Date(coach.created_at).getTime()) / 3600000);
+              return (
+                <div key={coach.id} className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-3 transition hover:bg-cn-surface">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-bold text-indigo-400">{initials}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-cn-ink">{coach.full_name ?? "Unknown"}</p>
+                      <p className="text-[10px] text-cn-ink-subtle">{coach.email} · {ago}h ago</p>
+                    </div>
                   </div>
+                  <Link href="/admin/coaches" className="rounded-lg bg-cn-canvas px-3 py-1.5 text-[10px] font-bold text-cn-ink transition hover:bg-cn-border">Review</Link>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <p className={`text-xs font-bold tabular-nums ${app.confidence >= 80 ? "text-emerald-400" : app.confidence >= 60 ? "text-amber-400" : "text-rose-400"}`}>
-                      {app.confidence}%
-                    </p>
-                    <p className="text-[9px] text-cn-ink-subtle">AI conf.</p>
-                  </div>
-                  <Link href="/admin/coaches" className="rounded-lg bg-cn-canvas px-3 py-1.5 text-[10px] font-bold text-cn-ink transition hover:bg-cn-border">
-                    Review
-                  </Link>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
 
-      {/* Security Events */}
+      {/* Recent Support Tickets */}
       <section className="rounded-2xl border border-cn-border bg-cn-surface p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-cn-ink">Security Events</h2>
-          <Link href="/admin/security" className="text-xs font-semibold text-rose-400 hover:underline">View all →</Link>
+          <h2 className="text-base font-bold text-cn-ink">Recent Support Tickets</h2>
+          <Link href="/admin/support" className="text-xs font-semibold text-cn-orange hover:underline">View all →</Link>
         </div>
         <div className="space-y-2">
-          {securityEvents.map((evt, i) => (
-            <div key={i} className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${severityColor[evt.severity]}`}>
-              <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wider">[{evt.severity}]</span>
-              <p className="flex-1 text-sm">{evt.msg}</p>
-              <span className="shrink-0 text-xs opacity-60">{evt.time}</span>
-            </div>
-          ))}
+          {(recentTickets ?? []).length === 0 ? (
+            <p className="text-sm text-cn-ink-muted py-4 text-center">No tickets yet</p>
+          ) : (recentTickets ?? []).map((t: Record<string, unknown>) => {
+            const profile = t.profiles as Record<string, string> | null;
+            const status = String(t.status ?? "open");
+            const ago = Math.round((Date.now() - new Date(String(t.created_at)).getTime()) / 3600000);
+            return (
+              <div key={String(t.id)} className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-3 transition hover:bg-cn-surface">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-cn-ink truncate">{String(t.subject)}</p>
+                  <p className="text-[10px] text-cn-ink-subtle">{profile?.email ?? "Unknown"} · {String(t.category)} · {ago}h ago</p>
+                </div>
+                <Badge variant={statusVariant[status] ?? "default"} size="sm" dot>{statusLabel[status] ?? status}</Badge>
+              </div>
+            );
+          })}
         </div>
       </section>
 

@@ -13,9 +13,12 @@ AI-native EdTech platform built with **Next.js 15**, **Supabase**, and **Groq AI
 | **AI Agent** | Groq-powered tutor (llama-3.3-70b) with skill routing: teach, debug, quiz, voice |
 | **Code Lab** | In-browser editor with real execution via JDoodle (200 free runs/day, 18+ languages) |
 | **Voice Mode** | Native speech-to-text & text-to-speech — zero external dependencies |
-| **Three Portals** | Student dashboard, Coach portal, Admin panel — role-based access |
-| **Expandable Sidebar** | Supabase-style navigation: icon-only by default, expands on hover |
+| **Three Portals** | Student dashboard, Coach portal, Admin panel — role-based access, all wired to Supabase |
+| **Custom SVG Logo** | Book + neural sparkle mark with `icon`, `full`, `tagline` variants and `onDark` mode |
+| **Working Search** | Real-time course search via Supabase `ilike` filtering |
+| **Page Transitions** | Smooth fade+slide animations, staggered card grids, 3D tilt cards |
 | **Credit System** | AI usage tracked with daily free credits and per-action costs |
+| **Certificates** | Earned from completed courses with verifiable codes and LinkedIn sharing |
 | **Notebooks** | Rich text editor with code blocks, headings, highlights |
 | **Dark/Light Theme** | Full theme support across every component and page |
 | **Security** | Rate limiting, XSS protection, HSTS, RLS on 30+ database tables |

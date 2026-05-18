@@ -28,7 +28,7 @@ const tiers: Tier[] = [
     name: "Pro learner",
     price: "$9/mo",
     desc: "More AI credits, certificates, priority support.",
-    cta: "Coming soon",
+    cta: "Start free trial",
     href: "/register",
     accent: "border-cn-orange/40 ring-2 ring-cn-orange/20",
     featured: true,
