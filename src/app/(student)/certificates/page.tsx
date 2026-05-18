@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { IconTrophy } from "@/components/ui/icons";
 
 type Certificate = {
   id: string;
@@ -86,7 +87,7 @@ export default function CertificatesPage() {
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface/50 py-16 text-center">
-          <span className="mb-3 text-4xl">🏆</span>
+          <IconTrophy className="mb-3 h-8 w-8 text-cn-orange" />
           <h3 className="text-lg font-bold text-cn-ink">No certificates yet</h3>
           <p className="mt-1 max-w-sm text-sm text-cn-ink-muted">
             Complete a course to earn your first certificate. Each certificate has a unique
@@ -106,7 +107,7 @@ export default function CertificatesPage() {
 
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink text-xl text-white">
-                  🏆
+                  ★
                 </div>
                 <div>
                   <h3 className="font-bold text-cn-ink">{cert.courseTitle}</h3>

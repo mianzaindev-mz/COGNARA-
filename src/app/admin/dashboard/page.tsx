@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
 import { Badge } from "@/components/ui/badge";
+import { IconUsers, IconBook, IconCurrency, IconTicket } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin Dashboard — COGNARA™" };
@@ -73,11 +74,11 @@ export default async function AdminDashboardPage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 cn-stagger">
-        <StatCard label="Total Users" value={String(totalUsers)} accent="indigo" icon={<span className="text-lg">👥</span>} />
-        <StatCard label="Enrollments" value={String(totalEnrollments)} accent="emerald" icon={<span className="text-lg">📚</span>} />
-        <StatCard label="Revenue" value={`$${grossRevenue.toFixed(0)}`} accent="emerald" icon={<span className="text-lg">💰</span>} />
-        <StatCard label="Open Tickets" value={String(openTickets)} accent="amber" icon={<span className="text-lg">🎫</span>} />
-        <StatCard label="Courses" value={String(totalCourses)} accent="sky" icon={<span className="text-lg">📖</span>} />
+        <StatCard label="Total Users" value={String(totalUsers)} accent="indigo" icon={<IconUsers className="h-5 w-5" />} />
+        <StatCard label="Enrollments" value={String(totalEnrollments)} accent="emerald" icon={<IconBook className="h-5 w-5" />} />
+        <StatCard label="Revenue" value={`$${grossRevenue.toFixed(0)}`} accent="emerald" icon={<IconCurrency className="h-5 w-5" />} />
+        <StatCard label="Open Tickets" value={String(openTickets)} accent="amber" icon={<IconTicket className="h-5 w-5" />} />
+        <StatCard label="Courses" value={String(totalCourses)} accent="sky" icon={<IconBook className="h-5 w-5" />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
+import { IconChartBar, IconTarget, IconStar, IconBook } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Analytics — Coach — COGNARA™" };
@@ -62,10 +63,10 @@ export default async function CoachAnalyticsPage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 cn-stagger">
-        <StatCard label="Total Enrolled" value={String(totalEnrolled)} accent="indigo" icon={<span className="text-lg">📊</span>} />
-        <StatCard label="Completion Rate" value={`${completionRate}%`} accent="emerald" icon={<span className="text-lg">🎯</span>} />
-        <StatCard label="Avg Rating" value={avgRating > 0 ? `${avgRating.toFixed(1)} ★` : "—"} accent="amber" icon={<span className="text-lg">⭐</span>} />
-        <StatCard label="Courses" value={String(list.length)} accent="lavender" icon={<span className="text-lg">📚</span>} />
+        <StatCard label="Total Enrolled" value={String(totalEnrolled)} accent="indigo" icon={<IconChartBar className="h-5 w-5" />} />
+        <StatCard label="Completion Rate" value={`${completionRate}%`} accent="emerald" icon={<IconTarget className="h-5 w-5" />} />
+        <StatCard label="Avg Rating" value={avgRating > 0 ? `${avgRating.toFixed(1)} ★` : "—"} accent="amber" icon={<IconStar className="h-5 w-5" />} />
+        <StatCard label="Courses" value={String(list.length)} accent="lavender" icon={<IconBook className="h-5 w-5" />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

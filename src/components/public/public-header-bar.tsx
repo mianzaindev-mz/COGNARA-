@@ -37,7 +37,7 @@ export function PublicHeaderBar() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-cn-border bg-cn-surface/98 backdrop-blur-md transition-colors duration-300">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-6 sm:px-12 lg:px-16 xl:px-24">
         <div className="flex h-16 items-center gap-4 lg:gap-8">
           <PublicLogo href="/" showWordmark className="shrink-0" />
 

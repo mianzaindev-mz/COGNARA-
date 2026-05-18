@@ -10,19 +10,15 @@ export default function PublicLayout({
     <div className="flex min-h-screen flex-col bg-cn-canvas text-cn-ink">
       <PublicHeader />
       <main className="flex-1">{children}</main>
-      <footer className="border-t border-cn-border bg-cn-surface px-4 py-8 text-center text-xs text-cn-ink-subtle sm:px-8">
-        <p>COGNARA™ · SDG 4 Quality Education</p>
-        <p className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
-          <a href="/legal/privacy" className="hover:text-cn-orange">
-            Privacy
-          </a>
-          <a href="/legal/terms" className="hover:text-cn-orange">
-            Terms
-          </a>
-          <a href="/setup" className="hover:text-cn-orange">
-            Setup
-          </a>
-        </p>
+      <footer className="border-t border-cn-border bg-cn-surface px-6 py-3 sm:px-12 lg:px-16 xl:px-24">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-cn-ink-subtle">
+          <span>© {new Date().getFullYear()} COGNARA™ · SDG 4 Quality Education</span>
+          <div className="flex gap-4">
+            <a href="/legal/privacy" className="transition hover:text-cn-orange">Privacy</a>
+            <a href="/legal/terms" className="transition hover:text-cn-orange">Terms</a>
+            <a href="/setup" className="transition hover:text-cn-orange">Setup</a>
+          </div>
+        </div>
       </footer>
       <CookieBanner />
     </div>

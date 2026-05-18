@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
+import { IconTicket } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Support — Admin — COGNARA™" };
@@ -40,7 +41,7 @@ export default async function AdminSupportPage() {
 
       {list.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center">
-          <span className="text-4xl mb-4">🎫</span>
+          <IconTicket className="h-6 w-6" />
           <h2 className="text-lg font-bold text-cn-ink">No tickets yet</h2>
           <p className="mt-1 text-sm text-cn-ink-muted">Support tickets from students and coaches will appear here.</p>
         </div>

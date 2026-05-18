@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/ui/empty-state";
+import { IconClipboard } from "@/components/ui/icons";
 
 export const metadata: Metadata = { title: "Quiz Builder — Coach — COGNARA™" };
 
@@ -21,7 +22,7 @@ export default function CoachQuizzesPage() {
         </div>
       </section>
       <EmptyState
-        icon={<span className="text-2xl">📝</span>}
+        icon={<IconClipboard className="h-6 w-6" />}
         title="No quizzes yet"
         description="Create your first quiz or use AI to generate one from a topic or PDF."
       />

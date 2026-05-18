@@ -36,11 +36,11 @@ const recentActivity = [
 ];
 
 const activityIcons: Record<string, string> = {
-  completion: "✅",
-  quiz: "📝",
-  review: "⭐",
-  enrollment: "🎉",
-  peer: "👥",
+  completion: "✓",
+  quiz: "✎",
+  review: "★",
+  enrollment: "✦",
+  peer: "↔",
 };
 
 export default async function CoachDashboardPage() {
@@ -159,9 +159,9 @@ export default async function CoachDashboardPage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { icon: "📄", title: "PDF → Course Outline", desc: "AI drafts a full course from your PDF" },
-            { icon: "📝", title: "Generate Quiz Bank", desc: "Create quizzes from any topic instantly" },
-            { icon: "📊", title: "Analyze My Students", desc: "AI insights on student performance" },
+            { icon: "•", title: "PDF → Course Outline", desc: "AI drafts a full course from your PDF" },
+            { icon: "•", title: "Generate Quiz Bank", desc: "Create quizzes from any topic instantly" },
+            { icon: "•", title: "Analyze My Students", desc: "AI insights on student performance" },
           ].map(tool => (
             <button
               key={tool.title}
@@ -270,7 +270,7 @@ export default async function CoachDashboardPage() {
         <div className="space-y-3">
           {recentActivity.map((item, i) => (
             <div key={i} className="flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-cn-canvas/60">
-              <span className="mt-0.5 text-lg">{activityIcons[item.type] || "📌"}</span>
+              <span className="mt-0.5 text-lg text-cn-orange">{activityIcons[item.type] || "•"}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-cn-ink">{item.text}</p>
                 <p className="mt-0.5 text-xs text-cn-ink-subtle">{item.time}</p>

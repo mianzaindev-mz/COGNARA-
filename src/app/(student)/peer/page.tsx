@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { IconUsers } from "@/components/ui/icons";
 
 type PeerSession = {
   id: string;
@@ -70,7 +71,7 @@ export default function PeerPage() {
 
       <div className="rounded-2xl border border-cn-yellow/30 bg-cn-yellow/5 p-4">
         <div className="flex gap-3">
-          <span className="text-lg">👥</span>
+          <IconUsers className="h-5 w-5" />
           <div>
             <p className="text-sm font-bold text-cn-ink">PEER SESSION — UNVERIFIED</p>
             <p className="mt-0.5 text-xs text-cn-ink-muted">

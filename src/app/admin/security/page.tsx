@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
+import { IconShieldAlert } from "@/components/ui/icons";
 
 export const metadata: Metadata = { title: "Security — Admin — COGNARA™" };
 
@@ -58,7 +59,7 @@ export default function AdminSecurityPage() {
         <div className="space-y-3">
           {offPlatform.map((item, i) => (
             <div key={i} className="flex items-start gap-3 rounded-xl border border-rose-500/10 bg-rose-500/5 px-4 py-3">
-              <span className="mt-0.5 text-lg">🚨</span>
+              <IconShieldAlert className="h-5 w-5 text-rose-500" />
               <div className="flex-1">
                 <p className="text-sm text-cn-ink">{item.user}: &ldquo;{item.message}&rdquo;</p>
                 <p className="mt-1 text-xs text-cn-ink-subtle">Pattern: <code className="bg-cn-canvas px-1 rounded text-rose-500 dark:text-rose-400">{item.pattern}</code> · {item.time}</p>

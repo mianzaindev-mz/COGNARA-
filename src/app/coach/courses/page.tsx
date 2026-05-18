@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { IconBook } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My Courses — Coach — COGNARA™" };
@@ -36,7 +37,7 @@ export default async function CoachCoursesPage() {
 
       {list.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center">
-          <span className="text-4xl mb-4">📚</span>
+          <IconBook className="h-6 w-6" />
           <h2 className="text-lg font-bold text-cn-ink">No courses yet</h2>
           <p className="mt-1 text-sm text-cn-ink-muted max-w-sm">Create your first course to start teaching on COGNARA.</p>
         </div>

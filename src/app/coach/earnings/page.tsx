@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
+import { IconCurrency, IconBuilding, IconSparkle, IconUsers } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Earnings — Coach — COGNARA™" };
@@ -38,10 +39,10 @@ export default async function CoachEarningsPage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 cn-stagger">
-        <StatCard label="Gross Revenue" value={`$${grossRevenue.toFixed(2)}`} accent="emerald" icon={<span className="text-lg">💰</span>} />
-        <StatCard label="Platform Fee (20%)" value={`−$${platformFee.toFixed(2)}`} accent="amber" icon={<span className="text-lg">🏢</span>} />
-        <StatCard label="Net Earnings" value={`$${netEarnings.toFixed(2)}`} accent="indigo" icon={<span className="text-lg">✨</span>} />
-        <StatCard label="Paying Students" value={String(totalStudents)} accent="lavender" icon={<span className="text-lg">👥</span>} />
+        <StatCard label="Gross Revenue" value={`$${grossRevenue.toFixed(2)}`} accent="emerald" icon={<IconCurrency className="h-5 w-5" />} />
+        <StatCard label="Platform Fee (20%)" value={`−$${platformFee.toFixed(2)}`} accent="amber" icon={<IconBuilding className="h-5 w-5" />} />
+        <StatCard label="Net Earnings" value={`$${netEarnings.toFixed(2)}`} accent="indigo" icon={<IconSparkle className="h-5 w-5" />} />
+        <StatCard label="Paying Students" value={String(totalStudents)} accent="lavender" icon={<IconUsers className="h-5 w-5" />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">

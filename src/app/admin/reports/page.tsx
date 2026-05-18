@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
 import { AgentIcon } from "@/components/ui/agent-icon";
+import { IconCurrency, IconChartUp, IconChartDown } from "@/components/ui/icons";
 
 export const metadata: Metadata = { title: "Reports — Admin — COGNARA™" };
 
@@ -25,9 +26,9 @@ export default function AdminReportsPage() {
       </section>
 
       <section className="cn-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Revenue" value="$4,201" accent="emerald" trend={{ value: "+34%", positive: true }} icon={<span className="text-lg">💰</span>} />
-        <StatCard label="User Growth" value="+210" hint="This month" accent="indigo" trend={{ value: "+31%", positive: true }} icon={<span className="text-lg">📈</span>} />
-        <StatCard label="Churn Rate" value="2.1%" accent="rose" trend={{ value: "-0.3%", positive: true }} icon={<span className="text-lg">📉</span>} />
+        <StatCard label="Total Revenue" value="$4,201" accent="emerald" trend={{ value: "+34%", positive: true }} icon={<IconCurrency className="h-5 w-5" />} />
+        <StatCard label="User Growth" value="+210" hint="This month" accent="indigo" trend={{ value: "+31%", positive: true }} icon={<IconChartUp className="h-5 w-5" />} />
+        <StatCard label="Churn Rate" value="2.1%" accent="rose" trend={{ value: "-0.3%", positive: true }} icon={<IconChartDown className="h-5 w-5" />} />
         <StatCard label="Agent Usage" value="4,821" hint="Sessions this month" accent="lavender" icon={<AgentIcon size={22} />} />
       </section>
 

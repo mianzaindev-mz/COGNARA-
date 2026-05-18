@@ -36,7 +36,7 @@ export default function AdminCoachesPage() {
                 </div>
                 <Badge variant={app.status === "approved" ? "success" : "warning"} dot>{app.status}</Badge>
               </div>
-              <p className="text-sm text-cn-ink-muted mb-3">📄 {app.doc}</p>
+              <p className="text-sm text-cn-ink-muted mb-3">{app.doc}</p>
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1">
                   <div className="flex justify-between text-xs mb-1">

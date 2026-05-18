@@ -11,13 +11,13 @@ const CREDIT_PACKS = [
 ];
 
 const CREDIT_COSTS = [
-  { action: "Ask a question", cost: 1, icon: "🧠" },
-  { action: "Explain concept", cost: 2, icon: "💡" },
-  { action: "Debug code", cost: 2, icon: "🐛" },
-  { action: "AI note-taking", cost: 2, icon: "📝" },
-  { action: "Generate quiz", cost: 3, icon: "📄" },
-  { action: "Learning path", cost: 3, icon: "🗺️" },
-  { action: "Voice (per min)", cost: 1, icon: "🎤" },
+  { action: "Ask a question", cost: 1, icon: "✦" },
+  { action: "Explain concept", cost: 2, icon: "✶" },
+  { action: "Debug code", cost: 2, icon: "⚐" },
+  { action: "AI note-taking", cost: 2, icon: "✎" },
+  { action: "Generate quiz", cost: 3, icon: "☷" },
+  { action: "Learning path", cost: 3, icon: "→" },
+  { action: "Voice (per min)", cost: 1, icon: "♪" },
 ];
 
 type Transaction = {
@@ -193,7 +193,7 @@ export default function BillingPage() {
         <h2 className="mb-4 text-lg font-bold text-cn-ink">Recent Transactions</h2>
         {transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-12 text-center">
-            <span className="text-3xl mb-3">📊</span>
+            <span className="text-xl mb-3 text-cn-ink-muted">∷</span>
             <h3 className="font-bold text-cn-ink">No transactions yet</h3>
             <p className="mt-1 text-sm text-cn-ink-muted max-w-xs">Your credit usage history will appear here as you use the AI agent.</p>
           </div>

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardStatCard } from "@/components/student/dashboard-stat-card";
 import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
+import { IconFire, IconTrophy, IconBrain, IconTarget, IconHandshake, IconGamepad } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,12 @@ const STREAK_GRID = Array.from({ length: 28 }, (_, i) => ({
 }));
 
 const BADGES = [
-  { icon: "🔥", title: "7-Day Streak", earned: true },
-  { icon: "🏆", title: "First Course Done", earned: true },
-  { icon: "⚡", title: "100 XP in a Day", earned: true },
-  { icon: "🧠", title: "10 AI Sessions", earned: false },
-  { icon: "🎯", title: "Perfect Quiz Score", earned: false },
-  { icon: "🤝", title: "Peer Session Host", earned: false },
+  { icon: IconFire, title: "7-Day Streak", earned: true },
+  { icon: IconTrophy, title: "First Course Done", earned: true },
+  { icon: IconBrain, title: "100 XP in a Day", earned: true },
+  { icon: IconBrain, title: "10 AI Sessions", earned: false },
+  { icon: IconTarget, title: "Perfect Quiz Score", earned: false },
+  { icon: IconHandshake, title: "Peer Session Host", earned: false },
 ];
 
 export default async function ProgressPage() {
@@ -120,7 +121,7 @@ export default async function ProgressPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold text-cn-ink">28-Day Streak Map</h2>
             <span className="rounded-full bg-cn-orange/10 px-2.5 py-0.5 text-xs font-bold text-cn-orange">
-              🔥 {STREAK_GRID.filter((d) => d.active).length} days
+              {STREAK_GRID.filter((d) => d.active).length} days
             </span>
           </div>
           <div className="grid grid-cols-7 gap-1.5">
@@ -154,7 +155,7 @@ export default async function ProgressPage() {
                   : "border-cn-border bg-cn-surface opacity-50"
               }`}
             >
-              <span className="text-2xl">{b.icon}</span>
+              <b.icon className={`h-6 w-6 ${b.earned ? "text-cn-orange" : "text-cn-ink-subtle"}`} />
               <span className="mt-2 text-xs font-bold text-cn-ink">{b.title}</span>
               <span className={`mt-0.5 text-[10px] ${b.earned ? "text-emerald-500" : "text-cn-ink-subtle"}`}>
                 {b.earned ? "Earned ✓" : "Locked"}
@@ -173,7 +174,7 @@ export default async function ProgressPage() {
               {stats.totalXp} / {stats.level * 100} XP to Level {stats.level + 1}
             </p>
           </div>
-          <span className="text-3xl">🎮</span>
+          <IconGamepad className="h-7 w-7 text-cn-orange" />
         </div>
         <div className="mt-3 h-3 overflow-hidden rounded-full bg-cn-border/50">
           <div
@@ -208,7 +209,7 @@ export default async function ProgressPage() {
                     <p className="font-bold text-cn-ink">{c.title}</p>
                     <p className="text-xs text-cn-ink-subtle">
                       {c.progressDone}/{c.totalLessons} lessons · {c.progressPct}%
-                      {c.completedAt ? " · 🏆 Complete" : ""}
+                      {c.completedAt ? " · ✓ Complete" : ""}
                     </p>
                   </div>
                   <Link

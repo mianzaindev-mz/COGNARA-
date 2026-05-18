@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LandingHeroVisual } from "@/components/public/landing-hero-visual";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
 import { CognaraLogo } from "@/components/shared/cognara-logo";
+import { IconGraduate, IconBook, IconSparkle } from "@/components/ui/icons";
 
 const stats = [
   { n: "01", label: "Years building", value: "2+", hint: "Product iterations" },
@@ -18,17 +19,17 @@ const steps = [
   {
     title: "Discover your path",
     body: "Browse courses and filters — Learnify-style dashboard when you sign in.",
-    emoji: "🎓",
+    Icon: IconGraduate,
   },
   {
     title: "Learn with structure",
     body: "Lessons, progress rings, and a curriculum sidebar for every course.",
-    emoji: "📚",
+    Icon: IconBook,
   },
   {
     title: "Grow with the agent",
     body: "COGNARA tutor uses tools — debug, quiz, and voice — not generic chat.",
-    emoji: "✨",
+    Icon: IconSparkle,
   },
 ] as const;
 
@@ -105,7 +106,7 @@ export default async function HomePage() {
       </section>
 
       {/* Stats — EDUBRINK */}
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
+      <section className="w-full px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
         <h2 className="text-center text-2xl font-bold text-cn-ink sm:text-3xl">Our impact at a glance</h2>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
@@ -121,7 +122,7 @@ export default async function HomePage() {
 
       {/* Course preview — Learnify cards */}
       <section className="bg-cn-canvas py-16">
-        <div className="mx-auto max-w-6xl px-4 sm:px-8">
+        <div className="w-full px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-cn-orange">My courses preview</p>
@@ -185,14 +186,14 @@ export default async function HomePage() {
       </section>
 
       {/* How we work */}
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
-        <h2 className="text-2xl font-bold text-cn-ink">How COGNARA works 🧑‍🏫</h2>
-        <ul className="mt-10 grid gap-6 md:grid-cols-3">
+      <section className="w-full px-6 py-16 sm:px-12 lg:px-16 xl:px-24">
+        <h2 className="text-2xl font-bold text-cn-ink">How COGNARA works</h2>
+        <ul className="cn-stagger mt-10 grid gap-6 md:grid-cols-3">
           {steps.map((s) => (
-            <li key={s.title} className="cn-card p-8">
-              <span className="text-3xl" aria-hidden>
-                {s.emoji}
-              </span>
+            <li key={s.title} className="cn-card cn-card-lift p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cn-orange/10">
+                <s.Icon className="h-6 w-6 text-cn-orange" />
+              </div>
               <h3 className="mt-4 text-lg font-bold text-cn-ink">{s.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-cn-ink-muted">{s.body}</p>
             </li>
@@ -201,7 +202,7 @@ export default async function HomePage() {
       </section>
 
       {/* CTA — Learnify spotlight */}
-      <section className="mx-4 mb-16 sm:mx-8">
+      <section className="px-6 mb-16 sm:px-12 lg:px-16 xl:px-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 rounded-[2rem] bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 px-8 py-12 text-center text-white dark:from-cn-sidebar dark:via-cn-sidebar dark:to-cn-sidebar sm:flex-row sm:text-left">
           <div>
             <span className="rounded-full bg-cn-yellow px-3 py-1 text-xs font-bold text-cn-sidebar">

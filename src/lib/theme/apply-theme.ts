@@ -19,9 +19,12 @@ export function applyThemeWithTransition(theme: Theme) {
   };
 
   if (doc.startViewTransition) {
-    doc.startViewTransition(() => {
+    try {
+      const t = doc.startViewTransition(() => { run(); });
+      t.finished.catch(() => {/* transition aborted — safe to ignore */});
+    } catch {
       run();
-    });
+    }
     return;
   }
 

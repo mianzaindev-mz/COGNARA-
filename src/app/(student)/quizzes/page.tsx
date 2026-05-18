@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { IconClipboard } from "@/components/ui/icons";
 
 type QuizItem = {
   id: string;
@@ -98,7 +99,7 @@ export default function QuizzesPage() {
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center">
-          <span className="text-4xl mb-4">📝</span>
+          <IconClipboard className="mb-4 h-8 w-8 text-cn-ink-muted" />
           <h2 className="text-lg font-bold text-cn-ink">No quizzes available</h2>
           <p className="mt-1 text-sm text-cn-ink-muted max-w-sm">Enroll in courses to unlock quizzes.</p>
         </div>
