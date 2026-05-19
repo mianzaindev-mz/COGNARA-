@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type SignOutButtonProps = {
@@ -10,14 +10,23 @@ type SignOutButtonProps = {
 };
 
 export function SignOutButton({ className, variant = "default" }: SignOutButtonProps) {
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   async function signOut() {
-    const supabase = createClient();
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    router.replace("/login");
-    router.refresh();
+    if (loading) return;
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      // Hard redirect to clear all cached state
+      window.location.href = "/login";
+    } catch (err) {
+      console.error("Sign out failed:", err);
+      // Force redirect even on error
+      window.location.href = "/login";
+    }
   }
 
   const base =
@@ -45,6 +54,8 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
       className={mergedClass}
       aria-label="Sign out"
       title="Sign out"
+      disabled={loading}
+      style={loading ? { opacity: 0.5, pointerEvents: "none" } : undefined}
     >
       {variant === "icon" || variant === "sidebar" ? (
         <svg
@@ -62,7 +73,7 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
           />
         </svg>
       ) : (
-        "Sign out"
+        loading ? "Signing out…" : "Sign out"
       )}
     </button>
   );

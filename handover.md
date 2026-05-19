@@ -89,3 +89,63 @@ Security policy documented. License and trademark protected.
 3. **Push Notifications** — real-time bell notifications
 4. **Peer Sessions DB** — persist registrations to database
 5. **Admin Write Ops** — ban users, update ticket status
+
+---
+
+## Session 17 — Landing Page Redesign
+
+**Date:** 2026-05-19  
+**Build:** ✅ Exit 0 — zero type errors
+
+### Overview
+Complete redesign of the public landing page with premium glassmorphism aesthetics, MD3 design tokens, dual-theme support, and full page routing.
+
+### Design System (`landing.css`)
+- **MD3 Color Tokens** — Full Material Design 3 palette (primary/secondary/tertiary) registered via `@theme`
+- **Glass Depth System** — 3 tiers of glassmorphism (depth-1, depth-2, depth-3) with blur + border + shadow
+- **Section Gradients** — All sections use subtle radial gradients (no flat backgrounds)
+  - Dark: warm orange/indigo/emerald radial glows on `#131313` base
+  - Light: creamy warm tones (`#FFF8F3`, `#FAF8F5`, `#F5F0EB`) with layered gradients
+- **Card Glow Auras** — Course cards have colored `::before` pseudo-element glows (orange, indigo, emerald) that intensify on hover
+- **Nav Links** — Orange underbar on active/hover via `nav-link` class
+- **Sign In** — Orange text glow on hover via `sign-in-link` class
+
+### Light Theme
+- Creamy warm base (`#FAF8F5`) instead of flat white
+- Darker text variant (`#5A4A3F`) for better readability
+- All section gradients have light counterparts
+- Glass cards use white backgrounds with subtle shadows
+- Card glows use reduced opacity (0.1 → 0.2)
+
+### Components
+
+#### `landing-client.tsx`
+- Custom SVG icon components (no Material Symbols dependency)
+- Mouse-tracking glow blobs in hero section
+- Intersection Observer entrance animations
+- Theme toggle (☀/🌙) with localStorage persistence
+- "today." text explicitly orange (`#ff6b3d`) in both themes
+
+#### `landing-sections.tsx`
+- **Stats Section** — Numbers (2+, 50+, 6+) all orange (`text-primary-container`)
+- **Course Cards** — Colored glow auras, left borders, icon glow on hover
+- **Workflow Cards** — Bordered icon boxes with orange icon outlines
+- **CTA Banner** — Corner gradients (top-left + bottom-right), wired to `/dashboard`
+
+### Button Routing
+| Button | Route |
+|--------|-------|
+| Courses (nav) | `/dashboard` |
+| Mentors (nav) | `/dashboard` |
+| Sign In | `/login` |
+| Get Started | `/register` |
+| Join the platform | `/register` |
+| Request Demo | `/login` |
+| Explore all modules | `/dashboard` |
+| Resume Learning (×3) | `/dashboard` |
+| Initialize Dashboard | `/dashboard` |
+
+### Files Modified
+- `src/app/(public)/landing.css` — Complete design system v3
+- `src/app/(public)/landing-client.tsx` — Hero, nav, theme toggle, SVG icons
+- `src/app/(public)/landing-sections.tsx` — Stats, courses, workflow, CTA

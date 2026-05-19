@@ -16,7 +16,7 @@ export function LandingSections() {
           <div className="flex flex-wrap lg:flex-nowrap justify-center gap-10 items-center">
             <div className="glass-depth-2 p-10 rounded-4xl hover-magnetic w-full sm:w-[280px] h-[340px] flex flex-col justify-between group">
               <div><div className="glow-dot mb-4 group-hover:scale-150 transition-transform" /><span className="text-primary/50 font-bold text-xs tracking-widest">01</span></div>
-              <div><p className="text-5xl font-extrabold mb-3 text-on-surface group-hover:text-primary-container transition-colors font-headline">2+</p><p className="font-bold text-lg text-on-surface">Years building</p><p className="text-on-surface-variant text-sm mt-2">Continuous evolution and product iterations.</p></div>
+              <div><p className="text-5xl font-extrabold mb-3 text-primary-container group-hover:text-accent-warm transition-colors font-headline">2+</p><p className="font-bold text-lg text-on-surface">Years building</p><p className="text-on-surface-variant text-sm mt-2">Continuous evolution and product iterations.</p></div>
             </div>
             <div className="glass-depth-3 p-12 rounded-4xl hover-magnetic w-full sm:w-[320px] h-[400px] flex flex-col justify-between group border-primary/20 -translate-y-4">
               <div><div className="glow-dot mb-4" style={{ background: "#6001d1", boxShadow: "0 0 12px #6001d1" }} /><span className="text-primary/50 font-bold text-xs tracking-widest">02</span></div>
@@ -24,7 +24,7 @@ export function LandingSections() {
             </div>
             <div className="glass-depth-2 p-10 rounded-4xl hover-magnetic w-full sm:w-[280px] h-[340px] flex flex-col justify-between group">
               <div><div className="glow-dot mb-4" /><span className="text-primary/50 font-bold text-xs tracking-widest">03</span></div>
-              <div><p className="text-5xl font-extrabold mb-3 text-on-surface font-headline">6</p><p className="font-bold text-lg text-on-surface">AI Skills</p><p className="text-on-surface-variant text-sm mt-2">Advanced tool-using agents at your disposal.</p></div>
+              <div><p className="text-5xl font-extrabold mb-3 text-primary-container font-headline">6+</p><p className="font-bold text-lg text-on-surface">AI Skills</p><p className="text-on-surface-variant text-sm mt-2">Advanced tool-using agents at your disposal.</p></div>
             </div>
           </div>
         </div>
@@ -96,6 +96,8 @@ export function LandingSections() {
           <div className="relative entrance-anim group">
             <div className="absolute inset-0 bg-primary-container/20 blur-[100px] scale-90 group-hover:scale-100 transition-transform duration-1000 opacity-30" />
             <div className="glass-depth-3 p-10 md:p-16 rounded-4xl flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden border-white/10">
+              <div className="absolute top-0 left-0 w-[300px] h-[300px] bg-gradient-to-br from-primary-container/15 to-transparent rounded-4xl pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-[250px] h-[250px] bg-gradient-to-tl from-accent-warm/10 to-transparent rounded-4xl pointer-events-none" />
               <div className="max-w-2xl text-center lg:text-left">
                 <span className="bg-yellow-400 text-black font-extrabold text-[10px] px-5 py-2 rounded-full mb-8 inline-block tracking-[0.2em] uppercase">Ecosystem Launch</span>
                 <h3 className="text-4xl md:text-5xl font-extrabold text-on-surface mb-6 leading-tight font-headline">Your advanced student dashboard awaits.</h3>

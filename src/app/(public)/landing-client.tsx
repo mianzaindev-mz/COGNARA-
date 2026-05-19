@@ -98,7 +98,7 @@ export default function LandingClient() {
           <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
             <IconSchool className="text-on-primary w-5 h-5" />
           </div>
-          <span className="font-headline text-2xl font-bold tracking-tighter text-on-surface">COGNARA</span>
+          <span className="font-headline text-2xl font-bold tracking-tighter text-on-surface"><span style={{ color: '#ff6b3d' }}>C</span>OGNARA</span>
         </Link>
         <div className="hidden md:flex items-center gap-8 font-body text-sm tracking-wide">
           <Link className="nav-link active" href="/dashboard">Courses</Link>
@@ -187,7 +187,7 @@ export default function LandingClient() {
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-10">
               <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg"><IconSchool className="text-on-primary w-6 h-6" /></div>
-              <span className="font-headline text-3xl font-extrabold tracking-tighter text-on-surface">COGNARA</span>
+              <span className="font-headline text-3xl font-extrabold tracking-tighter text-on-surface"><span style={{ color: '#ff6b3d' }}>C</span>OGNARA</span>
             </div>
             <p className="text-on-surface-variant mb-12 text-lg leading-relaxed opacity-80 font-body">Empowering global learners with agentic AI environments and specialized pedagogical structures designed for the future of work.</p>
             <div className="flex gap-5">
