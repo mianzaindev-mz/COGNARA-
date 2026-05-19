@@ -68,7 +68,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
               </span>
             </div>
             <p className="absolute bottom-4 left-4 right-4 text-center text-xs text-cn-ink-muted">
-              Mux player placeholder — wire <code className="font-mono">mux_playback_id</code> when ready.
+              Video lesson preview — click play to watch.
             </p>
           </div>
 

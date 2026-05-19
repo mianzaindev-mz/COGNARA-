@@ -103,8 +103,8 @@ export default function LandingClient() {
         <div className="hidden md:flex items-center gap-8 font-body text-sm tracking-wide">
           <Link className="nav-link active" href="/dashboard">Courses</Link>
           <Link className="nav-link" href="/dashboard">Mentors</Link>
-          <a className="nav-link" href="#pricing">Pricing</a>
-          <a className="nav-link" href="#enterprise">Enterprise</a>
+          <Link className="nav-link" href="/dashboard">Pricing</Link>
+          <Link className="nav-link" href="/dashboard">Enterprise</Link>
         </div>
         <div className="flex items-center gap-6">
           <Link href="/login" className="hidden sm:block sign-in-link text-on-surface/70 font-semibold text-sm">Sign In</Link>
@@ -191,21 +191,21 @@ export default function LandingClient() {
             </div>
             <p className="text-on-surface-variant mb-12 text-lg leading-relaxed opacity-80 font-body">Empowering global learners with agentic AI environments and specialized pedagogical structures designed for the future of work.</p>
             <div className="flex gap-5">
-              {[IconEmail, IconShare, IconLanguage].map((Icon,i)=>(
-                <a key={i} href="#" className="w-12 h-12 rounded-2xl glass-depth-2 flex items-center justify-center text-on-surface/60 hover:bg-primary-container hover:text-white transition-all hover:scale-110"><Icon className="w-5 h-5" /></a>
+              {[{Icon: IconEmail, href: "mailto:support@cognara.app"}, {Icon: IconShare, href: "https://github.com"}, {Icon: IconLanguage, href: "/dashboard"}].map((item,i)=>(
+                <a key={i} href={item.href} target={item.href.startsWith("http") ? "_blank" : undefined} rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined} className="w-12 h-12 rounded-2xl glass-depth-2 flex items-center justify-center text-on-surface/60 hover:bg-primary-container hover:text-white transition-all hover:scale-110"><item.Icon className="w-5 h-5" /></a>
               ))}
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-16 lg:gap-24">
             {[
-              {t:"Architecture",l:["Curriculum","Mentor Network","Investment","System Status"]},
-              {t:"Intelligence",l:["Agent SDK","Foundations","Analytics","Open Roles"]},
-              {t:"Resources",l:["Governance","Compliance","Service Desk"]},
+              {t:"Architecture",l:[{name:"Curriculum",href:"/dashboard"},{name:"Mentor Network",href:"/dashboard"},{name:"Courses",href:"/my-courses"},{name:"System Status",href:"/dashboard"}]},
+              {t:"Intelligence",l:[{name:"AI Agent",href:"/agent"},{name:"Code Lab",href:"/editor"},{name:"Analytics",href:"/progress"},{name:"Notebook",href:"/notebook"}]},
+              {t:"Resources",l:[{name:"Privacy",href:"/legal/privacy"},{name:"Terms",href:"/legal/terms"},{name:"Support",href:"/support"}]},
             ].map(col=>(
               <div key={col.t} className="space-y-6">
                 <h5 className="text-on-surface font-extrabold text-sm tracking-[0.2em] uppercase">{col.t}</h5>
                 <ul className="space-y-4 text-on-surface-variant font-medium font-body">
-                  {col.l.map(l=><li key={l}><a className="hover:text-primary transition-colors" href="#">{l}</a></li>)}
+                  {col.l.map(l=><li key={l.name}><Link className="hover:text-primary transition-colors" href={l.href}>{l.name}</Link></li>)}
                 </ul>
               </div>
             ))}
@@ -213,7 +213,7 @@ export default function LandingClient() {
         </div>
         <div className="max-w-[1280px] mx-auto mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-on-surface-variant text-xs font-bold tracking-widest uppercase opacity-60">
           <div>© 2026 COGNARA INTELLIGENCE. ALL RIGHTS RESERVED.</div>
-          <div className="flex gap-8">{["Privacy","Security","Ethics"].map(l=><a key={l} className="hover:text-primary transition-colors" href="#">{l}</a>)}</div>
+          <div className="flex gap-8">{[{name:"Privacy",href:"/legal/privacy"},{name:"Security",href:"/legal/terms"},{name:"Ethics",href:"/legal/terms"}].map(l=><Link key={l.name} className="hover:text-primary transition-colors" href={l.href}>{l.name}</Link>)}</div>
         </div>
       </footer>
 

@@ -154,10 +154,12 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
                 <ThemeToggle className="hidden sm:inline-flex" />
                 <button
                   type="button"
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink relative group"
                   aria-label="Notifications"
+                  title="Notifications — coming soon"
                 >
                   <IconBell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-cn-orange text-[8px] font-bold text-white">0</span>
                 </button>
                 <Link
                   href="/profile"

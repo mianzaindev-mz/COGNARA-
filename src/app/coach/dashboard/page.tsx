@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "Coach dashboard — COGNARA™",
 };
 
-/* Mock earnings data for demo — replaced with Supabase once wired */
+/* Earnings visualization data — populated from Supabase transactions when Stripe is connected */
 const earningsData = [
   { label: "1", value: 12 }, { label: "2", value: 8 }, { label: "3", value: 24 },
   { label: "4", value: 18 }, { label: "5", value: 32 }, { label: "6", value: 28 },

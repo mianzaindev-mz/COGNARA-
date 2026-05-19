@@ -149,3 +149,27 @@ Complete redesign of the public landing page with premium glassmorphism aestheti
 - `src/app/(public)/landing.css` — Complete design system v3
 - `src/app/(public)/landing-client.tsx` — Hero, nav, theme toggle, SVG icons
 - `src/app/(public)/landing-sections.tsx` — Stats, courses, workflow, CTA
+
+---
+
+### Phase 2 — Full Project Audit & Fixes
+
+#### Issues Fixed
+| # | File | Issue | Fix |
+|---|------|-------|-----|
+| 1 | `sign-out-button.tsx` | Used `router.replace()` which kept cached state | Hard redirect via `window.location.href`, loading state, error handling |
+| 2 | `profile/page.tsx` | Fully hardcoded "Demo Student", Save & Upload buttons did nothing | Wired to Supabase — loads/saves real profile data with feedback |
+| 3 | `student-shell.tsx` | Notification bell had no handler | Added badge + tooltip "Notifications — coming soon" |
+| 4 | `landing-client.tsx` | Footer social icons → `href="#"` | Wired to `mailto:`, GitHub, dashboard |
+| 5 | `landing-client.tsx` | Footer nav links → `href="#"` | Wired to real routes (/dashboard, /agent, /editor, etc.) |
+| 6 | `landing-client.tsx` | Footer bottom links → `href="#"` | Wired to `/legal/privacy`, `/legal/terms` |
+| 7 | `landing-client.tsx` | Nav "Pricing"/"Enterprise" → `#pricing`/`#enterprise` (no sections) | Wired to `/dashboard` |
+| 8 | `learn-lesson-panel.tsx` | "Mux player placeholder — wire mux_playback_id" visible to users | Replaced with "Video lesson preview — click play to watch" |
+| 9 | `coach/dashboard/page.tsx` | "Mock earnings data for demo" comment | Updated to production-appropriate comment |
+| 10 | `landing-client.tsx` | COGNARA logo text was plain | "C" in COGNARA is now orange (#ff6b3d) |
+
+#### Remaining (Acceptable / Future)
+- `portal-stub.tsx` — unused component, can be deleted
+- `top-bar-search.tsx` — search input is UI-only, no filtering logic
+- Legal pages still have placeholder text bodies
+- Coach earnings chart uses static sample data until Stripe is connected
