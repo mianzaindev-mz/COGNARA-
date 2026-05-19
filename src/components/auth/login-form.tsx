@@ -129,6 +129,49 @@ export function LoginForm() {
           Forgot password?
         </Link>
       </p>
+
+      {/* Demo accounts for testing */}
+      <div className="rounded-2xl border border-dashed border-cn-orange/30 bg-cn-orange/5 p-4">
+        <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-wider text-cn-orange">
+          Demo Accounts
+        </p>
+        <div className="flex flex-col gap-2">
+          {[
+            { email: "student@gmail.com", pass: "user123", role: "Student", path: "/dashboard" },
+            { email: "coach@gmail.com", pass: "coach123", role: "Coach", path: "/coach/dashboard" },
+            { email: "admin@gmail.com", pass: "admin123", role: "Admin", path: "/admin/dashboard" },
+          ].map((acc) => (
+            <button
+              key={acc.role}
+              type="button"
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                  const res = await fetch("/api/auth/demo-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: acc.email, password: acc.pass }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error);
+                  router.replace(data.redirectTo ?? acc.path);
+                  router.refresh();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Demo login failed");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm transition hover:border-cn-orange/40 hover:bg-cn-orange/5 disabled:opacity-50"
+            >
+              <span className="font-semibold text-cn-ink">{acc.role}</span>
+              <span className="text-xs text-cn-ink-muted">{acc.email}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

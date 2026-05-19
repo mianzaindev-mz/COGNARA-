@@ -48,6 +48,36 @@ async function fetchProfile(
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  /* ── Demo session bypass ── */
+  const demoCookie = request.cookies.get("cognara_demo_session")?.value;
+  if (demoCookie) {
+    try {
+      const demo = JSON.parse(demoCookie);
+      const role = demo.role as string;
+
+      // Block admin pages for non-admins
+      if (pathname.startsWith("/admin") && role !== "admin") {
+        return new NextResponse(null, { status: 404 });
+      }
+      // Block coach pages for students
+      if (pathname.startsWith("/coach") && role !== "coach" && role !== "admin") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+      // Redirect auth pages to dashboard
+      if (isAuthRoute(pathname)) {
+        const url = request.nextUrl.clone();
+        url.pathname = role === "admin" ? "/admin/dashboard" : role === "coach" ? "/coach/dashboard" : "/dashboard";
+        return NextResponse.redirect(url);
+      }
+      // Allow all other pages
+      return NextResponse.next({ request });
+    } catch {
+      // Invalid cookie — fall through to normal auth
+    }
+  }
+
   if (!isSupabaseConfigured()) {
     if (requiresAuthentication(pathname)) {
       const loginUrl = request.nextUrl.clone();

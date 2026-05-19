@@ -59,48 +59,26 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
       .slice(0, 1200);
 
     const utterance = new SpeechSynthesisUtterance(clean);
-
-    // Configure language-specific settings
-    if (lang === "ur") {
-      utterance.lang = "ur-PK";
-      utterance.rate = 0.85;     // Slightly slower for Urdu clarity
-      utterance.pitch = 1.05;    // Slightly higher for natural Urdu intonation
-    } else {
-      utterance.lang = "en-US";
-      utterance.rate = 0.95;     // Natural speaking pace
-      utterance.pitch = 1.0;
-    }
+    utterance.lang = "en-US";
+    utterance.rate = 0.92;
+    utterance.pitch = 0.95;
     utterance.volume = 1.0;
 
-    // Select best available voice
+    // Select best available MALE voice
     const pickVoice = () => {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length === 0) return;
 
-      if (lang === "ur") {
-        // Priority order for Urdu voices
-        const urduVoice =
-          voices.find(v => v.name.includes("Microsoft") && v.lang.startsWith("ur")) ||
-          voices.find(v => v.name.includes("Google") && v.lang.startsWith("ur")) ||
-          voices.find(v => v.lang === "ur-PK") ||
-          voices.find(v => v.lang.startsWith("ur")) ||
-          voices.find(v => v.lang.startsWith("hi"));   // Hindi as fallback for Urdu
-        if (urduVoice) utterance.voice = urduVoice;
-      } else {
-        // Priority order for English voices — prefer natural/neural voices
-        const englishVoice =
-          voices.find(v => v.name.includes("Microsoft Aria") && v.lang.startsWith("en")) ||
-          voices.find(v => v.name.includes("Microsoft Jenny") && v.lang.startsWith("en")) ||
-          voices.find(v => v.name.includes("Google UK English Female")) ||
-          voices.find(v => v.name.includes("Google US English")) ||
-          voices.find(v => v.name.includes("Samantha")) ||                  // macOS
-          voices.find(v => v.name.includes("Microsoft Zira")) ||            // Windows fallback
-          voices.find(v => v.name.includes("Microsoft David")) ||           // Windows fallback
-          voices.find(v => v.lang.startsWith("en") && v.name.includes("Natural")) ||
-          voices.find(v => v.lang === "en-US" && !v.localService) ||        // Cloud voice
-          voices.find(v => v.lang.startsWith("en"));                        // Any English
-        if (englishVoice) utterance.voice = englishVoice;
-      }
+      const maleVoice =
+        voices.find(v => v.name.includes("Microsoft David")) ||
+        voices.find(v => v.name.includes("Microsoft Mark")) ||
+        voices.find(v => v.name.includes("Microsoft Guy")) ||
+        voices.find(v => v.name.includes("Google UK English Male")) ||
+        voices.find(v => v.name.includes("Alex")) ||
+        voices.find(v => v.name.includes("Daniel")) ||
+        voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
+        voices.find(v => v.lang === "en-US");
+      if (maleVoice) utterance.voice = maleVoice;
     };
 
     // Voices may not be loaded yet — try immediately, then on voiceschanged

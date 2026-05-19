@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>COGNARA | AI-Powered Education</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#e5e2e1",
+                        "on-tertiary-fixed": "#25005a",
+                        "surface-container-low": "#1c1b1b",
+                        "on-primary": "#5f1600",
+                        "tertiary": "#d2bbff",
+                        "on-primary-container": "#611700",
+                        "tertiary-fixed-dim": "#d2bbff",
+                        "primary": "#ffb59f",
+                        "background": "#131313",
+                        "inverse-primary": "#ae3203",
+                        "surface-bright": "#3a3939",
+                        "error": "#ffb4ab",
+                        "on-surface": "#e5e2e1",
+                        "secondary": "#ffb5a0",
+                        "surface-variant": "#353534",
+                        "tertiary-container": "#ac83ff",
+                        "secondary-fixed": "#ffdbd1",
+                        "outline": "#a88a81",
+                        "on-primary-fixed-variant": "#862300",
+                        "on-tertiary-container": "#400092",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-secondary": "#5f1601",
+                        "on-tertiary": "#3f008e",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-fixed-dim": "#ffb59f",
+                        "on-secondary-fixed-variant": "#7e2c14",
+                        "outline-variant": "#59413a",
+                        "surface-container-high": "#2a2a2a",
+                        "secondary-fixed-dim": "#ffb5a0",
+                        "on-secondary-fixed": "#3b0900",
+                        "inverse-on-surface": "#313030",
+                        "surface-container": "#201f1f",
+                        "primary-container": "#ff6b3d",
+                        "primary-fixed": "#ffdbd1",
+                        "surface-container-highest": "#353534",
+                        "surface-dim": "#131313",
+                        "on-tertiary-fixed-variant": "#5a00c6",
+                        "on-surface-variant": "#e1bfb6",
+                        "surface": "#131313",
+                        "on-secondary-container": "#ff9b7f",
+                        "tertiary-fixed": "#eaddff",
+                        "secondary-container": "#7e2c14",
+                        "inverse-surface": "#e5e2e1",
+                        "on-error-container": "#ffdad6",
+                        "surface-tint": "#ffb59f",
+                        "on-primary-fixed": "#3a0a00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "4xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "stack-md": "24px",
+                        "unit": "8px",
+                        "margin-mobile": "16px",
+                        "stack-lg": "48px",
+                        "gutter": "24px",
+                        "stack-sm": "12px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Hanken Grotesk"],
+                        "display-xl": ["Plus Jakarta Sans"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "headline-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-xl": ["72px", {"lineHeight": "80px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #131313; color: #e5e2e1; overflow-x: hidden; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        
+        /* Depth & Glassmorphism */
+        .glass-depth-1 { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-depth-2 { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 10px 30px -5px rgba(0,0,0,0.5); }
+        .glass-depth-3 { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 20px 50px -10px rgba(0,0,0,0.7); }
+        
+        /* Interactive Details */
+        .hover-magnetic { transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.4s; }
+        .hover-magnetic:hover { transform: translateY(-8px) perspective(1000px) rotateX(4deg); box-shadow: 0 30px 60px -15px rgba(255, 107, 61, 0.25); }
+        
+        .gradient-primary { background: linear-gradient(135deg, #FF6B3D 0%, #FF8E6E 100%); }
+        .glow-liquid { position: relative; overflow: hidden; }
+        .glow-liquid::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: liquid-slide 3s infinite; }
+        
+        @keyframes liquid-slide { 0% { left: -100%; } 100% { left: 100%; } }
+        
+        .entrance-anim { opacity: 0; transform: translateY(30px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        .entrance-anim.visible { opacity: 1; transform: translateY(0); }
+        
+        .glow-dot { width: 8px; height: 8px; border-radius: 50%; background: #FF6B3D; box-shadow: 0 0 12px #FF6B3D; display: inline-block; }
+        
+        .flow-line { position: absolute; width: 1px; height: 100%; background: linear-gradient(to bottom, transparent, rgba(255, 107, 61, 0.3), transparent); left: 50%; top: 0; z-index: 0; }
+        
+        .footer-glow { border-top: 1px solid rgba(255, 107, 61, 0.2); box-shadow: 0 -20px 40px -20px rgba(255, 107, 61, 0.15); }
+    </style>
+</head>
+<body class="font-body-md text-body-md">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-16 py-4 max-w-[1440px] mx-auto bg-surface-dim/40 backdrop-blur-2xl border-b border-white/5">
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
+<span class="material-symbols-outlined text-on-primary text-xl" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<span class="font-headline-md text-2xl font-bold tracking-tighter text-on-surface">COGNARA</span>
+</div>
+<div class="hidden md:flex items-center gap-8 font-body-md text-sm tracking-wide">
+<a class="text-primary-container font-semibold border-b-2 border-primary-container pb-1" href="#">Courses</a>
+<a class="text-on-surface/60 hover:text-on-surface transition-colors" href="#">Mentors</a>
+<a class="text-on-surface/60 hover:text-on-surface transition-colors" href="#">Pricing</a>
+<a class="text-on-surface/60 hover:text-on-surface transition-colors" href="#">Enterprise</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="hidden sm:block text-on-surface/70 hover:text-on-surface font-semibold text-sm">Sign In</button>
+<button class="gradient-primary text-white px-7 py-2.5 rounded-full font-bold text-sm hover:shadow-[0_0_20px_rgba(255,107,61,0.4)] transition-all active:scale-95">Get Started</button>
+</div>
+</nav>
+<main class="mt-20">
+<!-- Hero Section -->
+<section class="relative min-h-[90vh] flex items-center px-4 md:px-16 overflow-hidden">
+<div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute w-[800px] h-[800px] -top-[400px] -left-[400px] bg-primary-container/10 blur-[120px] rounded-full" id="hero-glow-1"></div>
+<div class="absolute w-[600px] h-[600px] top-[20%] right-[10%] bg-tertiary-container/5 blur-[100px] rounded-full" id="hero-glow-2"></div>
+</div>
+<div class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full relative z-10">
+<div class="entrance-anim" id="hero-text">
+<div class="flex items-center gap-3 mb-8">
+<div class="px-3 py-1 glass-depth-2 rounded-full border-primary/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-primary-container" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="text-primary font-bold tracking-[0.2em] text-[10px] uppercase">Cognara AI Intelligence</span>
+</div>
+</div>
+<h1 class="font-display-xl text-5xl md:text-7xl mb-8 leading-[1.1] font-extrabold">
+                    Discover your ideal <br/>learning path — <span class="text-primary-container italic">today.</span>
+</h1>
+<p class="text-on-surface-variant font-body-lg text-lg mb-10 max-w-lg leading-relaxed opacity-90">
+                    A sophisticated ecosystem for students, coaches, and admins. Purpose-built for high-impact educational growth.
+                </p>
+<div class="flex flex-wrap gap-5 mb-12">
+<button class="gradient-primary text-white px-10 py-5 rounded-2xl font-bold text-body-md hover:shadow-[0_20px_40px_-10px_rgba(255,107,61,0.4)] transition-all active:scale-95">Join the platform</button>
+<button class="glass-depth-2 text-on-surface px-10 py-5 rounded-2xl font-bold text-body-md hover:bg-white/10 transition-all">Request Demo</button>
+</div>
+<div class="flex items-center gap-6 glass-depth-1 p-4 rounded-2xl inline-flex">
+<div class="flex -space-x-3">
+<div class="w-11 h-11 rounded-full border-2 border-surface bg-orange-500 shadow-xl flex items-center justify-center text-xs font-bold">A</div>
+<div class="w-11 h-11 rounded-full border-2 border-surface bg-indigo-500 shadow-xl flex items-center justify-center text-xs font-bold">B</div>
+<div class="w-11 h-11 rounded-full border-2 border-surface bg-emerald-500 shadow-xl flex items-center justify-center text-xs font-bold">C</div>
+<div class="w-11 h-11 rounded-full border-2 border-surface bg-primary-container shadow-xl flex items-center justify-center text-xs font-bold">D</div>
+</div>
+<div>
+<p class="text-on-surface font-bold text-sm">Trusted by 10k+ learners</p>
+<div class="flex items-center gap-2">
+<div class="flex text-primary-container">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider">Top Rated</span>
+</div>
+</div>
+</div>
+</div>
+<div class="relative entrance-anim" id="hero-media">
+<div class="glass-depth-3 rounded-4xl p-2 relative group hover:scale-[1.02] transition-all duration-700">
+<div class="aspect-video overflow-hidden rounded-3xl relative">
+<img alt="Interface preview" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAo4MFDsu5PpaP4sAfJLdJ9ulvty7q5Dm1Titb_jw1XgZZIBgSypFdEYtSLowhIcGVQ6_zCPlick5a_BNTVHzARhiSFHF65dD31NsEiuduQsp3t8-jTqZBZirFKdPHl1MoZYB_NqvXz7TwHoKwIa7De7iovayHVhltrIm_jE1vRaMSElKmEl54i6l2eG5VmUF5ghyN6R1oRhgNRxObHVtaS_KfP1EWnkGLtzXaWaz5ATYrI89qq9YIr7Sao4Qlb4-5QoCYGclb5GO8"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-colors">
+<button class="w-24 h-24 bg-primary-container text-white rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform shadow-2xl shadow-primary-container/40">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- Floating Overlays for depth -->
+<div class="absolute -bottom-6 -right-6 glass-depth-3 p-5 rounded-3xl border-primary-container/20 flex items-center gap-4 group-hover:translate-y-[-10px] transition-transform duration-500">
+<div class="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<p class="text-on-surface font-bold text-sm">System Overview</p>
+<p class="text-on-surface-variant text-[11px] opacity-70">2:45 • Experience Cognara</p>
+</div>
+</div>
+<div class="absolute -top-4 -left-4 px-4 py-2 glass-depth-2 rounded-xl border-white/10 group-hover:translate-y-[5px] transition-transform duration-500">
+<span class="text-yellow-400 font-bold text-[10px] tracking-widest uppercase">Verified Quality</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section (Impact at a Glance) -->
+<section class="py-32 px-4 md:px-16 bg-surface-container-lowest relative">
+<div class="max-w-container-max mx-auto relative z-10">
+<div class="text-center mb-24 entrance-anim">
+<span class="text-primary font-bold tracking-[0.3em] text-[10px] uppercase mb-4 block">Measurable Success</span>
+<h2 class="font-headline-lg text-5xl mb-6">Our impact at a glance</h2>
+<div class="h-1.5 w-24 gradient-primary mx-auto rounded-full shadow-[0_0_15px_rgba(255,107,61,0.5)]"></div>
+</div>
+<div class="flex flex-wrap lg:flex-nowrap justify-center gap-10 items-center">
+<!-- Stat 1 -->
+<div class="glass-depth-2 p-10 rounded-4xl hover-magnetic w-full sm:w-[280px] h-[340px] flex flex-col justify-between group">
+<div>
+<div class="glow-dot mb-4 group-hover:scale-150 transition-transform"></div>
+<span class="text-primary/50 font-bold text-xs tracking-widest">01</span>
+</div>
+<div>
+<p class="text-5xl font-extrabold mb-3 text-on-surface group-hover:text-primary-container transition-colors">2+</p>
+<p class="font-bold text-lg text-on-surface">Years building</p>
+<p class="text-on-surface-variant text-sm mt-2">Continuous evolution and product iterations.</p>
+</div>
+</div>
+<!-- Stat 2 - Slightly offset/larger for hierarchy -->
+<div class="glass-depth-3 p-12 rounded-4xl hover-magnetic w-full sm:w-[320px] h-[400px] flex flex-col justify-between group border-primary/20 -translate-y-4">
+<div>
+<div class="glow-dot mb-4 bg-tertiary-container shadow-tertiary-container"></div>
+<span class="text-primary/50 font-bold text-xs tracking-widest">02</span>
+</div>
+<div>
+<p class="text-6xl font-extrabold mb-4 text-primary-container">50+</p>
+<p class="font-bold text-xl text-on-surface">Course topics</p>
+<p class="text-on-surface-variant text-base mt-2 opacity-80">Diverse curriculum seeded for professional excellence.</p>
+</div>
+</div>
+<!-- Stat 3 -->
+<div class="glass-depth-2 p-10 rounded-4xl hover-magnetic w-full sm:w-[280px] h-[340px] flex flex-col justify-between group">
+<div>
+<div class="glow-dot mb-4"></div>
+<span class="text-primary/50 font-bold text-xs tracking-widest">03</span>
+</div>
+<div>
+<p class="text-5xl font-extrabold mb-3 text-on-surface">6</p>
+<p class="font-bold text-lg text-on-surface">AI Skills</p>
+<p class="text-on-surface-variant text-sm mt-2">Advanced tool-using agents at your disposal.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Continue Learning Section -->
+<section class="py-32 px-4 md:px-16 relative">
+<div class="max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 entrance-anim">
+<div class="max-w-xl">
+<span class="text-primary font-bold tracking-[0.3em] text-[10px] uppercase mb-4 block">Curated Experience</span>
+<h2 class="font-headline-lg text-5xl font-extrabold">Continue where you <br/>left off</h2>
+</div>
+<a class="text-primary-container font-bold text-lg hover:underline flex items-center gap-3 group transition-all" href="#">
+<span>Explore all modules</span>
+<span class="material-symbols-outlined group-hover:translate-x-2 transition-transform text-2xl">arrow_forward_ios</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<!-- Course 1 -->
+<div class="glass-depth-2 rounded-4xl p-10 hover-magnetic group flex flex-col h-full border-l-4 border-l-primary-container">
+<div class="flex justify-between items-start mb-10">
+<span class="glass-depth-1 text-on-surface font-bold text-[10px] px-4 py-1.5 rounded-full tracking-widest uppercase border-white/10">Marketing</span>
+<span class="material-symbols-outlined text-primary-container/40 group-hover:text-primary-container transition-colors">edit_note</span>
+</div>
+<h3 class="text-3xl font-extrabold text-on-surface mb-auto leading-tight group-hover:text-primary-container transition-colors">Creative Writing for Beginners</h3>
+<div class="mt-12 space-y-6">
+<div class="flex justify-between text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+<span>Progress</span>
+<span class="text-primary-container">45%</span>
+</div>
+<div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden p-[1px] border border-white/5">
+<div class="bg-primary-container h-full w-[45%] rounded-full glow-liquid shadow-[0_0_10px_rgba(255,107,61,0.5)]"></div>
+</div>
+<button class="w-full gradient-primary text-white py-4 rounded-2xl font-bold text-body-md shadow-xl hover:shadow-primary-container/30 transition-all">Resume Learning</button>
+</div>
+</div>
+<!-- Course 2 -->
+<div class="glass-depth-2 rounded-4xl p-10 hover-magnetic group flex flex-col h-full border-l-4 border-l-indigo-500">
+<div class="flex justify-between items-start mb-10">
+<span class="glass-depth-1 text-on-surface font-bold text-[10px] px-4 py-1.5 rounded-full tracking-widest uppercase border-white/10">Computer Science</span>
+<span class="material-symbols-outlined text-indigo-500/40 group-hover:text-indigo-500 transition-colors">code</span>
+</div>
+<h3 class="text-3xl font-extrabold text-on-surface mb-auto leading-tight group-hover:text-indigo-400 transition-colors">Digital Illustration Foundations</h3>
+<div class="mt-12 space-y-6">
+<div class="flex justify-between text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+<span>Progress</span>
+<span class="text-indigo-400">72%</span>
+</div>
+<div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden p-[1px] border border-white/5">
+<div class="bg-indigo-500 h-full w-[72%] rounded-full glow-liquid shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+</div>
+<button class="w-full gradient-primary text-white py-4 rounded-2xl font-bold text-body-md shadow-xl hover:shadow-primary-container/30 transition-all">Resume Learning</button>
+</div>
+</div>
+<!-- Course 3 -->
+<div class="glass-depth-2 rounded-4xl p-10 hover-magnetic group flex flex-col h-full border-l-4 border-l-emerald-500">
+<div class="flex justify-between items-start mb-10">
+<span class="glass-depth-1 text-on-surface font-bold text-[10px] px-4 py-1.5 rounded-full tracking-widest uppercase border-white/10">Psychology</span>
+<span class="material-symbols-outlined text-emerald-500/40 group-hover:text-emerald-500 transition-colors">psychology</span>
+</div>
+<h3 class="text-3xl font-extrabold text-on-surface mb-auto leading-tight group-hover:text-emerald-400 transition-colors">Public Speaking &amp; Leadership</h3>
+<div class="mt-12 space-y-6">
+<div class="flex justify-between text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+<span>Progress</span>
+<span class="text-emerald-400">15%</span>
+</div>
+<div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden p-[1px] border border-white/5">
+<div class="bg-emerald-500 h-full w-[15%] rounded-full glow-liquid shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+</div>
+<button class="w-full gradient-primary text-white py-4 rounded-2xl font-bold text-body-md shadow-xl hover:shadow-primary-container/30 transition-all">Resume Learning</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How COGNARA works -->
+<section class="py-32 px-4 md:px-16 bg-surface-dim relative overflow-hidden">
+<div class="max-w-container-max mx-auto relative z-10">
+<h2 class="font-headline-lg text-5xl font-extrabold mb-24 entrance-anim text-center">Intelligent Workflow</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24 relative">
+<!-- Connection Line -->
+<div class="hidden md:block absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent -translate-y-1/2"></div>
+<!-- Feature 1 -->
+<div class="glass-depth-2 p-12 rounded-4xl hover-magnetic transition-all group relative z-10 text-center">
+<div class="w-20 h-20 rounded-2xl border-2 border-primary/20 flex items-center justify-center mx-auto mb-8 text-primary shadow-2xl bg-surface-container">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">explore</span>
+</div>
+<h4 class="text-2xl font-bold text-on-surface mb-6">Discover Path</h4>
+<p class="text-on-surface-variant leading-relaxed opacity-80">Browse highly curated courses with AI-powered filtering tailored to your career goals.</p>
+</div>
+<!-- Feature 2 -->
+<div class="glass-depth-3 p-12 rounded-4xl hover-magnetic transition-all group relative z-10 text-center border-primary/10">
+<div class="w-20 h-20 rounded-2xl border-2 border-primary/20 flex items-center justify-center mx-auto mb-8 text-primary shadow-2xl bg-surface-container">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+</div>
+<h4 class="text-2xl font-bold text-on-surface mb-6">Master Lessons</h4>
+<p class="text-on-surface-variant leading-relaxed opacity-80">Engage with immersive lessons featuring real-time progress rings and dynamic curriculum sidebars.</p>
+</div>
+<!-- Feature 3 -->
+<div class="glass-depth-2 p-12 rounded-4xl hover-magnetic transition-all group relative z-10 text-center">
+<div class="w-20 h-20 rounded-2xl border-2 border-primary/20 flex items-center justify-center mx-auto mb-8 text-primary shadow-2xl bg-surface-container">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<h4 class="text-2xl font-bold text-on-surface mb-6">AI Mentorship</h4>
+<p class="text-on-surface-variant leading-relaxed opacity-80">Cognara tutors use tool-sets to debug, quiz, and provide voice feedback—not just chat.</p>
+</div>
+</div>
+<!-- CTA Card - Multi-layered Depth -->
+<div class="relative entrance-anim group">
+<div class="absolute inset-0 bg-primary-container/20 blur-[100px] scale-90 group-hover:scale-100 transition-transform duration-1000 opacity-30"></div>
+<div class="glass-depth-3 p-10 md:p-16 rounded-4xl flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden border-white/10">
+<div class="max-w-2xl text-center lg:text-left">
+<span class="bg-yellow-400 text-black font-extrabold text-[10px] px-5 py-2 rounded-full mb-8 inline-block tracking-[0.2em] uppercase">Ecosystem Launch</span>
+<h3 class="text-4xl md:text-5xl font-extrabold text-on-surface mb-6 leading-tight">Your advanced student dashboard awaits.</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed opacity-90">Experience a high-performance environment with dark-mode sidebars, warm canvas aesthetics, and real-time analytical insights.</p>
+</div>
+<div class="shrink-0 w-full lg:w-auto">
+<button class="w-full lg:w-auto px-12 py-6 rounded-3xl font-extrabold text-xl gradient-primary text-white hover:shadow-[0_25px_50px_-12px_rgba(255,107,61,0.5)] transition-all active:scale-95 group-hover:-translate-y-2">Initialize Dashboard</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest footer-glow py-32 px-4 md:px-16">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start gap-16">
+<div class="max-w-md">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-on-primary text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<span class="font-headline-md text-3xl font-extrabold tracking-tighter text-on-surface">COGNARA</span>
+</div>
+<p class="text-on-surface-variant mb-12 text-lg leading-relaxed opacity-80">Empowering global learners with agentic AI environments and specialized pedagogical structures designed for the future of work.</p>
+<div class="flex gap-5">
+<a class="w-12 h-12 rounded-2xl glass-depth-2 flex items-center justify-center hover:bg-primary-container hover:text-white transition-all hover:scale-110" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+<a class="w-12 h-12 rounded-2xl glass-depth-2 flex items-center justify-center hover:bg-primary-container hover:text-white transition-all hover:scale-110" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+<a class="w-12 h-12 rounded-2xl glass-depth-2 flex items-center justify-center hover:bg-primary-container hover:text-white transition-all hover:scale-110" href="#">
+<span class="material-symbols-outlined">language</span>
+</a>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-16 lg:gap-24">
+<div class="space-y-6">
+<h5 class="text-on-surface font-extrabold text-sm tracking-[0.2em] uppercase">Architecture</h5>
+<ul class="space-y-4 text-on-surface-variant font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Curriculum</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Mentor Network</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Investment</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">System Status</a></li>
+</ul>
+</div>
+<div class="space-y-6">
+<h5 class="text-on-surface font-extrabold text-sm tracking-[0.2em] uppercase">Intelligence</h5>
+<ul class="space-y-4 text-on-surface-variant font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Agent SDK</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Foundations</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Analytics</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Open Roles</a></li>
+</ul>
+</div>
+<div class="space-y-6">
+<h5 class="text-on-surface font-extrabold text-sm tracking-[0.2em] uppercase">Resources</h5>
+<ul class="space-y-4 text-on-surface-variant font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Governance</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Compliance</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Service Desk</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-on-surface-variant text-xs font-bold tracking-widest uppercase opacity-60">
+<div>© 2024 COGNARA INTELLIGENCE. ALL RIGHTS RESERVED.</div>
+<div class="flex gap-8">
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Security</a>
+<a class="hover:text-primary transition-colors" href="#">Ethics</a>
+</div>
+</div>
+</footer>
+<script>
+    // Entrance animations logic
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.entrance-anim').forEach(el => observer.observe(el));
+
+    // Interactive mouse glow effect for hero
+    document.addEventListener('mousemove', (e) => {
+        const glow1 = document.getElementById('hero-glow-1');
+        const glow2 = document.getElementById('hero-glow-2');
+        if (glow1 && glow2) {
+            const x = (e.clientX / window.innerWidth - 0.5) * 60;
+            const y = (e.clientY / window.innerHeight - 0.5) * 60;
+            glow1.style.transform = `translate(${x}px, ${y}px)`;
+            glow2.style.transform = `translate(${-x}px, ${-y}px)`;
+        }
+    });
+
+    // Magnetic card effect helper (simulated with CSS for performance)
+    document.querySelectorAll('.hover-magnetic').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 20;
+            const rotateY = (centerX - x) / 20;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+        });
+    });
+</script>
+</body></html>

@@ -392,37 +392,21 @@ function ExplainButton({ text }: { text: string }) {
       .slice(0, 1200);
 
     const utterance = new SpeechSynthesisUtterance(clean);
-
-    if (lang === "ur") {
-      utterance.lang = "ur-PK";
-      utterance.rate = 0.82;
-      utterance.pitch = 1.05;
-    } else {
-      utterance.lang = "en-US";
-      utterance.rate = 0.92;
-      utterance.pitch = 1.0;
-    }
+    utterance.lang = "en-US";
+    utterance.rate = 0.92;
+    utterance.pitch = 0.95;
 
     const voices = window.speechSynthesis.getVoices();
-    if (lang === "ur") {
-      const v =
-        voices.find(v => v.name.includes("Microsoft") && v.lang.startsWith("ur")) ||
-        voices.find(v => v.lang === "ur-PK") ||
-        voices.find(v => v.lang.startsWith("ur")) ||
-        voices.find(v => v.name.includes("Microsoft") && v.lang.startsWith("hi")) ||
-        voices.find(v => v.lang.startsWith("hi"));
-      if (v) utterance.voice = v;
-    } else {
-      const v =
-        voices.find(v => v.name.includes("Microsoft Aria") && v.lang.startsWith("en")) ||
-        voices.find(v => v.name.includes("Microsoft Jenny") && v.lang.startsWith("en")) ||
-        voices.find(v => v.name.includes("Google UK English Female")) ||
-        voices.find(v => v.name.includes("Google US English")) ||
-        voices.find(v => v.name.includes("Samantha")) ||
-        voices.find(v => v.lang === "en-US" && !v.localService) ||
-        voices.find(v => v.lang.startsWith("en"));
-      if (v) utterance.voice = v;
-    }
+    const v =
+      voices.find(v => v.name.includes("Microsoft David")) ||
+      voices.find(v => v.name.includes("Microsoft Mark")) ||
+      voices.find(v => v.name.includes("Microsoft Guy")) ||
+      voices.find(v => v.name.includes("Google UK English Male")) ||
+      voices.find(v => v.name.includes("Alex")) ||
+      voices.find(v => v.name.includes("Daniel")) ||
+      voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
+      voices.find(v => v.lang === "en-US");
+    if (v) utterance.voice = v;
 
     utterance.onstart = () => setSpeaking(true);
     utterance.onend = () => setSpeaking(false);
