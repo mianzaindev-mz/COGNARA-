@@ -42,11 +42,11 @@ export default function CoachVerificationPage() {
     // 1. Check direct profile verification status
     const { data: profile } = await supabase
       .from("profiles")
-      .select("is_verified_coach")
+      .select("is_verified")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.is_verified_coach) {
+    if (profile?.is_verified) {
       setVerificationStatus("approved");
       setLoading(false);
       return;

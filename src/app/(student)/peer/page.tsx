@@ -16,11 +16,6 @@ type PeerSession = {
   isRegistered: boolean;
 };
 
-const DEMO_SESSIONS: PeerSession[] = [
-  { id: "1", title: "Data Structures Review", host: "Ali K.", topic: "DSA", date: "Tomorrow 7PM", maxSpots: 10, registered: 4, price: "Free", isRegistered: false },
-  { id: "2", title: "Python Practice Problems", host: "Sara M.", topic: "Python", date: "May 20, 5PM", maxSpots: 10, registered: 8, price: "$3.00", isRegistered: false },
-  { id: "3", title: "React Hooks Deep Dive", host: "Ahmed R.", topic: "React", date: "May 22, 6PM", maxSpots: 10, registered: 10, price: "$5.00", isRegistered: false },
-];
 
 export default function PeerPage() {
   const [sessions, setSessions] = useState<PeerSession[]>([]);
@@ -176,7 +171,7 @@ export default function PeerPage() {
           host_id: userId,
           title: newSession.title,
           topic: newSession.topic,
-          scheduled_at: newSession.date,
+          scheduled_at: new Date(newSession.date).toISOString(),
           max_students: Number(newSession.maxSpots),
           price_usd: parsedPrice,
           status: "scheduled",
@@ -263,51 +258,87 @@ export default function PeerPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sessions.map((session) => {
-          const isFull = session.registered >= session.maxSpots;
-          const isLoading = registering === session.id;
-          return (
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((n) => (
             <div
-              key={session.id}
-              className="cn-card-lift flex flex-col rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)] transition hover:border-cn-orange/30"
+              key={n}
+              className="flex flex-col rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)] animate-pulse"
             >
-              <div className="mb-1 flex items-center gap-2">
-                <span className="rounded-full bg-cn-lavender/20 px-2 py-0.5 text-[10px] font-bold text-cn-lavender">
-                  PEER
-                </span>
-                <span className="text-[10px] text-cn-ink-subtle">{session.topic}</span>
+              <div className="mb-2 h-4 w-24 bg-cn-canvas rounded-lg" />
+              <div className="mb-2 h-6 w-3/4 bg-cn-canvas rounded-lg" />
+              <div className="mb-4 h-4 w-1/2 bg-cn-canvas rounded-lg" />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="h-10 bg-cn-canvas rounded-xl" />
+                <div className="h-10 bg-cn-canvas rounded-xl" />
+                <div className="h-10 bg-cn-canvas rounded-xl" />
               </div>
-              <h3 className="mb-1 font-bold text-cn-ink">{session.title}</h3>
-              <p className="text-xs text-cn-ink-muted">Hosted by {session.host}</p>
-
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="rounded-xl bg-cn-canvas p-2">
-                  <p className="font-bold text-cn-ink">{session.date.split(",")[0]}</p>
-                  <p className="text-cn-ink-subtle">Date</p>
-                </div>
-                <div className="rounded-xl bg-cn-canvas p-2">
-                  <p className="font-bold text-cn-ink">{session.registered}/{session.maxSpots}</p>
-                  <p className="text-cn-ink-subtle">Spots</p>
-                </div>
-                <div className="rounded-xl bg-cn-canvas p-2">
-                  <p className={`font-bold ${session.price === "Free" ? "text-emerald-500" : "text-cn-ink"}`}>{session.price}</p>
-                  <p className="text-cn-ink-subtle">Price</p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={isFull || session.isRegistered || isLoading}
-                onClick={() => void handleRegister(session.id)}
-                className="mt-4 w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50"
-              >
-                {isLoading ? "Registering…" : session.isRegistered ? "✓ Registered" : isFull ? "Session Full" : "Register"}
-              </button>
+              <div className="mt-4 h-9 w-full bg-cn-canvas rounded-xl" />
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : sessions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center shadow-[var(--cn-shadow-card)] animate-in fade-in duration-300">
+          <IconUsers className="h-8 w-8 text-cn-ink-subtle" />
+          <h3 className="text-lg font-bold text-cn-ink mt-2">No Study Sessions Scheduled</h3>
+          <p className="mt-1 text-sm text-cn-ink-muted max-w-[280px]">
+            Be the first to host a peer tutoring session and share your knowledge with other students!
+          </p>
+          <button
+            type="button"
+            onClick={() => setHostOpen(true)}
+            className="mt-4 rounded-xl bg-cn-orange px-4 py-2 text-xs font-bold text-white transition hover:bg-cn-orange-hover"
+          >
+            Host First Session
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sessions.map((session) => {
+            const isFull = session.registered >= session.maxSpots;
+            const isLoading = registering === session.id;
+            return (
+              <div
+                key={session.id}
+                className="cn-card-lift flex flex-col rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)] transition hover:border-cn-orange/30 animate-in fade-in duration-300"
+              >
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="rounded-full bg-cn-lavender/20 px-2 py-0.5 text-[10px] font-bold text-cn-lavender">
+                    PEER
+                  </span>
+                  <span className="text-[10px] text-cn-ink-subtle">{session.topic}</span>
+                </div>
+                <h3 className="mb-1 font-bold text-cn-ink">{session.title}</h3>
+                <p className="text-xs text-cn-ink-muted">Hosted by {session.host}</p>
+
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded-xl bg-cn-canvas p-2">
+                    <p className="font-bold text-cn-ink">{session.date.split(",")[0]}</p>
+                    <p className="text-cn-ink-subtle">Date</p>
+                  </div>
+                  <div className="rounded-xl bg-cn-canvas p-2">
+                    <p className="font-bold text-cn-ink">{session.registered}/{session.maxSpots}</p>
+                    <p className="text-cn-ink-subtle">Spots</p>
+                  </div>
+                  <div className="rounded-xl bg-cn-canvas p-2">
+                    <p className={`font-bold ${session.price === "Free" ? "text-emerald-500" : "text-cn-ink"}`}>{session.price}</p>
+                    <p className="text-cn-ink-subtle">Price</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isFull || session.isRegistered || isLoading}
+                  onClick={() => void handleRegister(session.id)}
+                  className="mt-4 w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50 animate-in"
+                >
+                  {isLoading ? "Registering…" : session.isRegistered ? "✓ Registered" : isFull ? "Session Full" : "Register"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Host a Session Modal */}
       {hostOpen && (
@@ -354,9 +385,8 @@ export default function PeerPage() {
                 <div>
                   <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Date & Time *</label>
                   <input
-                    type="text"
+                    type="datetime-local"
                     required
-                    placeholder="e.g. May 25, 4PM"
                     value={newSession.date}
                     onChange={(e) => setNewSession(prev => ({ ...prev, date: e.target.value }))}
                     className="w-full bg-cn-canvas border border-cn-border rounded-xl px-3 py-2 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"

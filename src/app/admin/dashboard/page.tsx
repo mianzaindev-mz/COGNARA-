@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
 import { Badge } from "@/components/ui/badge";
@@ -9,13 +10,22 @@ import { IconUsers, IconBook, IconCurrency, IconTicket } from "@/components/ui/i
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin Dashboard — COGNARA™" };
 
-
-
-
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
+
+  // Fetch auth users to build email map (admin only)
+  let emailMap = new Map<string, string>();
+  try {
+    const adminSupabase = createAdminClient();
+    const { data: { users: authUsers } } = await adminSupabase.auth.admin.listUsers({ perPage: 100 });
+    if (authUsers) {
+      emailMap = new Map(authUsers.map(u => [u.id, u.email ?? ""]));
+    }
+  } catch (err) {
+    console.error("Admin user list error:", err);
+  }
 
   // Real counts from DB
   const [usersRes, coursesRes, ticketsRes, enrollmentsRes] = await Promise.all([
@@ -37,10 +47,10 @@ export default async function AdminDashboardPage() {
     .eq("is_published", true);
   const grossRevenue = (courseRevData ?? []).reduce((s, c) => s + (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0), 0);
 
-  // Recent support tickets
+  // Recent support tickets (query user_id and profiles instead of email directly on profiles)
   const { data: recentTickets } = await supabase
     .from("support_tickets")
-    .select("id, subject, category, status, created_at, profiles!support_tickets_user_id_fkey(full_name, email)")
+    .select("id, subject, category, status, created_at, user_id, profiles!support_tickets_user_id_fkey(full_name)")
     .order("created_at", { ascending: false })
     .limit(5);
 
@@ -53,9 +63,9 @@ export default async function AdminDashboardPage() {
   // Pending coach verifications
   const { data: pendingCoaches } = await supabase
     .from("profiles")
-    .select("id, full_name, email, created_at")
+    .select("id, full_name, created_at")
     .eq("role", "coach")
-    .eq("is_verified_coach", false)
+    .eq("is_verified", false)
     .order("created_at", { ascending: false })
     .limit(5);
 
@@ -95,7 +105,8 @@ export default async function AdminDashboardPage() {
             {(pendingCoaches ?? []).length === 0 ? (
               <p className="text-sm text-cn-ink-muted py-4 text-center">No pending verifications</p>
             ) : (pendingCoaches ?? []).map((coach) => {
-              const initials = (coach.full_name ?? coach.email ?? "?").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+              const coachEmail = emailMap.get(coach.id) || "No Email";
+              const initials = (coach.full_name ?? coachEmail).split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
               const ago = Math.round((Date.now() - new Date(coach.created_at).getTime()) / 3600000);
               return (
                 <div key={coach.id} className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-3 transition hover:bg-cn-surface">
@@ -103,7 +114,7 @@ export default async function AdminDashboardPage() {
                     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-bold text-indigo-400">{initials}</span>
                     <div>
                       <p className="text-sm font-semibold text-cn-ink">{coach.full_name ?? "Unknown"}</p>
-                      <p className="text-[10px] text-cn-ink-subtle">{coach.email} · {ago}h ago</p>
+                      <p className="text-[10px] text-cn-ink-subtle">{coachEmail} · {ago}h ago</p>
                     </div>
                   </div>
                   <Link href="/admin/coaches" className="rounded-lg bg-cn-canvas px-3 py-1.5 text-[10px] font-bold text-cn-ink transition hover:bg-cn-border">Review</Link>
@@ -123,15 +134,15 @@ export default async function AdminDashboardPage() {
         <div className="space-y-2">
           {(recentTickets ?? []).length === 0 ? (
             <p className="text-sm text-cn-ink-muted py-4 text-center">No tickets yet</p>
-          ) : (recentTickets ?? []).map((t: Record<string, unknown>) => {
-            const profile = t.profiles as Record<string, string> | null;
+          ) : (recentTickets ?? []).map((t: any) => {
             const status = String(t.status ?? "open");
+            const ticketEmail = emailMap.get(String(t.user_id)) || "Unknown";
             const ago = Math.round((Date.now() - new Date(String(t.created_at)).getTime()) / 3600000);
             return (
               <div key={String(t.id)} className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-3 transition hover:bg-cn-surface">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-cn-ink truncate">{String(t.subject)}</p>
-                  <p className="text-[10px] text-cn-ink-subtle">{profile?.email ?? "Unknown"} · {String(t.category)} · {ago}h ago</p>
+                  <p className="text-[10px] text-cn-ink-subtle">{ticketEmail} · {String(t.category)} · {ago}h ago</p>
                 </div>
                 <Badge variant={statusVariant[status] ?? "default"} size="sm" dot>{statusLabel[status] ?? status}</Badge>
               </div>
