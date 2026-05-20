@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state";
 import { IconUsers } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +21,6 @@ export default async function CoachStudentsPage() {
   const courseMap = Object.fromEntries((courses ?? []).map(c => [c.id, c.title]));
 
   // Get enrollments for those courses
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let enrollments: Array<{
     student_id: string;
     course_id: string;

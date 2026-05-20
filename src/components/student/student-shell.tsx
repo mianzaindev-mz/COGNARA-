@@ -9,6 +9,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 const nav = [
   { href: "/dashboard", label: "Home", icon: "dashboard", activeFill: true },
   { href: "/my-courses", label: "Courses", icon: "book_2", activeFill: false },
+  { href: "/library", label: "Library", icon: "local_library", activeFill: false },
   { href: "/editor", label: "Code lab", icon: "terminal", activeFill: false },
   { href: "/notebook", label: "Notebook", icon: "auto_stories", activeFill: false },
   { href: "/agent", label: "Agent", icon: "magic_button", activeFill: false },

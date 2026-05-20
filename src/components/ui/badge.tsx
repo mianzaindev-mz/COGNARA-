@@ -3,6 +3,7 @@ type BadgeProps = {
   size?: "sm" | "md";
   children: React.ReactNode;
   dot?: boolean;
+  className?: string;
 };
 
 const variants: Record<string, string> = {
@@ -25,13 +26,14 @@ const dotColors: Record<string, string> = {
   outline:  "bg-cn-ink-subtle",
 };
 
-export function Badge({ variant = "default", size = "sm", children, dot }: BadgeProps) {
+export function Badge({ variant = "default", size = "sm", children, dot, className = "" }: BadgeProps) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full font-semibold ${
       size === "sm" ? "px-2.5 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
-    } ${variants[variant]}`}>
+    } ${variants[variant]} ${className}`}>
       {dot && <span className={`h-1.5 w-1.5 rounded-full ${dotColors[variant]}`} />}
       {children}
     </span>
   );
 }
+

@@ -6,7 +6,6 @@ import { IconTicket } from "@/components/ui/icons";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Support — Admin — COGNARA™" };
 
-const priorityMap: Record<string, "danger" | "warning" | "default" | "info"> = { urgent: "danger", high: "warning", normal: "default", low: "info" };
 const statusMap: Record<string, "danger" | "warning" | "success" | "indigo" | "default"> = { open: "danger", in_progress: "warning", ai_resolved: "indigo", resolved: "success", closed: "default" };
 const statusLabel: Record<string, string> = { open: "Open", in_progress: "In progress", ai_resolved: "AI resolved", resolved: "Resolved", closed: "Closed" };
 

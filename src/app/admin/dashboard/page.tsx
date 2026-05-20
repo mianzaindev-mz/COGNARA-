@@ -9,12 +9,8 @@ import { IconUsers, IconBook, IconCurrency, IconTicket } from "@/components/ui/i
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin Dashboard — COGNARA™" };
 
-const severityColor: Record<string, string> = {
-  critical: "bg-rose-500/15 text-rose-400 border-rose-500/20",
-  high: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  medium: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
-  low: "bg-neutral-500/15 text-cn-ink-muted border-neutral-500/20",
-};
+
+
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();

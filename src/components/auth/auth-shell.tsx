@@ -61,9 +61,33 @@ export function AuthShell({
 
         {/* Form Content */}
         <div className="flex flex-col items-center">
-          <div className="text-center w-full mb-8 mt-2">
+          <div className="text-center w-full mb-6 mt-2">
             <h1 className="text-[32px] leading-tight font-bold text-cn-ink mb-2">{title}</h1>
             <p className="text-cn-ink-muted text-sm">{subtitle}</p>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex w-full rounded-xl bg-cn-canvas p-1 mb-6 border border-cn-border">
+            <Link
+              href="/login"
+              className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === "login"
+                  ? "bg-white dark:bg-[#1a1818] text-cn-orange shadow-sm ring-1 ring-black/5"
+                  : "text-cn-ink-muted hover:text-cn-ink"
+              }`}
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/register"
+              className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === "register"
+                  ? "bg-white dark:bg-[#1a1818] text-cn-orange shadow-sm ring-1 ring-black/5"
+                  : "text-cn-ink-muted hover:text-cn-ink"
+              }`}
+            >
+              Sign Up
+            </Link>
           </div>
 
           <div className="w-full">

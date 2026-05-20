@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
-import { ProgressBar } from "@/components/ui/progress-bar";
+
 import { IconBook } from "@/components/ui/icons";
+import { CreateCourseButton } from "@/components/coach/create-course-button";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My Courses — Coach — COGNARA™" };
@@ -30,9 +31,28 @@ export default async function CoachCoursesPage() {
           <h1 className="text-2xl font-bold tracking-tight text-cn-ink">My Courses</h1>
           <p className="mt-1 text-sm text-cn-ink-muted">{list.length} courses · {publishedCount} published</p>
         </div>
-        <button className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:bg-indigo-700 hover:shadow-lg">
-          + Create Course
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/coach/course-builder"
+            className="rounded-xl border border-violet-500/20 bg-violet-500/10 px-4 py-2.5 text-xs font-bold text-violet-500 hover:bg-violet-500 hover:text-white transition"
+          >
+            ✨ 3D Pathway Workspace
+          </Link>
+          <CreateCourseButton />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-violet-500/10 bg-violet-500/5 p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h4 className="text-xs font-bold text-violet-400 uppercase tracking-wider">New 3D pathway editor online</h4>
+          <p className="text-xs text-cn-ink-muted mt-0.5">Visually position chapter platforms, configure locks, and drag-and-drop lesson blocks in real-time game space.</p>
+        </div>
+        <Link
+          href="/coach/course-builder"
+          className="rounded-lg bg-violet-600 px-3.5 py-1.5 text-[10px] font-bold text-white hover:bg-violet-700 transition"
+        >
+          Launch Builder
+        </Link>
       </section>
 
       {list.length === 0 ? (
@@ -83,9 +103,14 @@ export default async function CoachCoursesPage() {
                   <span className="text-sm font-bold text-cn-ink">
                     {price === 0 ? "Free" : `$${price.toFixed(2)}`}
                   </span>
-                  <Link href={`/coach/courses/${course.slug}`} className="text-xs font-semibold text-indigo-500 hover:underline">
-                    Edit course →
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link href="/coach/course-builder" className="text-xs font-semibold text-violet-500 hover:underline">
+                      3D Pathway →
+                    </Link>
+                    <Link href={`/coach/courses/${course.slug}`} className="text-xs font-semibold text-indigo-500 hover:underline">
+                      Settings →
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

@@ -60,6 +60,13 @@ export default function SettingsPage() {
     setSaving(true);
     setSaveSuccess(false);
 
+    // Strict Input Validation & Data Cleaning
+    const validThemes = ["light", "dark", "system"];
+    const validFontSizes = ["small", "medium", "large", "xlarge"];
+
+    const cleanTheme = validThemes.includes(theme) ? theme : "system";
+    const cleanFontSize = validFontSizes.includes(fontSize) ? fontSize : "medium";
+
     try {
       const supabase = createClient();
       if (!supabase) throw new Error("Unable to connect to database");
@@ -71,27 +78,27 @@ export default function SettingsPage() {
         .from("user_settings")
         .upsert({
           user_id: user.id,
-          theme,
-          font_size: fontSize,
-          email_notifications: emailNotifs,
-          push_notifications: pushNotifs,
-          digest_mode: digestMode,
-          cookie_functional: cookieFunctional,
-          cookie_analytics: cookieAnalytics,
+          theme: cleanTheme,
+          font_size: cleanFontSize,
+          email_notifications: Boolean(emailNotifs),
+          push_notifications: Boolean(pushNotifs),
+          digest_mode: Boolean(digestMode),
+          cookie_functional: Boolean(cookieFunctional),
+          cookie_analytics: Boolean(cookieAnalytics),
           updated_at: new Date().toISOString(),
         });
 
       if (upsertError) throw upsertError;
 
       // Apply theme change locally
-      if (theme === "system") {
+      if (cleanTheme === "system") {
         const resolved = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         setActiveTheme(resolved);
         setTimeout(() => {
           localStorage.setItem("cognara-theme", "system");
         }, 50);
       } else {
-        setActiveTheme(theme as "light" | "dark");
+        setActiveTheme(cleanTheme as "light" | "dark");
       }
 
       setSaveSuccess(true);
@@ -107,6 +114,8 @@ export default function SettingsPage() {
     return (
       <div className="flex flex-col gap-8">
         <div>
+          {/* Skeleton Breadcrumb */}
+          <div className="mb-2 h-4 w-32 rounded bg-cn-border/60 animate-pulse" />
           <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Settings</h1>
           <p className="mt-0.5 text-sm text-cn-ink-muted">
             Loading your preferences...
@@ -124,6 +133,12 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
+        {/* Breadcrumb Navigation */}
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-cn-ink-subtle dark:text-cn-ink-muted">
+          <a href="/dashboard" className="hover:text-cn-orange transition">Dashboard</a>
+          <span>/</span>
+          <span className="text-cn-ink dark:text-white">Settings</span>
+        </div>
         <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Settings</h1>
         <p className="mt-0.5 text-sm text-cn-ink-muted">
           Manage your preferences, notifications, and privacy.
