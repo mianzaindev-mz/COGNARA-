@@ -52,6 +52,19 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 7,
     });
 
+    // Set client-accessible demo cookie (7 days)
+    response.cookies.set("cognara_demo_client_user", JSON.stringify({
+      id: `demo-${account.role}-${Date.now()}`,
+      email: email.toLowerCase(),
+      role: account.role,
+      name: account.name,
+    }), {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
     return response;
   } catch {
     return NextResponse.json(
@@ -59,4 +72,22 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
+}
+
+export async function DELETE() {
+  const response = NextResponse.json({ success: true });
+  response.cookies.set("cognara_demo_session", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  response.cookies.set("cognara_demo_client_user", "", {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return response;
 }

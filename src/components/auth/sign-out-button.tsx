@@ -16,6 +16,9 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
     if (loading) return;
     setLoading(true);
     try {
+      // Clear server-side demo session cookies first
+      await fetch("/api/demo-login", { method: "DELETE" }).catch(() => {});
+
       const supabase = createClient();
       if (supabase) {
         await supabase.auth.signOut();

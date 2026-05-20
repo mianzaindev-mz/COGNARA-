@@ -296,3 +296,37 @@ In this final session, we fully resolved all remaining roadmap stubs by wiring a
 - `[MODIFY] src/app/(student)/peer/page.tsx` — Changed date input to datetime-local picker, safely serialized timestamps, deleted unused `DEMO_SESSIONS` array, and added skeleton loaders and empty states.
 - `[MODIFY] handover.md` — Appended Session 20 final release logs.
 
+---
+
+## Session 21 — Demo Sandbox Mode Architecture & Bug Resolution
+
+**Date:** 2026-05-20  
+**Build:** ✅ Exit 0 — zero type errors
+
+### Overview
+Successfully diagnosed and resolved a critical issue where the Student Dashboard (`/dashboard`) failed to load (entered an infinite redirect loop or rendered a black/blank screen) when a user logged in using one of the quick demo accounts (`student@gmail.com`, `coach@gmail.com`, `admin@gmail.com`). 
+
+### Root Cause
+1. The middleware bypassed Supabase auth for requests with a `cognara_demo_session` cookie and allowed them to pass.
+2. When the Server Components (like the student layout or page) ran, they queried `supabase.auth.getUser()`. Since there was no real Supabase database session for the demo account, it returned `user = null`.
+3. The layout then triggered a redirect to `/login`.
+4. The middleware intercepted the request to `/login` (which is an auth route), saw the active `cognara_demo_session` cookie, and redirected the user back to `/dashboard`.
+5. This resulted in an infinite redirect loop, rendering a blank screen for the user.
+
+### Implemented Solution: Premium Mock Supabase Client Wrapper
+Instead of refactoring dozens of page and layout files calling Supabase directly, we introduced a centralized, elegant, and secure **Supabase Mock Client Interceptor**:
+- **Shared Mock Client (`src/lib/supabase/mock-client.ts`)**: Built a robust, light-weight, and type-safe mocked client that simulates Supabase's `auth.getUser()`, `auth.getSession()`, and a chainable fluent query builder (`from(...)`).
+- **Pre-Seeded Premium Demo Data**: The query builder dynamically mocks realistic, high-quality responses for essential tables (e.g. 150 AI credits, 5d streak, 1250 XP, level 4, and recent agent sessions) when query methods are invoked on `profiles`, `user_settings`, `ai_credits`, `user_xp`, etc.
+- **Server Interceptor (`src/lib/supabase/server.ts`)**: Modified `createClient` to check for `cognara_demo_session` and return the mocked client when a demo session is active.
+- **Client Interceptor (`src/lib/supabase/client.ts`)**: Added `cognara_demo_client_user` cookie checking. If present, it creates the mock Supabase client for client-side components (like the profile editor), providing flawless live updates and simulation feedback.
+- **Secure Dual-Cookie Demo Login (`src/app/api/demo-login/route.ts`)**: Upgraded the endpoint to set both the secure HTTP-only session cookie and the client-accessible user cookie.
+- **Frictionless Sign Out**: Overrode `auth.signOut()` and upgraded the `SignOutButton` component to perform a DELETE request against `/api/demo-login` which destroys both session cookies, instantly releasing the user from the sandbox loop.
+
+### Files Created/Modified
+- `[NEW] src/lib/supabase/mock-client.ts` — The mock query builder and client wrapper.
+- `[MODIFY] src/lib/supabase/server.ts` — Server client interceptor for demo cookies.
+- `[MODIFY] src/lib/supabase/client.ts` — Browser client interceptor with helper cookie checking.
+- `[MODIFY] src/app/api/demo-login/route.ts` — Dual-cookie setting and DELETE API handler.
+- `[MODIFY] src/components/auth/sign-out-button.tsx` — Dual-cookie deletion trigger.
+- `[MODIFY] handover.md` — Appended Session 21 release notes.
+
