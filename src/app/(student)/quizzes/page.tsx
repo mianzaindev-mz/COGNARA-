@@ -13,6 +13,9 @@ type QuizItem = {
   bestScore: number | null;
   attempts: number;
   passed: boolean;
+  attemptsAllowed: number;
+  availableFrom: string | null;
+  availableUntil: string | null;
 };
 
 export default function QuizzesPage() {
@@ -102,6 +105,9 @@ export default function QuizzesPage() {
             bestScore,
             attempts: attemptsCount,
             passed,
+            attemptsAllowed: quiz?.attempts_allowed ?? 3,
+            availableFrom: quiz?.available_from ?? null,
+            availableUntil: quiz?.available_until ?? null,
           };
         }).filter((item: any): item is QuizItem => item !== null);
 
@@ -141,7 +147,7 @@ export default function QuizzesPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Quizzes</h1>
         <p className="mt-0.5 text-sm text-cn-ink-muted">
-          Test your knowledge. Pass score: 70%. Max 3 attempts per quiz.
+          Test your knowledge. Pass score: 70%.
         </p>
       </div>
 
@@ -170,51 +176,98 @@ export default function QuizzesPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {filtered.map((quiz) => (
-            <div
-              key={quiz.id}
-              className="cn-card-lift flex flex-col rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)] transition hover:border-cn-orange/30 dark:border-[#2e2a2a] dark:bg-[#1a1818]"
-            >
-              <div className="mb-3 flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold text-cn-ink dark:text-white">{quiz.title}</h3>
-                  <p className="text-xs text-cn-ink-muted">{quiz.course}</p>
+          {filtered.map((quiz) => {
+            const now = new Date();
+            let isScheduledOpen = true;
+            let scheduleStatusMessage = "";
+            let scheduleBadge = "";
+
+            if (quiz.availableFrom) {
+              const fromDate = new Date(quiz.availableFrom);
+              if (now < fromDate) {
+                isScheduledOpen = false;
+                scheduleStatusMessage = `Opens ${fromDate.toLocaleString()}`;
+                scheduleBadge = "Upcoming";
+              }
+            }
+
+            if (quiz.availableUntil) {
+              const untilDate = new Date(quiz.availableUntil);
+              if (now > untilDate) {
+                isScheduledOpen = false;
+                scheduleStatusMessage = "Closed";
+                scheduleBadge = "Closed";
+              } else if (isScheduledOpen) {
+                scheduleStatusMessage = `Closes ${untilDate.toLocaleString()}`;
+              }
+            }
+
+            const isButtonDisabled = quiz.passed || (quiz.attempts >= quiz.attemptsAllowed) || !isScheduledOpen;
+
+            return (
+              <div
+                key={quiz.id}
+                className="cn-card-lift flex flex-col rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)] transition hover:border-cn-orange/30 dark:border-[#2e2a2a] dark:bg-[#1a1818]"
+              >
+                <div className="mb-3 flex items-start justify-between">
+                  <div>
+                    <h3 className="font-bold text-cn-ink dark:text-white">{quiz.title}</h3>
+                    <p className="text-xs text-cn-ink-muted">{quiz.course}</p>
+                  </div>
+                  {quiz.passed ? (
+                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">✓ Passed</span>
+                  ) : scheduleBadge === "Closed" ? (
+                    <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-bold text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">Closed</span>
+                  ) : scheduleBadge === "Upcoming" ? (
+                    <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-bold text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">Scheduled</span>
+                  ) : quiz.attempts > 0 ? (
+                    <span className="rounded-full bg-cn-yellow/15 px-2.5 py-1 text-xs font-bold text-cn-yellow">Retry</span>
+                  ) : (
+                    <span className="rounded-full bg-cn-border/50 px-2.5 py-1 text-xs font-bold text-cn-ink-subtle dark:bg-[#2e2a2a]">New</span>
+                  )}
                 </div>
-                {quiz.passed ? (
-                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">✓ Passed</span>
-                ) : quiz.attempts > 0 ? (
-                  <span className="rounded-full bg-cn-yellow/15 px-2.5 py-1 text-xs font-bold text-cn-yellow">Retry</span>
-                ) : (
-                  <span className="rounded-full bg-cn-border/50 px-2.5 py-1 text-xs font-bold text-cn-ink-subtle dark:bg-[#2e2a2a]">New</span>
+
+                <div className="mb-4 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded-xl bg-cn-canvas p-2 dark:bg-[#0f0e0e]">
+                    <p className="font-bold text-cn-ink dark:text-white">{quiz.questions}</p>
+                    <p className="text-cn-ink-subtle">Questions</p>
+                  </div>
+                  <div className="rounded-xl bg-cn-canvas p-2 dark:bg-[#0f0e0e]">
+                    <p className="font-bold text-cn-ink dark:text-white">{quiz.bestScore ?? "—"}%</p>
+                    <p className="text-cn-ink-subtle">Best Score</p>
+                  </div>
+                  <div className="rounded-xl bg-cn-canvas p-2 dark:bg-[#0f0e0e]">
+                    <p className="font-bold text-cn-ink dark:text-white">{quiz.attempts}/{quiz.attemptsAllowed}</p>
+                    <p className="text-cn-ink-subtle">Attempts</p>
+                  </div>
+                </div>
+
+                {scheduleStatusMessage && (
+                  <p className="mb-4 text-xs font-semibold text-cn-ink-muted text-center bg-cn-canvas/50 py-1.5 rounded-xl dark:bg-[#0f0e0e]/50">
+                    🕒 {scheduleStatusMessage}
+                  </p>
                 )}
-              </div>
 
-              <div className="mb-4 grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="rounded-xl bg-cn-canvas p-2 dark:bg-[#0f0e0e]">
-                  <p className="font-bold text-cn-ink dark:text-white">{quiz.questions}</p>
-                  <p className="text-cn-ink-subtle">Questions</p>
-                </div>
-                <div className="rounded-xl bg-cn-canvas p-2 dark:bg-[#0f0e0e]">
-                  <p className="font-bold text-cn-ink dark:text-white">{quiz.bestScore ?? "—"}%</p>
-                  <p className="text-cn-ink-subtle">Best Score</p>
-                </div>
-                <div className="rounded-xl bg-cn-canvas p-2 dark:bg-[#0f0e0e]">
-                  <p className="font-bold text-cn-ink dark:text-white">{quiz.attempts}/3</p>
-                  <p className="text-cn-ink-subtle">Attempts</p>
-                </div>
+                <Link href={`/quizzes/${quiz.id}`} className="mt-auto w-full">
+                  <button
+                    type="button"
+                    disabled={isButtonDisabled}
+                    className="w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50"
+                  >
+                    {quiz.passed 
+                      ? "Passed" 
+                      : quiz.attempts >= quiz.attemptsAllowed 
+                        ? "Max Attempts Reached" 
+                        : !isScheduledOpen 
+                          ? (scheduleBadge === "Closed" ? "Quiz Closed" : "Quiz Not Open Yet") 
+                          : quiz.attempts === 0 
+                            ? "Start Quiz" 
+                            : "Try Again"}
+                  </button>
+                </Link>
               </div>
-
-              <Link href={`/quizzes/${quiz.id}`} className="mt-auto w-full">
-                <button
-                  type="button"
-                  disabled={(quiz.attempts >= 3 && !quiz.passed) || quiz.passed}
-                  className="w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50"
-                >
-                  {quiz.passed ? "Passed" : quiz.attempts >= 3 ? "Max Attempts Reached" : quiz.attempts === 0 ? "Start Quiz" : "Try Again"}
-                </button>
-              </Link>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

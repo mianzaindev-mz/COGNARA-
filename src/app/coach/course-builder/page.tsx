@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, DragEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import * as THREE from "three";
@@ -42,12 +42,40 @@ type LessonNode = {
   is_graded: boolean;
 };
 
+type BlockType =
+  | "heading"
+  | "paragraph"
+  | "image"
+  | "video"
+  | "url"
+  | "embed"
+  | "code"
+  | "activity"
+  | "quote"
+  | "resource"
+  | "divider"
+  | "callout"
+  | "quiz";
+
 type ContentBlock = {
   id: string;
-  type: string; // heading, paragraph, image, video, code, embed, divider, callout, quiz, table, attachment
+  type: BlockType;
   content: string;
   properties: Record<string, any>;
+  meta?: Record<string, any>;
 };
+
+const BLOCK_TYPES: Array<{ type: BlockType; label: string; icon: string; desc: string }> = [
+  { type: "heading", label: "Heading", icon: "H1", desc: "Title or section header" },
+  { type: "paragraph", label: "Paragraph", icon: "¶", desc: "Rich text paragraph" },
+  { type: "image", label: "Image", icon: "IMG", desc: "Image via URL or upload" },
+  { type: "video", label: "Video", icon: "▶", desc: "Embed video from URL" },
+  { type: "code", label: "Code Block", icon: "</>", desc: "Syntax-highlighted code" },
+  { type: "url", label: "Link Card", icon: "🔗", desc: "Embed a link preview" },
+  { type: "divider", label: "Divider", icon: "—", desc: "Section separator" },
+  { type: "callout", label: "Callout", icon: "!", desc: "Highlighted callout box" },
+  { type: "quiz", label: "Quiz", icon: "?", desc: "Multiple choice question" },
+];
 
 // --- Seed Data Helper ---
 const DEFAULT_CHAPTERS: ChapterNode[] = [
@@ -110,6 +138,9 @@ export default function CourseBuilderPage() {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [savingBlock, setSavingBlock] = useState(false);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [draggingNew, setDraggingNew] = useState<BlockType | null>(null);
+  const [draggingBlock, setDraggingBlock] = useState<string | null>(null);
 
   // Ref container for Three.js canvas
   const mountRef = useRef<HTMLDivElement>(null);
@@ -475,6 +506,33 @@ export default function CourseBuilderPage() {
     gridHelper.position.y = -0.5;
     scene.add(gridHelper);
 
+    const groundGeo = new THREE.PlaneGeometry(120, 120);
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x080613,
+      roughness: 0.95,
+      metalness: 0.05,
+      transparent: true,
+      opacity: 0.95,
+      side: THREE.DoubleSide
+    });
+    const groundPlane = new THREE.Mesh(groundGeo, groundMat);
+    groundPlane.rotation.x = -Math.PI / 2;
+    groundPlane.position.y = -0.72;
+    groundPlane.receiveShadow = true;
+    scene.add(groundPlane);
+
+    const centerGlow = new THREE.RingGeometry(9, 9.8, 64);
+    const centerGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x7c3aed,
+      transparent: true,
+      opacity: 0.18,
+      side: THREE.DoubleSide
+    });
+    const centerGlowMesh = new THREE.Mesh(centerGlow, centerGlowMat);
+    centerGlowMesh.rotation.x = -Math.PI / 2;
+    centerGlowMesh.position.y = -0.7;
+    scene.add(centerGlowMesh);
+
     // Stars particle system
     const starsGeom = new THREE.BufferGeometry();
     const starsCount = 1500;
@@ -496,32 +554,42 @@ export default function CourseBuilderPage() {
 
     // 4. Render Chapters & Lessons
     meshesRef.current = {};
+    const glowRings: Record<string, THREE.Mesh> = {};
 
     // Draw lines/energy beams connecting chapters
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x818cf8 });
+    const lineMat = new THREE.LineDashedMaterial({ color: 0x818cf8, dashSize: 1.2, gapSize: 0.6, transparent: true, opacity: 0.9 });
     for (let i = 0; i < chapters.length - 1; i++) {
       const start = chapters[i];
       const end = chapters[i + 1];
       const points = [
-        new THREE.Vector3(start.x, start.y, start.z),
-        new THREE.Vector3(end.x, end.y, end.z)
+        new THREE.Vector3(start.x, start.y + 0.2, start.z),
+        new THREE.Vector3((start.x + end.x) / 2, Math.max(start.y, end.y) + 3.5, (start.z + end.z) / 2),
+        new THREE.Vector3(end.x, end.y + 0.2, end.z),
       ];
       const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
       const energyLine = new THREE.Line(lineGeom, lineMat);
+      energyLine.computeLineDistances();
       scene.add(energyLine);
+
+      const beamGeom = new THREE.CylinderGeometry(0.05, 0.05, points[0].distanceTo(points[2]), 12);
+      const beamMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.18 });
+      const beam = new THREE.Mesh(beamGeom, beamMat);
+      beam.position.copy(new THREE.Vector3((start.x + end.x) / 2, Math.max(start.y, end.y) + 1.7, (start.z + end.z) / 2));
+      beam.lookAt(new THREE.Vector3(end.x, end.y + 0.2, end.z));
+      beam.rotateX(Math.PI / 2);
+      scene.add(beam);
     }
 
     chapters.forEach((ch, idx) => {
-      // Cylindrical or Hexagonal floating islands
-      const geom = new THREE.CylinderGeometry(2.2, 2.5, 0.8, 6);
+      const geom = new THREE.CylinderGeometry(2.2, 2.8, 0.9, 8);
       const isLocked = simulationMode === "preview" && ch.locked;
 
       const mat = new THREE.MeshStandardMaterial({
-        color: isLocked ? 0x27272a : idx === 0 ? 0xff5500 : idx === 1 ? 0x8a5cf5 : 0x06b6d4,
-        roughness: 0.3,
-        metalness: 0.1,
-        emissive: isLocked ? 0x050505 : idx === 0 ? 0xff5500 : idx === 1 ? 0x8a5cf5 : 0x06b6d4,
-        emissiveIntensity: 0.25
+        color: isLocked ? 0x292529 : idx === 0 ? 0xff6d00 : idx === 1 ? 0x8b5cf6 : 0x22d3ee,
+        roughness: 0.25,
+        metalness: 0.18,
+        emissive: isLocked ? 0x06040b : idx === 0 ? 0xff6d00 : idx === 1 ? 0x8b5cf6 : 0x22d3ee,
+        emissiveIntensity: isLocked ? 0.15 : 0.3
       });
 
       const island = new THREE.Mesh(geom, mat);
@@ -532,74 +600,71 @@ export default function CourseBuilderPage() {
       scene.add(island);
       meshesRef.current[ch.id] = island;
 
-      // Glow Ring underneath
-      const ringGeom = new THREE.RingGeometry(2.3, 2.5, 32);
+      const ringGeom = new THREE.RingGeometry(2.3, 2.8, 64);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: idx === 0 ? 0xffaa00 : idx === 1 ? 0xa855f7 : 0x22d3ee,
+        color: idx === 0 ? 0xffb347 : idx === 1 ? 0xbf94ff : 0x56d1ff,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.7
       });
       const glowRing = new THREE.Mesh(ringGeom, ringMat);
       glowRing.rotation.x = Math.PI / 2;
-      glowRing.position.y = -0.41;
+      glowRing.position.y = -0.42;
+      glowRing.name = `${ch.id}-ring`;
       island.add(glowRing);
+      glowRings[ch.id] = glowRing;
 
-      // Physical cloud/wall divider sitting next to platform (if matching status)
       if (ch.wallType !== "none") {
         if (ch.wallType === "cloud") {
-          // Cloud barriers
           const cloudGroup = new THREE.Group();
-          const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, roughness: 0.9 });
+          const cloudMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.35, roughness: 0.9 });
           for (let c = 0; c < 4; c++) {
-            const ballGeom = new THREE.SphereGeometry(0.8 + Math.random()*0.4, 8, 8);
+            const ballGeom = new THREE.SphereGeometry(0.7 + Math.random() * 0.3, 8, 8);
             const ball = new THREE.Mesh(ballGeom, cloudMat);
-            ball.position.set((Math.random()-0.5)*2, 0.4, (Math.random()-0.5)*2);
+            ball.position.set((Math.random() - 0.5) * 2.4, 0.5, (Math.random() - 0.5) * 2.4);
             cloudGroup.add(ball);
           }
-          cloudGroup.position.set(ch.x - 3.5, ch.y, ch.z - 1.5);
+          cloudGroup.position.set(ch.x - 3.2, ch.y + 0.3, ch.z - 1.2);
           scene.add(cloudGroup);
         } else {
-          // Wall barrier
-          const wallGeom = new THREE.BoxGeometry(4, 2, 0.6);
-          const wallMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.8 });
+          const wallGeom = new THREE.BoxGeometry(4.2, 2.2, 0.55);
+          const wallMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.85, metalness: 0.05 });
           const wall = new THREE.Mesh(wallGeom, wallMat);
-          wall.position.set(ch.x - 3.5, ch.y + 0.6, ch.z - 1.5);
+          wall.position.set(ch.x - 3.2, ch.y + 0.9, ch.z - 1.2);
+          wall.castShadow = true;
           scene.add(wall);
         }
 
-        // Floating Lock Indicator over barrier
         if (isLocked) {
-          const lockGeom = new THREE.TorusGeometry(0.4, 0.15, 8, 24);
-          const lockMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.6 });
+          const lockGeom = new THREE.TorusGeometry(0.35, 0.12, 8, 24);
+          const lockMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.55 });
           const lockMesh = new THREE.Mesh(lockGeom, lockMat);
-          lockMesh.position.set(ch.x - 3.5, ch.y + 1.8, ch.z - 1.5);
+          lockMesh.position.set(ch.x - 3.2, ch.y + 2.0, ch.z - 1.2);
           scene.add(lockMesh);
         }
       }
 
-      // Render Lessons on/around chapter
       const chapterLessons = lessons.filter(l => l.chapterId === ch.id);
       chapterLessons.forEach((les, lesIdx) => {
-        const theta = (lesIdx / chapterLessons.length) * Math.PI * 2;
-        const radius = 1.3;
+        const theta = (lesIdx / Math.max(chapterLessons.length, 1)) * Math.PI * 2;
+        const radius = 1.6;
         const lx = Math.cos(theta) * radius;
         const lz = Math.sin(theta) * radius;
 
         const lesLocked = simulationMode === "preview" && les.locked;
-        const orbGeom = new THREE.SphereGeometry(0.35, 16, 16);
+        const orbGeom = new THREE.SphereGeometry(0.35, 18, 18);
         const orbMat = new THREE.MeshStandardMaterial({
-          color: lesLocked ? 0x52525b : 0x10b981,
-          roughness: 0.1,
-          metalness: 0.8,
-          emissive: lesLocked ? 0x0a0a0a : 0x10b981,
-          emissiveIntensity: 0.8
+          color: lesLocked ? 0x52525b : 0x22c55e,
+          roughness: 0.15,
+          metalness: 0.85,
+          emissive: lesLocked ? 0x0a0a0a : 0x22c55e,
+          emissiveIntensity: 0.85
         });
 
         const orb = new THREE.Mesh(orbGeom, orbMat);
-        orb.position.set(lx, 0.8, lz);
+        orb.position.set(ch.x + lx, ch.y + 0.9, ch.z + lz);
         orb.name = `lesson:${les.id}`;
-        island.add(orb);
+        scene.add(orb);
       });
     });
 
@@ -611,16 +676,29 @@ export default function CourseBuilderPage() {
       animId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Floating sine wave animation for chapters
       Object.keys(meshesRef.current).forEach((key, idx) => {
         const mesh = meshesRef.current[key];
-        mesh.position.y = chapters[idx].y + Math.sin(elapsed * 1.5 + idx) * 0.15;
-        // Slow rotation spin
-        mesh.rotation.y = elapsed * 0.05 + idx * 0.1;
+        const chapter = chapters[idx];
+        mesh.position.y = chapter.y + Math.sin(elapsed * 1.5 + idx) * 0.18;
+        mesh.rotation.y = elapsed * 0.08 + idx * 0.12;
       });
 
-      // Slowly rotate background stars
-      starField.rotation.y = elapsed * 0.008;
+      Object.entries(glowRings).forEach(([key, ring]) => {
+        const isSelected = selectedNodeRef.current === key;
+        const targetScale = isSelected ? 1.15 + Math.sin(elapsed * 2) * 0.04 : 1;
+        ring.scale.setScalar(targetScale);
+        (ring.material as THREE.MeshBasicMaterial).opacity = isSelected ? 0.92 : 0.72;
+      });
+
+      if (!selectedNodeRef.current) {
+        const orbitRadius = 24;
+        camera.position.x = Math.cos(elapsed * 0.12) * orbitRadius;
+        camera.position.z = Math.sin(elapsed * 0.12) * orbitRadius;
+        camera.lookAt(0, 0, 0);
+      }
+
+      starField.rotation.y = elapsed * 0.006;
+      centerGlowMesh.rotation.z = elapsed * 0.1;
 
       renderer.render(scene, camera);
     };
@@ -799,30 +877,80 @@ export default function CourseBuilderPage() {
   };
 
   // --- Drag-and-drop block functions ---
-  const handleAddBlock = (type: string) => {
-    const newBlock: ContentBlock = {
-      id: `b-${Date.now()}`,
+  const createNewBlock = (type: BlockType): ContentBlock => {
+    return {
+      id: Math.random().toString(36).slice(2),
       type,
       content:
         type === "heading"
-          ? "New Section Header"
+          ? "New Heading"
+          : type === "paragraph"
+          ? "Start writing your content here..."
           : type === "code"
-          ? 'console.log("Hello Dynamic World");'
-          : type === "embed"
-          ? "https://wikipedia.org"
+          ? "// Write your code here\nconsole.log('Hello, World!');"
           : type === "callout"
-          ? "💡 Important instructional alert content..."
+          ? "This is an important note."
           : type === "quiz"
-          ? "Select the correct output value."
-          : `Editable block of type ${type}...`,
+          ? "What is the answer?"
+          : "",
       properties:
         type === "heading"
           ? { level: 2 }
           : type === "quiz"
           ? { options: ["Option A", "Option B", "Option C"], answer: "Option A" }
-          : {}
+          : {},
+      meta:
+        type === "code"
+          ? { lang: "javascript" }
+          : {},
     };
+  };
+
+  const handleAddBlock = (type: BlockType) => {
+    const newBlock = createNewBlock(type);
     setBlocks(prev => [...prev, newBlock]);
+    setSelectedBlockId(newBlock.id);
+  };
+
+  const handleSidebarDragStart = (type: BlockType) => {
+    setDraggingNew(type);
+    setDraggingBlock(null);
+  };
+
+  const handleDropOnCanvas = (e: DragEvent<HTMLElement>, index?: number) => {
+    e.preventDefault();
+    if (draggingNew) {
+      const newBlock = createNewBlock(draggingNew);
+      const updated = [...blocks];
+      if (typeof index === "number") {
+        updated.splice(index, 0, newBlock);
+      } else {
+        updated.push(newBlock);
+      }
+      setBlocks(updated);
+      setSelectedBlockId(newBlock.id);
+      setDraggingNew(null);
+    } else if (draggingBlock) {
+      handleBlockDrop(typeof index === "number" ? index : blocks.length);
+    }
+    setDragOverIndex(null);
+  };
+
+  const handleBlockDragStart = (id: string) => {
+    setDraggingBlock(id);
+    setDraggingNew(null);
+  };
+
+  const handleBlockDrop = (targetIdx: number) => {
+    if (!draggingBlock) return;
+    const fromIdx = blocks.findIndex(b => b.id === draggingBlock);
+    if (fromIdx === -1) return;
+    const arr = [...blocks];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(targetIdx, 0, moved);
+    setBlocks(arr);
+    setDraggingBlock(null);
+    setDragOverIndex(null);
   };
 
   const handleUpdateBlockContent = (id: string, content: string) => {
@@ -850,6 +978,8 @@ export default function CourseBuilderPage() {
     setBlocks(prev => prev.filter(b => b.id !== id));
     if (selectedBlockId === id) setSelectedBlockId(null);
   };
+
+  const selectedBlock = blocks.find((block) => block.id === selectedBlockId) ?? null;
 
   return (
     <div className="min-h-screen bg-[#07040f] text-white flex flex-col font-sans">
@@ -1324,28 +1454,21 @@ export default function CourseBuilderPage() {
                 Draggable Modules
               </h3>
               <div className="space-y-2.5">
-                {[
-                  { type: "heading", label: "Heading Block", icon: "H" },
-                  { type: "paragraph", label: "Paragraph Block", icon: "¶" },
-                  { type: "image", label: "Image Embed", icon: "🖼" },
-                  { type: "video", label: "Video player", icon: "🎬" },
-                  { type: "code", label: "Code Block", icon: "</>" },
-                  { type: "embed", label: "URL iFrame", icon: "🌐" },
-                  { type: "divider", label: "Line Divider", icon: "—" },
-                  { type: "callout", label: "Callout Banner", icon: "💡" },
-                  { type: "quiz", label: "Multiple Choice", icon: "❓" }
-                ].map(module => (
+                {BLOCK_TYPES.map((module) => (
                   <div
                     key={module.type}
                     draggable
-                    onDragStart={(e) => e.dataTransfer.setData("text/plain", module.type)}
+                    onDragStart={() => handleSidebarDragStart(module.type)}
                     onClick={() => handleAddBlock(module.type)}
-                    className="rounded-xl border border-[#221740] bg-[#120c2b] p-3 text-xs font-semibold text-gray-300 hover:border-indigo-500/50 hover:bg-[#1a113d] hover:text-white transition flex items-center gap-3 cursor-grab active:cursor-grabbing"
+                    className="rounded-2xl border border-[#221740] bg-[#120c2b] p-3 text-xs font-semibold text-gray-300 hover:border-indigo-500/50 hover:bg-[#1a113d] hover:text-white transition flex flex-col gap-2 cursor-grab active:cursor-grabbing"
                   >
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500/20 text-[10px] text-indigo-400 font-bold border border-indigo-500/30">
-                      {module.icon}
-                    </span>
-                    <span>{module.label}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/20 text-[10px] text-indigo-400 font-bold border border-indigo-500/30">
+                        {module.icon}
+                      </span>
+                      <span>{module.label}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">{module.desc}</p>
                   </div>
                 ))}
               </div>
@@ -1358,12 +1481,11 @@ export default function CourseBuilderPage() {
           {/* Interactive Canvas */}
           <section
             className="flex-1 p-8 overflow-y-auto flex flex-col gap-6"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
+            onDragOver={(e) => {
               e.preventDefault();
-              const type = e.dataTransfer.getData("text/plain");
-              if (type) handleAddBlock(type);
+              setDragOverIndex(blocks.length);
             }}
+            onDrop={(e) => handleDropOnCanvas(e, blocks.length)}
           >
             <div className="flex items-center justify-between border-b border-[#221740] pb-4">
               <div>
@@ -1525,6 +1647,25 @@ export default function CourseBuilderPage() {
                             )
                           )}
 
+                          {/* URL Card Preview */}
+                          {block.type === "url" && (
+                            block.content && typeof block.content === "string" && block.content.startsWith("http") ? (
+                              <a
+                                href={block.content}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block rounded-3xl border border-[#221740] bg-[#0c081d]/80 p-5 transition hover:border-indigo-500/60"
+                              >
+                                <p className="text-sm font-semibold text-white mb-2">Link Preview</p>
+                                <p className="text-xs text-gray-400 truncate">{block.content}</p>
+                              </a>
+                            ) : (
+                              <div className="rounded-xl border border-dashed border-[#221740] p-4 text-center text-xs text-gray-500 italic">
+                                [Link card placeholder - edit URL to display]
+                              </div>
+                            )
+                          )}
+
                           {/* Callout Block Preview */}
                           {block.type === "callout" && (
                             <div className="bg-indigo-500/10 border-l-4 border-indigo-500 p-4 rounded-r-xl flex gap-3 items-start">
@@ -1533,14 +1674,54 @@ export default function CourseBuilderPage() {
                             </div>
                           )}
 
+                          {/* Quote Block Preview */}
+                          {block.type === "quote" && (
+                            <div className="rounded-3xl border border-[#221740] bg-[#120c2b]/70 p-5">
+                              <p className="text-lg italic text-white">“{block.content}”</p>
+                              {block.properties.author ? (
+                                <p className="mt-3 text-sm font-semibold text-indigo-300">— {block.properties.author}</p>
+                              ) : null}
+                            </div>
+                          )}
+
+                          {/* Resource Block Preview */}
+                          {block.type === "resource" && (
+                            <div className="rounded-3xl border border-[#221740] bg-[#0c081d]/80 p-6">
+                              <p className="text-sm font-semibold text-indigo-300 mb-2">{block.properties.title || "Resource"}</p>
+                              <p className="text-sm text-gray-300 leading-relaxed mb-4">{block.content}</p>
+                              {block.content && block.content.startsWith("http") && (
+                                <a
+                                  href={block.content}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-xs font-semibold text-indigo-200"
+                                >
+                                  Open resource
+                                </a>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Activity Block Preview */}
+                          {block.type === "activity" && (
+                            <div className="rounded-3xl border border-[#221740] bg-[#0b0821]/80 p-6">
+                              <div className="flex items-center gap-3 text-sm font-semibold text-white">
+                                <span className="rounded-full bg-violet-500/10 px-3 py-1">Activity</span>
+                                <span className="text-xs text-gray-400">{block.properties.duration || 10} min</span>
+                              </div>
+                              <p className="mt-4 text-sm text-gray-300 leading-relaxed">{block.content}</p>
+                              <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
+                                <span>Type:</span>
+                                <span className="rounded-full bg-[#1d1338] px-2 py-1">{block.properties.activityType || "task"}</span>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Quiz Block Preview */}
                           {block.type === "quiz" && (
-                            <div className="bg-[#120c2b]/70 border border-[#221740] rounded-2xl p-5 space-y-4">
-                              <div>
-                                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-wider">Lesson Checkpoint Quiz</span>
-                                <h4 className="text-sm font-bold text-white mt-1">{block.content}</h4>
-                              </div>
-                              <div className="grid gap-2">
+                            <div className="rounded-3xl border border-[#221740] bg-[#0b0821]/80 p-6">
+                              <h3 className="text-lg font-bold text-white mb-3">{block.content}</h3>
+                              <div className="grid gap-3">
                                 {(block.properties.options || []).map((opt: string, oIdx: number) => {
                                   const isSelected = quizAnswers[block.id] === opt;
                                   return (
@@ -1548,7 +1729,7 @@ export default function CourseBuilderPage() {
                                       key={oIdx}
                                       type="button"
                                       onClick={() => setQuizAnswers(prev => ({ ...prev, [block.id]: opt }))}
-                                      className={`w-full text-left px-4 py-3 rounded-xl border text-xs font-semibold transition ${
+                                      className={`w-full text-left rounded-xl border px-4 py-3 text-xs font-semibold transition ${
                                         isSelected
                                           ? "bg-indigo-600 border-indigo-500 text-white"
                                           : "border-[#221740] bg-[#120c2b] text-gray-300 hover:border-violet-500/40 hover:text-white"
@@ -1560,18 +1741,16 @@ export default function CourseBuilderPage() {
                                 })}
                               </div>
                               {quizAnswers[block.id] && (
-                                <div className={`p-3 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                                <div className={`mt-4 p-3 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
                                   quizAnswers[block.id] === block.properties.answer
                                     ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
                                     : "bg-rose-500/15 border border-rose-500/30 text-rose-400"
                                 }`}>
-                                  <span>
-                                    {quizAnswers[block.id] === block.properties.answer ? "✅" : "❌"}
-                                  </span>
+                                  <span>{quizAnswers[block.id] === block.properties.answer ? "✅" : "❌"}</span>
                                   <span>
                                     {quizAnswers[block.id] === block.properties.answer
-                                      ? "Correct! You got the right answer."
-                                      : `Incorrect. The correct answer is: ${block.properties.answer}`}
+                                      ? "Correct! You selected the right answer."
+                                      : `Incorrect. Correct answer: ${block.properties.answer}`}
                                   </span>
                                 </div>
                               )}
@@ -1600,12 +1779,23 @@ export default function CourseBuilderPage() {
                   return (
                     <div
                       key={block.id}
+                      draggable
+                      onDragStart={() => handleBlockDragStart(block.id)}
+                      onDragEnd={() => setDraggingBlock(null)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverIndex(idx);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleBlockDrop(idx);
+                      }}
                       onClick={() => setSelectedBlockId(block.id)}
                       className={`relative rounded-2xl border p-5 backdrop-blur-md shadow-xl transition-all duration-300 ${
                         isSelected
                           ? "border-violet-500 bg-[#160e33]/70 ring-1 ring-violet-500/30"
                           : "border-[#221740] bg-[#0c081d]/50 hover:border-violet-500/30"
-                      }`}
+                      } ${dragOverIndex === idx ? "border-dashed border-violet-400 bg-[#1d113f]/70" : ""}`}
                     >
                       {/* Floating Toolbar on Selected Card */}
                       {isSelected && (
@@ -1694,11 +1884,11 @@ export default function CourseBuilderPage() {
                           <input
                             type="text"
                             placeholder="Paste video link here..."
-                            value={block.content}
+                            value={typeof block.content === "string" ? block.content : ""}
                             onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
                             className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
                           />
-                          {block.content && block.content.startsWith("http") ? (
+                          {typeof block.content === "string" && block.content.startsWith("http") ? (
                             <div className="rounded-xl overflow-hidden border border-[#221740] bg-black/40 max-h-[300px]">
                               <video src={block.content} controls className="w-full max-h-[300px] object-contain" />
                             </div>
@@ -1715,15 +1905,102 @@ export default function CourseBuilderPage() {
                           <input
                             type="text"
                             placeholder="Paste website link here..."
-                            value={block.content}
+                            value={typeof block.content === "string" ? block.content : ""}
                             onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
                             className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
                           />
-                          {block.content && block.content.startsWith("http") ? (
+                          {typeof block.content === "string" && block.content.startsWith("http") ? (
                             <iframe src={block.content} className="w-full h-80 rounded-xl border border-[#221740]" />
                           ) : (
                             <p className="text-[10px] text-gray-400 italic">No URL embed pasted yet.</p>
                           )}
+                        </div>
+                      )}
+
+                      {/* URL Link Card inline */}
+                      {block.type === "url" && (
+                        <div className="space-y-3">
+                          <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Link URL</label>
+                          <input
+                            type="text"
+                            placeholder="Paste link here..."
+                            value={typeof block.content === "string" ? block.content : ""}
+                            onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                            className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                          />
+                          {typeof block.content === "string" && block.content.startsWith("http") ? (
+                            <a href={block.content} target="_blank" rel="noreferrer" className="block rounded-xl border border-[#221740] bg-[#0a061b]/80 p-4 text-xs text-indigo-300 hover:border-indigo-500 transition">
+                              {block.content}
+                            </a>
+                          ) : (
+                            <p className="text-[10px] text-gray-400 italic">No URL provided yet.</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Resource block */}
+                      {block.type === "resource" && (
+                        <div className="space-y-3">
+                          <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Resource Title</label>
+                          <input
+                            type="text"
+                            placeholder="Resource title"
+                            value={block.properties.title || ""}
+                            onChange={(e) => handleUpdateBlockProp(block.id, "title", e.target.value)}
+                            className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                          />
+                          <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Resource Link</label>
+                          <input
+                            type="text"
+                            placeholder="Paste resource URL here..."
+                            value={block.content}
+                            onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                            className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                          />
+                          <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Description</label>
+                          <textarea
+                            rows={2}
+                            value={block.content && block.content.startsWith("http") ? block.properties.description || "" : block.properties.description || ""}
+                            onChange={(e) => handleUpdateBlockProp(block.id, "description", e.target.value)}
+                            className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                          />
+                        </div>
+                      )}
+
+                      {/* Activity block */}
+                      {block.type === "activity" && (
+                        <div className="space-y-3">
+                          <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Activity instructions</label>
+                          <textarea
+                            rows={3}
+                            value={block.content}
+                            onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                            className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                          />
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                              <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Duration (minutes)</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={block.properties.duration || 10}
+                                onChange={(e) => handleUpdateBlockProp(block.id, "duration", Number(e.target.value))}
+                                className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Activity type</label>
+                              <select
+                                value={block.properties.activityType || "task"}
+                                onChange={(e) => handleUpdateBlockProp(block.id, "activityType", e.target.value)}
+                                className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+                              >
+                                <option value="task">Task</option>
+                                <option value="exercise">Exercise</option>
+                                <option value="project">Project</option>
+                              </select>
+                            </div>
+                          </div>
                         </div>
                       )}
 

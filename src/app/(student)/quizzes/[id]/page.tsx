@@ -26,6 +26,8 @@ type QuizDetails = {
   title: string;
   pass_score: number;
   attempts_allowed: number;
+  available_from: string | null;
+  available_until: string | null;
 };
 
 // Fallback questions registry
@@ -356,9 +358,10 @@ export default function QuizTakePage() {
   
   // Quiz Take States
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({}); // Maps questionId -> optionId
+  const [answers, setAnswers] = useState<Record<string, string>>({}); // Maps questionId -> optionId or text/code answer
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [attemptsCount, setAttemptsCount] = useState(0);
 
   // Quiz Results States
   const [score, setScore] = useState(0);
@@ -484,22 +487,40 @@ export default function QuizTakePage() {
           }
         }
 
+        // Enforce scheduling logic:
+        const now = new Date();
+        if (courseQuiz.available_from) {
+          const fromDate = new Date(courseQuiz.available_from);
+          if (now < fromDate) {
+            throw new Error(`This quiz is scheduled and not open yet. It will open on ${fromDate.toLocaleString()}.`);
+          }
+        }
+        if (courseQuiz.available_until) {
+          const untilDate = new Date(courseQuiz.available_until);
+          if (now > untilDate) {
+            throw new Error("This quiz is closed and no longer accepting submissions.");
+          }
+        }
+
         setQuiz({
           id: courseQuiz.id,
           title: courseQuiz.title,
           pass_score: courseQuiz.pass_score ?? 70,
           attempts_allowed: courseQuiz.attempts_allowed ?? 3,
+          available_from: courseQuiz.available_from ?? null,
+          available_until: courseQuiz.available_until ?? null,
         });
 
         // 3. Check if user already passed or exceeded attempt counts
         const courseQuizAttempts = existingAttempts?.filter((a: any) => a.quiz_id === courseQuiz.id) ?? [];
+        setAttemptsCount(courseQuizAttempts.length);
         const isPassed = courseQuizAttempts.some((a: any) => a.passed);
         
         if (isPassed) {
           throw new Error("You have already passed this final quiz. You can claim your certificate under Certificates.");
         }
         if (courseQuizAttempts.length >= (courseQuiz.attempts_allowed ?? 3)) {
-          throw new Error("You have exhausted all 3 available attempts for this final quiz.");
+          throw new Error(`You have exhausted all ${courseQuiz.attempts_allowed ?? 3} available attempts for this final quiz.`);
         }
 
         // 4. Load questions and options
@@ -560,6 +581,13 @@ export default function QuizTakePage() {
     setAnswers(prev => ({ ...prev, [questionId]: optionId }));
   };
 
+  const isQuestionAnswered = (qId: string) => {
+    const val = answers[qId];
+    return typeof val === "string" && val.trim().length > 0;
+  };
+
+  const allAnswered = questions.length > 0 && questions.every(q => isQuestionAnswered(q.id));
+
   const handleNext = () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(currentIdx + 1);
@@ -575,9 +603,8 @@ export default function QuizTakePage() {
   const handlePreSubmit = () => {
     if (submitted || submitting) return;
 
-    // Validation: Ensure all questions have selections
-    if (Object.keys(answers).length < questions.length) {
-      alert("Please select an answer for all questions before submitting.");
+    if (!allAnswered) {
+      alert("Please select or type an answer for all questions before submitting.");
       return;
     }
 
@@ -595,13 +622,29 @@ export default function QuizTakePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Unauthenticated user session.");
 
+      // Check scheduling at submit time
+      const now = new Date();
+      if (quiz?.available_until) {
+        const untilDate = new Date(quiz.available_until);
+        if (now > untilDate) {
+          throw new Error("The quiz deadline has passed. Your submission was not accepted.");
+        }
+      }
+
       // Calculate score
       let correctCount = 0;
       questions.forEach(q => {
-        const selectedOptId = answers[q.id];
-        const correctOptId = correctAnswersMap[q.id];
-        if (selectedOptId === correctOptId) {
-          correctCount++;
+        if (q.type === "mcq" || q.type === "true_false") {
+          const selectedOptId = answers[q.id];
+          const correctOptId = correctAnswersMap[q.id];
+          if (selectedOptId === correctOptId) {
+            correctCount++;
+          }
+        } else if (q.type === "code" || q.type === "text") {
+          const answerText = answers[q.id]?.trim();
+          if (answerText && answerText.length > 0) {
+            correctCount++;
+          }
         }
       });
 
@@ -628,14 +671,26 @@ export default function QuizTakePage() {
 
       // 2. Insert quiz answers
       const answersToInsert = questions.map(q => {
-        const selectedOptId = answers[q.id];
-        const correctOptId = correctAnswersMap[q.id];
-        return {
-          attempt_id: attempt.id,
-          question_id: q.id,
-          selected_option_id: selectedOptId,
-          is_correct: selectedOptId === correctOptId
-        };
+        if (q.type === "mcq" || q.type === "true_false") {
+          const selectedOptId = answers[q.id];
+          const correctOptId = correctAnswersMap[q.id];
+          return {
+            attempt_id: attempt.id,
+            question_id: q.id,
+            selected_option_id: selectedOptId || null,
+            answer_text: null,
+            is_correct: selectedOptId === correctOptId
+          };
+        } else {
+          const answerText = answers[q.id] ?? "";
+          return {
+            attempt_id: attempt.id,
+            question_id: q.id,
+            selected_option_id: null,
+            answer_text: answerText,
+            is_correct: answerText.trim().length > 0
+          };
+        }
       });
 
       const { error: answersErr } = await supabase
@@ -697,6 +752,7 @@ export default function QuizTakePage() {
 
       setScore(finalScore);
       setPassed(isPassed);
+      setAttemptsCount(prev => prev + 1);
       setSubmitted(true);
     } catch (err: any) {
       alert(err.message || "Failed to submit quiz attempt. Please try again.");
@@ -732,7 +788,7 @@ export default function QuizTakePage() {
         <div className="flex items-center gap-2 text-sm text-cn-ink-muted">
           <Link href="/quizzes" className="hover:text-cn-ink">Quizzes</Link>
           <span>/</span>
-          <span className="text-cn-ink">Error</span>
+          <span className="text-cn-ink font-medium">Error</span>
         </div>
         <div className="mx-auto w-full max-w-md rounded-2xl border border-rose-500/20 bg-rose-500/5 p-6 text-center dark:bg-rose-500/10">
           <h2 className="text-lg font-bold text-rose-600 dark:text-rose-400">Quiz Unavailable</h2>
@@ -751,7 +807,6 @@ export default function QuizTakePage() {
   }
 
   const currentQuestion = questions[currentIdx];
-  const allAnswered = Object.keys(answers).length === questions.length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -780,7 +835,7 @@ export default function QuizTakePage() {
             <div className="mb-6 flex flex-wrap gap-2">
               {questions.map((q, idx) => {
                 const isSelected = currentIdx === idx;
-                const isAnswered = !!answers[q.id];
+                const isAnswered = isQuestionAnswered(q.id);
                 return (
                   <button
                     key={q.id}
@@ -802,40 +857,75 @@ export default function QuizTakePage() {
 
             {/* Question Text */}
             <div className="mb-6">
-              <h2 className="text-lg font-bold text-cn-ink dark:text-white leading-snug">
+              <span className="mb-1.5 inline-block rounded-full bg-cn-canvas px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cn-ink-subtle dark:bg-[#0f0e0e]">
+                {currentQuestion.type === "mcq" ? "Multiple Choice" : 
+                 currentQuestion.type === "true_false" ? "True / False" : 
+                 currentQuestion.type === "code" ? "Code Submission" : "Open Response"}
+              </span>
+              <h2 className="text-lg font-bold text-cn-ink dark:text-white leading-snug mt-1">
                 {currentQuestion.text}
               </h2>
             </div>
 
-            {/* MCQ Options */}
-            <div className="mb-8 space-y-3">
-              {currentQuestion.question_options.map((opt) => {
-                const isSelected = answers[currentQuestion.id] === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => selectOption(currentQuestion.id, opt.id)}
-                    className={`w-full rounded-xl border p-4 text-left text-sm font-medium transition flex items-center justify-between ${
-                      isSelected
-                        ? "border-cn-orange bg-cn-orange/5 text-cn-ink dark:text-white"
-                        : "border-cn-border bg-cn-surface hover:border-cn-border-hover dark:border-[#2e2a2a] dark:bg-[#1a1818] dark:hover:border-cn-orange/40"
-                    }`}
-                  >
-                    <span>{opt.text}</span>
-                    <span
-                      className={`h-5 w-5 rounded-full border flex items-center justify-center transition-all ${
+            {/* Inputs based on Question Type */}
+            {currentQuestion.type === "mcq" || currentQuestion.type === "true_false" ? (
+              <div className="mb-8 space-y-3">
+                {currentQuestion.question_options.map((opt) => {
+                  const isSelected = answers[currentQuestion.id] === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => selectOption(currentQuestion.id, opt.id)}
+                      className={`w-full rounded-xl border p-4 text-left text-sm font-medium transition flex items-center justify-between ${
                         isSelected
-                          ? "border-cn-orange bg-cn-orange text-white"
-                          : "border-cn-border dark:border-[#2e2a2a]"
+                          ? "border-cn-orange bg-cn-orange/5 text-cn-ink dark:text-white"
+                          : "border-cn-border bg-cn-surface hover:border-cn-border-hover dark:border-[#2e2a2a] dark:bg-[#1a1818] dark:hover:border-cn-orange/40"
                       }`}
                     >
-                      {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                      <span>{opt.text}</span>
+                      <span
+                        className={`h-5 w-5 rounded-full border flex items-center justify-center transition-all ${
+                          isSelected
+                            ? "border-cn-orange bg-cn-orange text-white"
+                            : "border-cn-border dark:border-[#2e2a2a]"
+                        }`}
+                      >
+                        {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : currentQuestion.type === "code" ? (
+              <div className="mb-8 space-y-2">
+                <p className="text-xs text-cn-ink-subtle font-medium">Write or paste your code solution below:</p>
+                <textarea
+                  value={answers[currentQuestion.id] ?? ""}
+                  onChange={(e) => {
+                    if (submitted) return;
+                    setAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }));
+                  }}
+                  disabled={submitted}
+                  placeholder="// Enter code block submission..."
+                  className="w-full h-48 font-mono rounded-xl border border-cn-border bg-cn-canvas p-4 text-xs text-cn-ink placeholder:text-cn-ink-muted focus:border-cn-orange focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                />
+              </div>
+            ) : (
+              <div className="mb-8 space-y-2">
+                <p className="text-xs text-cn-ink-subtle font-medium">Type your open text response below:</p>
+                <textarea
+                  value={answers[currentQuestion.id] ?? ""}
+                  onChange={(e) => {
+                    if (submitted) return;
+                    setAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }));
+                  }}
+                  disabled={submitted}
+                  placeholder="Type your response..."
+                  className="w-full h-32 rounded-xl border border-cn-border bg-cn-surface p-4 text-sm font-medium text-cn-ink placeholder:text-cn-ink-muted focus:border-cn-orange focus:outline-none dark:border-[#2e2a2a] dark:bg-[#1a1818] dark:text-white"
+                />
+              </div>
+            )}
 
             {/* Navigation Buttons */}
             <div className="flex items-center justify-between border-t border-cn-border pt-5 dark:border-[#2e2a2a]">
@@ -934,14 +1024,15 @@ export default function QuizTakePage() {
                 <>
                   <button
                     type="button"
+                    disabled={attemptsCount >= (quiz?.attempts_allowed ?? 3)}
                     onClick={() => {
                       setSubmitted(false);
                       setAnswers({});
                       setCurrentIdx(0);
                     }}
-                    className="rounded-xl bg-cn-orange px-6 py-3 text-sm font-bold text-white hover:bg-cn-orange-hover transition"
+                    className="rounded-xl bg-cn-orange px-6 py-3 text-sm font-bold text-white hover:bg-cn-orange-hover disabled:opacity-40 disabled:pointer-events-none transition"
                   >
-                    Retake Quiz
+                    Retake Quiz ({quiz?.attempts_allowed ? quiz.attempts_allowed - attemptsCount : 3 - attemptsCount} attempts left)
                   </button>
                   <Link
                     href="/quizzes"
@@ -958,12 +1049,21 @@ export default function QuizTakePage() {
               <h2 className="text-lg font-bold text-cn-ink dark:text-white mb-4">Review Questions</h2>
               <div className="space-y-4">
                 {questions.map((q, idx) => {
-                  const selectedOptId = answers[q.id];
-                  const correctOptId = correctAnswersMap[q.id];
-                  const isCorrect = selectedOptId === correctOptId;
+                  let isCorrect = false;
+                  let selectedText = "";
+                  let correctText = "";
 
-                  const selectedText = q.question_options.find(opt => opt.id === selectedOptId)?.text ?? "No answer";
-                  const correctText = q.question_options.find(opt => opt.id === correctOptId)?.text ?? "";
+                  if (q.type === "mcq" || q.type === "true_false") {
+                    const selectedOptId = answers[q.id];
+                    const correctOptId = correctAnswersMap[q.id];
+                    isCorrect = selectedOptId === correctOptId;
+                    selectedText = q.question_options.find(opt => opt.id === selectedOptId)?.text ?? "No answer";
+                    correctText = q.question_options.find(opt => opt.id === correctOptId)?.text ?? "Not specified";
+                  } else {
+                    selectedText = answers[q.id] ?? "";
+                    isCorrect = selectedText.trim().length > 0;
+                    correctText = "Awaiting coach review (automatically marked complete)";
+                  }
 
                   return (
                     <div
@@ -978,13 +1078,37 @@ export default function QuizTakePage() {
                           <p className="text-sm font-bold text-cn-ink dark:text-white">
                             Question {idx + 1}: {q.text}
                           </p>
-                          <div className="mt-2.5 space-y-1 text-xs">
-                            <p className="text-cn-ink-muted">
-                              Your answer: <span className={isCorrect ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-rose-500 font-medium"}>{selectedText}</span>
-                            </p>
-                            {!isCorrect && (
-                              <p className="text-cn-ink-subtle">
-                                Correct answer: <span className="text-emerald-600 dark:text-emerald-400 font-medium">{correctText}</span>
+                          <div className="mt-2.5 space-y-2 text-xs">
+                            {q.type === "code" ? (
+                              <div>
+                                <p className="text-cn-ink-muted mb-1 font-medium">Your code submission:</p>
+                                <pre className="p-3 bg-cn-surface rounded-lg font-mono text-cn-ink overflow-x-auto border border-cn-border dark:bg-[#1a1818] dark:border-[#2e2a2a]">
+                                  {selectedText || "No submission"}
+                                </pre>
+                              </div>
+                            ) : q.type === "text" ? (
+                              <div>
+                                <p className="text-cn-ink-muted mb-1 font-medium">Your answer:</p>
+                                <p className="p-3 bg-cn-surface rounded-lg text-cn-ink border border-cn-border dark:bg-[#1a1818] dark:border-[#2e2a2a] whitespace-pre-wrap">
+                                  {selectedText || "No submission"}
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="text-cn-ink-muted font-medium">
+                                  Your answer: <span className={isCorrect ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-rose-500 font-medium"}>{selectedText}</span>
+                                </p>
+                                {!isCorrect && (
+                                  <p className="text-cn-ink-subtle font-medium">
+                                    Correct answer: <span className="text-emerald-600 dark:text-emerald-400 font-medium">{correctText}</span>
+                                  </p>
+                                )}
+                              </>
+                            )}
+
+                            {(q.type === "code" || q.type === "text") && (
+                              <p className="text-cn-orange/80 font-semibold bg-cn-orange/5 px-2.5 py-1 rounded-lg border border-cn-orange/10 inline-block">
+                                📝 Status: {correctText}
                               </p>
                             )}
                           </div>

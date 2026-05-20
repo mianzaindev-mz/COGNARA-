@@ -15,9 +15,10 @@ type Option = {
 type Question = {
   id?: string;
   text: string;
-  type: "mcq" | "true_false";
+  type: "mcq" | "true_false" | "code" | "text";
   points: number;
   explanation: string;
+  code_starter?: string;
   options: Option[];
 };
 
@@ -30,6 +31,8 @@ type Quiz = {
   is_ai_generated: boolean;
   created_at: string;
   lesson_id: string | null;
+  available_from?: string | null;
+  available_until?: string | null;
   questions: Question[];
 };
 
@@ -63,6 +66,8 @@ export default function CoachQuizzesPage() {
   const [newTimeLimit, setNewTimeLimit] = useState("15");
   const [newPassScore, setNewPassScore] = useState("70");
   const [newAttempts, setNewAttempts] = useState("3");
+  const [newAvailableFrom, setNewAvailableFrom] = useState("");
+  const [newAvailableUntil, setNewAvailableUntil] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [selectedLessonId, setSelectedLessonId] = useState("");
   const [formQuestions, setFormQuestions] = useState<Question[]>([]);
@@ -116,6 +121,8 @@ export default function CoachQuizzesPage() {
           pass_score,
           attempts_allowed,
           is_ai_generated,
+          available_from,
+          available_until,
           created_at,
           lesson_id,
           questions (
@@ -124,6 +131,7 @@ export default function CoachQuizzesPage() {
             type,
             points,
             explanation,
+            code_starter,
             question_options (
               id,
               text,
@@ -147,12 +155,15 @@ export default function CoachQuizzesPage() {
           is_ai_generated: q.is_ai_generated || false,
           created_at: q.created_at,
           lesson_id: q.lesson_id,
+          available_from: q.available_from || null,
+          available_until: q.available_until || null,
           questions: (q.questions || []).map((quest: any) => ({
             id: quest.id,
             text: quest.text,
             type: quest.type,
             points: quest.points || 1,
             explanation: quest.explanation || "",
+            code_starter: quest.code_starter || "",
             options: (quest.question_options || []).map((o: any) => ({
               id: o.id,
               text: o.text,
@@ -175,20 +186,24 @@ export default function CoachQuizzesPage() {
   }, [fetchQuizzesAndMeta]);
 
   // Handle manual question adding
-  const addFormQuestion = (type: "mcq" | "true_false") => {
+  const addFormQuestion = (type: "mcq" | "true_false" | "code" | "text") => {
     const newQ: Question = {
       text: "",
       type,
       points: 1,
       explanation: "",
-      options: type === "true_false" 
-        ? [{ text: "True", is_correct: true }, { text: "False", is_correct: false }]
-        : [
-            { text: "Option A", is_correct: true },
-            { text: "Option B", is_correct: false },
-            { text: "Option C", is_correct: false },
-            { text: "Option D", is_correct: false }
-          ]
+      code_starter: type === "code" ? "// Starter code or prompt for the student" : "",
+      options:
+        type === "true_false"
+          ? [{ text: "True", is_correct: true }, { text: "False", is_correct: false }]
+          : type === "mcq"
+          ? [
+              { text: "Option A", is_correct: true },
+              { text: "Option B", is_correct: false },
+              { text: "Option C", is_correct: false },
+              { text: "Option D", is_correct: false }
+            ]
+          : []
     };
     setFormQuestions([...formQuestions, newQ]);
   };
@@ -254,7 +269,13 @@ export default function CoachQuizzesPage() {
     if (!newTitle.trim()) { alert("Please provide a quiz title."); return; }
     if (formQuestions.length === 0) { alert("Please add at least one question."); return; }
 
-    const invalidQuestion = formQuestions.some(q => !q.text.trim() || q.options.some(o => !o.text.trim()));
+    const invalidQuestion = formQuestions.some(q => {
+      if (!q.text.trim()) return true;
+      if (q.type === "mcq" || q.type === "true_false") {
+        return q.options.some(o => !o.text.trim());
+      }
+      return false;
+    });
     if (invalidQuestion) {
       alert("Please fill in all question texts and option labels.");
       return;
@@ -277,6 +298,8 @@ export default function CoachQuizzesPage() {
           pass_score: Number(newPassScore) || 70,
           attempts_allowed: Number(newAttempts) || 3,
           lesson_id: selectedLessonId || null,
+          available_from: newAvailableFrom || null,
+          available_until: newAvailableUntil || null,
           is_ai_generated: false
         })
         .select()
@@ -295,6 +318,7 @@ export default function CoachQuizzesPage() {
             type: q.type,
             points: q.points,
             explanation: q.explanation,
+            code_starter: q.code_starter || null,
             order_index: i
           })
           .select()
@@ -308,11 +332,13 @@ export default function CoachQuizzesPage() {
           is_correct: o.is_correct
         }));
 
-        const { error: optsErr } = await supabase
-          .from("question_options")
-          .insert(optionsToInsert);
+        if (optionsToInsert.length > 0) {
+          const { error: optsErr } = await supabase
+            .from("question_options")
+            .insert(optionsToInsert);
 
-        if (optsErr) throw optsErr;
+          if (optsErr) throw optsErr;
+        }
       }
 
       alert("Quiz created successfully!");
@@ -322,6 +348,8 @@ export default function CoachQuizzesPage() {
       setNewTimeLimit("15");
       setNewPassScore("70");
       setNewAttempts("3");
+      setNewAvailableFrom("");
+      setNewAvailableUntil("");
       setSelectedCourseId("");
       setSelectedLessonId("");
       setFormQuestions([]);
@@ -396,6 +424,8 @@ export default function CoachQuizzesPage() {
           time_limit_mins: 15,
           pass_score: 70,
           attempts_allowed: 3,
+          available_from: newAvailableFrom || null,
+          available_until: newAvailableUntil || null,
           is_ai_generated: true,
           lesson_id: selectedLessonId || null
         })
@@ -428,11 +458,13 @@ export default function CoachQuizzesPage() {
           is_correct: o.is_correct
         }));
 
-        const { error: optsErr } = await supabase
-          .from("question_options")
-          .insert(optionsToInsert);
+        if (optionsToInsert.length > 0) {
+          const { error: optsErr } = await supabase
+            .from("question_options")
+            .insert(optionsToInsert);
 
-        if (optsErr) throw optsErr;
+          if (optsErr) throw optsErr;
+        }
       }
 
       alert("AI Quiz accepted and saved successfully!");
@@ -441,6 +473,8 @@ export default function CoachQuizzesPage() {
       setGeneratedPreview(null);
       setSelectedCourseId("");
       setSelectedLessonId("");
+      setNewAvailableFrom("");
+      setNewAvailableUntil("");
       void fetchQuizzesAndMeta();
 
     } catch (err: any) {
@@ -544,6 +578,10 @@ export default function CoachQuizzesPage() {
                 <p className="mt-1 text-[10px] text-gray-500 truncate">
                   {getLessonTitle(q.lesson_id)}
                 </p>
+                <p className="mt-2 text-[10px] text-gray-400">
+                  {q.available_from ? `Available from ${new Date(q.available_from).toLocaleString()}` : "Available anytime"}
+                  {q.available_until ? ` · until ${new Date(q.available_until).toLocaleString()}` : ""}
+                </p>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-[10px] font-medium text-gray-400">
                   <span className="rounded bg-[#0c081d] border border-[#221740] px-2 py-0.5">
@@ -632,6 +670,24 @@ export default function CoachQuizzesPage() {
                     className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
                   />
                 </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Available From</label>
+                  <input
+                    type="datetime-local"
+                    value={newAvailableFrom}
+                    onChange={(e) => setNewAvailableFrom(e.target.value)}
+                    className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Available Until</label>
+                  <input
+                    type="datetime-local"
+                    value={newAvailableUntil}
+                    onChange={(e) => setNewAvailableUntil(e.target.value)}
+                    className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                  />
+                </div>
                 
                 {/* Linking metadata */}
                 <div className="sm:col-span-2">
@@ -684,6 +740,20 @@ export default function CoachQuizzesPage() {
                     >
                       + True/False Question
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => addFormQuestion("code")}
+                      className="px-2.5 py-1.5 rounded-lg border border-[#221740] bg-[#120c2b] text-[10px] font-semibold text-white hover:bg-[#18113c] transition"
+                    >
+                      + Code Question
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addFormQuestion("text")}
+                      className="px-2.5 py-1.5 rounded-lg border border-[#221740] bg-[#120c2b] text-[10px] font-semibold text-white hover:bg-[#18113c] transition"
+                    >
+                      + Open Text Question
+                    </button>
                   </div>
                 </div>
 
@@ -705,7 +775,7 @@ export default function CoachQuizzesPage() {
                         <div className="grid gap-4 sm:grid-cols-4">
                           <div className="sm:col-span-3">
                             <label className="block text-[9px] uppercase text-gray-400 mb-1">
-                              Question {qIdx + 1} ({q.type === "mcq" ? "MCQ" : "True/False"})
+                              Question {qIdx + 1} ({q.type === "mcq" ? "MCQ" : q.type === "true_false" ? "True/False" : q.type === "code" ? "Code" : "Open Text"})
                             </label>
                             <input
                               type="text"
@@ -729,61 +799,92 @@ export default function CoachQuizzesPage() {
                           </div>
                         </div>
 
-                        {/* Options */}
-                        <div className="space-y-2">
-                          <span className="block text-[9px] uppercase text-gray-400">Options (Select the correct choice)</span>
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {q.options.map((opt, oIdx) => (
-                              <div key={oIdx} className="flex items-center gap-2 border border-[#221740] bg-[#0c081d] px-3 py-2 rounded-lg">
-                                <input
-                                  type="radio"
-                                  name={`correct-ans-${qIdx}`}
-                                  checked={opt.is_correct}
-                                  onChange={() => toggleOptionCorrect(qIdx, oIdx)}
-                                  className="accent-indigo-500 shrink-0"
-                                />
-                                <input
-                                  type="text"
-                                  required
-                                  disabled={q.type === "true_false"}
-                                  value={opt.text}
-                                  onChange={(e) => updateOptionText(qIdx, oIdx, e.target.value)}
-                                  className="bg-transparent border-none p-0 text-xs text-white outline-none w-full disabled:opacity-50"
-                                />
-                                {q.type === "mcq" && q.options.length > 2 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => removeMcqOption(qIdx, oIdx)}
-                                    className="text-rose-500 hover:text-rose-400 text-xs px-1"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                            {q.type === "mcq" && q.options.length < 6 && (
-                              <button
-                                type="button"
-                                onClick={() => addMcqOption(qIdx)}
-                                className="flex items-center justify-center border border-dashed border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 text-xs rounded-lg py-2 transition"
-                              >
-                                + Add Option
-                              </button>
-                            )}
+                        {(q.type === "mcq" || q.type === "true_false") && (
+                          <div className="space-y-2">
+                            <span className="block text-[9px] uppercase text-gray-400">Options (Select the correct choice)</span>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              {q.options.map((opt, oIdx) => (
+                                <div key={oIdx} className="flex items-center gap-2 border border-[#221740] bg-[#0c081d] px-3 py-2 rounded-lg">
+                                  <input
+                                    type="radio"
+                                    name={`correct-ans-${qIdx}`}
+                                    checked={opt.is_correct}
+                                    onChange={() => toggleOptionCorrect(qIdx, oIdx)}
+                                    className="accent-indigo-500 shrink-0"
+                                  />
+                                  <input
+                                    type="text"
+                                    required
+                                    disabled={q.type === "true_false"}
+                                    value={opt.text}
+                                    onChange={(e) => updateOptionText(qIdx, oIdx, e.target.value)}
+                                    className="bg-transparent border-none p-0 text-xs text-white outline-none w-full disabled:opacity-50"
+                                  />
+                                  {q.type === "mcq" && q.options.length > 2 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeMcqOption(qIdx, oIdx)}
+                                      className="text-rose-500 hover:text-rose-400 text-xs px-1"
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              {q.type === "mcq" && q.options.length < 6 && (
+                                <button
+                                  type="button"
+                                  onClick={() => addMcqOption(qIdx)}
+                                  className="flex items-center justify-center border border-dashed border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 text-xs rounded-lg py-2 transition"
+                                >
+                                  + Add Option
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
-                        {/* Explanation */}
-                        <div>
-                          <label className="block text-[9px] uppercase text-gray-400 mb-1">Explanation (Shown after student answers)</label>
-                          <input
-                            type="text"
-                            placeholder="Why is this answer correct?"
-                            value={q.explanation}
-                            onChange={(e) => updateQuestionExplain(qIdx, e.target.value)}
-                            className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
-                          />
-                        </div>
+                        {q.type === "code" && (
+                          <div className="space-y-2">
+                            <label className="block text-[9px] uppercase text-gray-400 mb-1">Starter Code / Prompt</label>
+                            <textarea
+                              rows={4}
+                              value={q.code_starter || ""}
+                              onChange={(e) => {
+                                const updated = [...formQuestions];
+                                updated[qIdx].code_starter = e.target.value;
+                                setFormQuestions(updated);
+                              }}
+                              className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                            />
+                          </div>
+                        )}
+
+                        {q.type === "text" && (
+                          <div className="space-y-2">
+                            <label className="block text-[9px] uppercase text-gray-400 mb-1">Answer Hint / Expected Response</label>
+                            <input
+                              type="text"
+                              placeholder="Optional answer hint"
+                              value={q.explanation}
+                              onChange={(e) => updateQuestionExplain(qIdx, e.target.value)}
+                              className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                            />
+                          </div>
+                        )}
+
+                        {q.type !== "text" && (
+                          <div>
+                            <label className="block text-[9px] uppercase text-gray-400 mb-1">Explanation (Shown after student answers)</label>
+                            <input
+                              type="text"
+                              placeholder="Why is this answer correct?"
+                              value={q.explanation}
+                              onChange={(e) => updateQuestionExplain(qIdx, e.target.value)}
+                              className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                            />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -853,6 +954,26 @@ export default function CoachQuizzesPage() {
                     .filter(l => l.course_id === selectedCourseId)
                     .map(l => <option key={l.id} value={l.id}>{l.title}</option>)}
                 </select>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 mb-4 text-xs">
+              <div>
+                <label className="block text-[9px] uppercase text-gray-400 mb-1">Available From</label>
+                <input
+                  type="datetime-local"
+                  value={newAvailableFrom}
+                  onChange={(e) => setNewAvailableFrom(e.target.value)}
+                  className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] uppercase text-gray-400 mb-1">Available Until</label>
+                <input
+                  type="datetime-local"
+                  value={newAvailableUntil}
+                  onChange={(e) => setNewAvailableUntil(e.target.value)}
+                  className="w-full rounded-lg border border-[#221740] bg-[#0c081d] px-3 py-2 text-xs text-white focus:outline-none"
+                />
               </div>
             </div>
 
