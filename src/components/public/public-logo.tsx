@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
+import { PremiumCognaraLogo } from "../student/premium-cognara-logo";
 
 type PublicLogoProps = {
   href?: string;
@@ -13,26 +14,12 @@ export function PublicLogo({ href = "/", className, showWordmark = true }: Publi
       href={href}
       className={cn("flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90", className)}
     >
-      <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-cn-orange shadow-sm">
-        <svg
-          className="h-5 w-5 text-white"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.2}
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 3l7 4v5c0 4.5-3 8.5-7 9-4-.5-7-4.5-7-9V7l7-4z"
-          />
-        </svg>
-      </span>
+      <div className="w-10 h-10 flex items-center justify-center shrink-0">
+        <PremiumCognaraLogo className="w-9 h-9 logo-image filter drop-shadow-[0_0_6px_rgba(255,107,61,0.25)]" idSuffix="public_logo" />
+      </div>
       {showWordmark ? (
-        <span className="text-xl font-bold tracking-tight text-cn-ink">
-          <span className="text-cn-orange">C</span>OGNARA
-          <span className="text-base text-cn-ink">™</span>
+        <span className="font-headline text-xl font-extrabold tracking-tight text-cn-ink flex items-center">
+          COGNARA<span className="text-[8px] self-start mt-0.5 opacity-40 font-bold ml-0.5">TM</span>
         </span>
       ) : null}
     </Link>

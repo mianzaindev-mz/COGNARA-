@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { LandingSections } from "./landing-sections";
+import { PremiumCognaraLogo } from "@/components/student/premium-cognara-logo";
 
 /* ━━━ SVG Icon Components ━━━ */
 const IconSchool = ({ className = "" }: { className?: string }) => (
@@ -93,28 +94,32 @@ export default function LandingClient() {
   return (
     <div className={`lp-root ${light ? "lp-light" : ""}`}>
       {/* ━━━ NAVBAR ━━━ */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-16 py-4 max-w-[1440px] mx-auto bg-surface-dim/40 backdrop-blur-2xl border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2 group cursor-pointer">
-          <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
-            <IconSchool className="text-on-primary w-5 h-5" />
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full lp-navbar transition-all duration-300">
+        <div className="max-w-[1280px] mx-auto w-full flex justify-between items-center px-4 md:px-8 py-4">
+          <Link href="/" className="flex items-center gap-2.5 group cursor-pointer">
+            <div className="w-9 h-9 flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
+              <PremiumCognaraLogo className="w-8 h-8 logo-image filter drop-shadow-[0_0_8px_rgba(255,107,61,0.3)]" idSuffix="nav" />
+            </div>
+            <span className="font-headline text-2xl font-extrabold tracking-tight text-on-surface flex items-center">
+              COGNARA<span className="text-[9px] self-start mt-1 opacity-40 font-bold tracking-normal ml-0.5">TM</span>
+            </span>
+          </Link>
+          <div className="hidden md:flex items-center gap-8 font-body text-sm tracking-wide">
+            <Link className="nav-link active" href="/courses">Courses</Link>
+            <Link className="nav-link" href="/register">Mentors</Link>
+            <Link className="nav-link" href="/pricing">Pricing</Link>
+            <Link className="nav-link" href="/register">Enterprise</Link>
           </div>
-          <span className="font-headline text-2xl font-bold tracking-tighter text-on-surface"><span style={{ color: '#ff6b3d' }}>C</span>OGNARA</span>
-        </Link>
-        <div className="hidden md:flex items-center gap-8 font-body text-sm tracking-wide">
-          <Link className="nav-link active" href="/dashboard">Courses</Link>
-          <Link className="nav-link" href="/dashboard">Mentors</Link>
-          <Link className="nav-link" href="/dashboard">Pricing</Link>
-          <Link className="nav-link" href="/dashboard">Enterprise</Link>
-        </div>
-        <div className="flex items-center gap-6">
-          <Link href="/login" className="hidden sm:block sign-in-link text-on-surface/70 font-semibold text-sm">Sign In</Link>
-          <Link href="/register" className="gradient-primary text-white px-7 py-2.5 rounded-full font-bold text-sm hover:shadow-[0_0_20px_rgba(255,107,61,0.4)] transition-all active:scale-95">Get Started</Link>
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="hidden sm:block sign-in-link text-on-surface/70 font-semibold text-sm">Sign In</Link>
+            <Link href="/register" className="gradient-primary text-white px-7 py-2.5 rounded-full font-bold text-sm hover:shadow-[0_0_20px_rgba(255,107,61,0.4)] transition-all active:scale-95">Get Started</Link>
+          </div>
         </div>
       </nav>
 
       <main className="mt-20">
         {/* ━━━ HERO ━━━ */}
-        <section className="relative min-h-[90vh] flex items-center px-4 md:px-16 overflow-hidden bg-hero">
+        <section className="relative min-h-[90vh] flex items-center px-4 md:px-16 overflow-hidden bg-hero pt-16 pb-24 md:pt-20 md:pb-32">
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <div ref={glowRef1} className="absolute w-[800px] h-[800px] -top-[400px] -left-[400px] bg-primary-container/10 blur-[120px] rounded-full" />
             <div ref={glowRef2} className="absolute w-[600px] h-[600px] top-[20%] right-[10%] bg-tertiary-container/5 blur-[100px] rounded-full" />
@@ -136,9 +141,9 @@ export default function LandingClient() {
               </p>
               <div className="flex flex-wrap gap-5 mb-12">
                 <Link href="/register" className="gradient-primary text-white px-10 py-5 rounded-2xl font-bold hover:shadow-[0_20px_40px_-10px_rgba(255,107,61,0.4)] transition-all active:scale-95">Join the platform</Link>
-                <Link href="/login" className="glass-depth-2 text-on-surface px-10 py-5 rounded-2xl font-bold hover:bg-white/10 transition-all">Request Demo</Link>
+                <Link href="/login" className="btn-demo text-on-surface px-10 py-5 rounded-2xl font-bold transition-all">Request Demo</Link>
               </div>
-              <div className="flex items-center gap-6 glass-depth-1 p-4 rounded-2xl inline-flex">
+              <div className="flex items-center gap-6 glass-depth-1 p-4 rounded-2xl inline-flex mb-8">
                 <div className="flex -space-x-3">
                   {[{c:"bg-orange-500",l:"A"},{c:"bg-indigo-500",l:"B"},{c:"bg-emerald-500",l:"C"},{c:"bg-primary-container",l:"D"}].map((a,i)=>(
                     <div key={i} className={`w-11 h-11 rounded-full border-2 border-surface ${a.c} shadow-xl flex items-center justify-center text-xs font-bold text-white`}>{a.l}</div>
@@ -165,7 +170,7 @@ export default function LandingClient() {
                   </div>
                 </div>
                 <div className="absolute -bottom-6 -right-6 glass-depth-3 p-5 rounded-3xl flex items-center gap-4 group-hover:translate-y-[-10px] transition-transform duration-500">
-                  <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg"><IconSchool className="text-white w-6 h-6" /></div>
+                  <div className="w-12 h-12 flex items-center justify-center"><PremiumCognaraLogo className="w-10 h-10 logo-image" idSuffix="media" /></div>
                   <div>
                     <p className="text-on-surface font-bold text-sm">System Overview</p>
                     <p className="text-on-surface-variant text-[11px] opacity-70">2:45 · Experience Cognara</p>
@@ -186,8 +191,10 @@ export default function LandingClient() {
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-start gap-16">
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-10">
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg"><IconSchool className="text-on-primary w-6 h-6" /></div>
-              <span className="font-headline text-3xl font-extrabold tracking-tighter text-on-surface"><span style={{ color: '#ff6b3d' }}>C</span>OGNARA</span>
+              <div className="w-10 h-10 flex items-center justify-center"><PremiumCognaraLogo className="w-9 h-9 logo-image" idSuffix="footer" /></div>
+              <span className="font-headline text-3xl font-extrabold tracking-tight text-on-surface flex items-center">
+                COGNARA<span className="text-[10px] self-start mt-1.5 opacity-40 font-bold tracking-normal ml-0.5">TM</span>
+              </span>
             </div>
             <p className="text-on-surface-variant mb-12 text-lg leading-relaxed opacity-80 font-body">Empowering global learners with agentic AI environments and specialized pedagogical structures designed for the future of work.</p>
             <div className="flex gap-5">

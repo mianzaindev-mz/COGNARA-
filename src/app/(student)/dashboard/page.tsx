@@ -87,7 +87,7 @@ export default async function DashboardPage() {
   return (
     <>
       <DashboardEffects />
-      <div className="p-margin-desktop max-w-7xl mx-auto space-y-gutter">
+      <div className="pt-[16px] pb-margin-desktop px-margin-desktop max-w-7xl mx-auto space-y-gutter">
         {/* Hero Section */}
         <section className="scroll-reveal glass-card rounded-[2.5rem] p-12 flex flex-col md:flex-row items-center justify-between gap-10 relative overflow-hidden" id="hero">
           <div className="relative z-10 space-y-8">
@@ -275,16 +275,16 @@ export default async function DashboardPage() {
                             <span className={`border px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase ${c.colorClass}`}>
                                 {c.category}
                             </span>
-                            <button className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-all">
+                            <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-all">
                                 <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary">more_horiz</span>
-                            </button>
+                            </div>
                         </div>
                         <h4 className="font-headline-md text-xl text-on-surface mb-2 group-hover:text-primary transition-colors">{c.title}</h4>
                         <p className="text-on-surface-variant text-sm mb-8 opacity-70">{c.progressDone}/{c.totalLessons} lessons completed · {percentage}%</p>
                         <div className="w-full bg-black/5 dark:bg-white/5 h-2 rounded-full overflow-hidden mb-8">
                             <div className={`${c.bgFill} h-full rounded-full shadow-[0_0_15px_rgba(255,107,61,0.6)]`} style={{ width: `${percentage}%` }}></div>
                         </div>
-                        <button className="w-full py-4 bg-primary text-white font-black text-sm rounded-2xl interactive-element shadow-lg shadow-primary/20 uppercase tracking-widest hover:scale-[1.02] hover:brightness-110">Resume Learning</button>
+                        <div className="w-full py-4 bg-primary text-white font-black text-sm rounded-2xl interactive-element shadow-lg shadow-primary/20 uppercase tracking-widest hover:scale-[1.02] hover:brightness-110 text-center block">Resume Learning</div>
                     </Link>
                 )})}
               </div>
@@ -314,9 +314,9 @@ export default async function DashboardPage() {
                           <p className="text-xs text-on-surface-variant mb-6 flex items-center gap-2 opacity-70">
                             <span className="material-symbols-outlined text-[16px] text-red-400">timer</span> {lesson.durationLabel}
                           </p>
-                          <button className="w-full py-3 bg-surface-container-high text-on-surface text-xs font-black rounded-xl border border-black/10 dark:border-white/10 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg uppercase tracking-widest">
+                          <div className="w-full py-3 bg-surface-container-high text-on-surface text-xs font-black rounded-xl border border-black/10 dark:border-white/10 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg uppercase tracking-widest text-center block">
                             Start Lesson
-                          </button>
+                          </div>
                         </div>
                       </Link>
                     ))

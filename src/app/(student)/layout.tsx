@@ -40,13 +40,15 @@ export default async function StudentPortalLayout({
   const stats = await loadStudentPortalStats(user.id);
 
   return (
-    <StudentShell
-      displayName={displayName}
-      email={user.email ?? undefined}
-      creditBalance={stats.creditBalance}
-    >
-      {children}
+    <>
+      <StudentShell
+        displayName={displayName}
+        email={user.email ?? undefined}
+        creditBalance={stats.creditBalance}
+      >
+        {children}
+      </StudentShell>
       <AgentFloatingButton />
-    </StudentShell>
+    </>
   );
 }

@@ -60,7 +60,7 @@ export function LandingSections() {
                     <span>Progress</span>
                     <span style={{ color: c.color }}>{c.pct}%</span>
                   </div>
-                  <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden p-[1px] border border-white/5">
+                  <div className="w-full bg-black/5 dark:bg-white/5 h-2.5 rounded-full overflow-hidden p-[1px] border border-black/5 dark:border-white/5">
                     <div className="h-full rounded-full glow-liquid" style={{ width:`${c.pct}%`, background:c.color, boxShadow:`0 0 10px ${c.color}80` }} />
                   </div>
                   <Link href="/dashboard" className="block w-full gradient-primary text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-primary-container/30 transition-all text-center">Resume Learning</Link>
@@ -95,9 +95,9 @@ export function LandingSections() {
           {/* CTA Banner */}
           <div className="relative entrance-anim group">
             <div className="absolute inset-0 bg-primary-container/20 blur-[100px] scale-90 group-hover:scale-100 transition-transform duration-1000 opacity-30" />
-            <div className="glass-depth-3 p-10 md:p-16 rounded-4xl flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden border-white/10">
-              <div className="absolute top-0 left-0 w-[300px] h-[300px] bg-gradient-to-br from-primary-container/15 to-transparent rounded-4xl pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-[250px] h-[250px] bg-gradient-to-tl from-accent-warm/10 to-transparent rounded-4xl pointer-events-none" />
+            <div className="glass-depth-3 p-10 md:p-16 rounded-4xl flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden border-black/5 dark:border-white/10">
+              <div className="absolute top-0 left-0 w-[400px] h-[400px] pointer-events-none" style={{ background: "radial-gradient(circle at top left, rgba(255, 107, 61, 0.15) 0%, transparent 70%)" }} />
+              <div className="absolute bottom-0 right-0 w-[300px] h-[300px] pointer-events-none" style={{ background: "radial-gradient(circle at bottom right, rgba(255, 142, 110, 0.08) 0%, transparent 70%)" }} />
               <div className="max-w-2xl text-center lg:text-left">
                 <span className="bg-yellow-400 text-black font-extrabold text-[10px] px-5 py-2 rounded-full mb-8 inline-block tracking-[0.2em] uppercase">Ecosystem Launch</span>
                 <h3 className="text-4xl md:text-5xl font-extrabold text-on-surface mb-6 leading-tight font-headline">Your advanced student dashboard awaits.</h3>

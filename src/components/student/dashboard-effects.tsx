@@ -28,12 +28,16 @@ export function DashboardEffects() {
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02) translateZ(30px)`;
         const glowX = (x / rect.width) * 100;
         const glowY = (y / rect.height) * 100;
-        card.style.background = `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255, 107, 61, 0.12) 0%, rgba(255, 255, 255, 0.02) 80%)`;
+        const isDark = document.documentElement.classList.contains("dark");
+        const baseGrad = isDark 
+          ? "linear-gradient(135deg, rgba(28, 27, 27, 0.7) 0%, rgba(10, 10, 10, 0.9) 100%)"
+          : "linear-gradient(135deg, rgba(250, 248, 245, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%)";
+        card.style.background = `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255, 107, 61, 0.12) 0%, transparent 80%), ${baseGrad}`;
     };
 
     const handleMouseLeave = (card: HTMLElement) => {
         card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1) translateZ(0)`;
-        card.style.background = `rgba(255, 255, 255, 0.02)`;
+        card.style.background = ``;
     };
 
     const mouseMoveListeners = new Map();

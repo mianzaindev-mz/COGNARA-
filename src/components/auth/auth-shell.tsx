@@ -49,12 +49,13 @@ export function AuthShell({
         {showBackButton && (
           <Link
             href="/login"
-            className="absolute top-6 left-6 text-cn-ink-muted hover:text-cn-ink transition-colors flex items-center gap-1 text-sm font-medium"
+            className="absolute top-6 left-6 w-10 h-10 rounded-xl bg-cn-canvas hover:bg-cn-surface border border-cn-border flex items-center justify-center text-cn-ink-muted hover:text-cn-ink transition-all z-20 shadow-sm"
+            title="Back to login"
+            aria-label="Back to login"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
             </svg>
-            Back
           </Link>
         )}
 
