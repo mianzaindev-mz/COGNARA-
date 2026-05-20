@@ -28,14 +28,7 @@ const STREAK_GRID = Array.from({ length: 28 }, (_, i) => ({
   active: [1, 2, 3, 5, 6, 7, 8, 10, 11, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28].includes(i + 1),
 }));
 
-const BADGES = [
-  { icon: IconFire, title: "7-Day Streak", earned: true },
-  { icon: IconTrophy, title: "First Course Done", earned: true },
-  { icon: IconBrain, title: "100 XP in a Day", earned: true },
-  { icon: IconBrain, title: "10 AI Sessions", earned: false },
-  { icon: IconTarget, title: "Perfect Quiz Score", earned: false },
-  { icon: IconHandshake, title: "Peer Session Host", earned: false },
-];
+
 
 export default async function ProgressPage() {
   const supabase = await createClient();
@@ -51,6 +44,19 @@ export default async function ProgressPage() {
   ]);
 
   const maxXp = Math.max(...WEEKLY_XP.map((d) => d.xp));
+
+  const dynamicBadges = stats.earnedBadges.map((eb) => {
+    let icon = IconTrophy;
+    let title = `${eb.courses?.title || "Course"} (${eb.badge_type.charAt(0).toUpperCase() + eb.badge_type.slice(1)})`;
+    return { icon, title, earned: true };
+  });
+
+  const allBadges = [
+    { icon: IconFire, title: "7-Day Streak", earned: stats.streakDays >= 7 },
+    { icon: IconTrophy, title: "First Course Done", earned: stats.completedCourses >= 1 },
+    { icon: IconBrain, title: "Level 5 Reached", earned: stats.level >= 5 },
+    ...dynamicBadges,
+  ];
 
   return (
     <div className="flex flex-col gap-8">
@@ -146,10 +152,10 @@ export default async function ProgressPage() {
       <section>
         <h2 className="mb-4 text-lg font-bold text-cn-ink">Badges &amp; Achievements</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {BADGES.map((b) => (
+          {allBadges.map((b) => (
             <div
               key={b.title}
-              className={`flex flex-col items-center rounded-2xl border p-4 text-center transition ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition ${
                 b.earned
                   ? "border-cn-yellow/30 bg-cn-yellow/5 shadow-sm"
                   : "border-cn-border bg-cn-surface opacity-50"

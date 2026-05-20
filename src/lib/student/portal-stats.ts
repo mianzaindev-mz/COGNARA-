@@ -10,6 +10,7 @@ export type StudentPortalStats = {
   totalXp: number;
   level: number;
   recentAgentSessions: Array<{ id: string; skill: string; created_at: string }>;
+  earnedBadges: Array<{ id: string; badge_type: string; course_id: string; chapter_id: string | null; score: number; earned_at: string; courses: { title: string } }>;
 };
 
 const emptyStats: StudentPortalStats = {
@@ -20,6 +21,7 @@ const emptyStats: StudentPortalStats = {
   totalXp: 0,
   level: 1,
   recentAgentSessions: [],
+  earnedBadges: [],
 };
 
 async function loadStatsInner(
@@ -32,6 +34,7 @@ async function loadStatsInner(
     creditsRes,
     xpRes,
     sessionsRes,
+    badgesRes,
   ] = await Promise.all([
     supabase
       .from("enrollments")
@@ -54,6 +57,11 @@ async function loadStatsInner(
       .eq("student_id", userId)
       .order("created_at", { ascending: false })
       .limit(3),
+    supabase
+      .from("earned_badges")
+      .select("id, badge_type, course_id, chapter_id, score, earned_at, courses(title)")
+      .eq("student_id", userId)
+      .order("earned_at", { ascending: false }),
   ]);
 
   const enrolledCourses = enrolledRes.count ?? 0;
@@ -70,6 +78,8 @@ async function loadStatsInner(
     created_at: row.created_at,
   }));
 
+  const earnedBadges = sessionsRes.data ? (badgesRes.data ?? []) : [];
+
   return {
     enrolledCourses,
     completedCourses,
@@ -78,6 +88,7 @@ async function loadStatsInner(
     totalXp,
     level,
     recentAgentSessions,
+    earnedBadges,
   };
 }
 

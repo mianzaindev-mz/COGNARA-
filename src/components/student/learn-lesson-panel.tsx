@@ -54,6 +54,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
           courseId={ctx.courseId}
           slug={ctx.slug}
           alreadyCompleted={completed}
+          isGraded={lesson.isGraded}
         />
       </div>
 

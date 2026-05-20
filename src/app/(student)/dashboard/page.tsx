@@ -351,6 +351,36 @@ export default async function DashboardPage() {
                   )}
                 </div>
               </div>
+
+              <div className="pt-10 border-t border-black/5 dark:border-white/5 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-on-surface text-xs uppercase tracking-[0.2em] opacity-60">Recent Badges</h4>
+                  <Link href="/progress" className="text-primary hover:underline text-xs font-bold tracking-widest uppercase">View All</Link>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {stats.earnedBadges.length > 0 ? (
+                    stats.earnedBadges.slice(0, 3).map((badge) => (
+                      <div key={badge.id} className="tilt-card flex items-center gap-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 group">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                          badge.badge_type === "platinum" ? "bg-slate-300/20 text-slate-800 dark:text-slate-200" :
+                          badge.badge_type === "gold" ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" :
+                          badge.badge_type === "silver" ? "bg-stone-400/20 text-stone-600 dark:text-stone-300" :
+                          badge.badge_type === "copper" ? "bg-orange-700/20 text-orange-800 dark:text-orange-500" :
+                          "bg-amber-800/20 text-amber-900 dark:text-amber-600"
+                        }`}>
+                          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-on-surface text-sm truncate">{badge.courses?.title || "Course"}</p>
+                          <p className="text-[11px] text-on-surface-variant uppercase font-bold tracking-widest mt-0.5 opacity-70">{badge.badge_type}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-on-surface-variant opacity-70">No badges earned yet. Complete quizzes to earn badges!</p>
+                  )}
+                </div>
+              </div>
             </div>
 
           </div>

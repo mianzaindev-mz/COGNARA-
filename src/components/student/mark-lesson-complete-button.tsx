@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { markLessonComplete } from "@/app/(student)/actions/lesson-progress";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 import { cn } from "@/lib/utils/cn";
 
 type MarkLessonCompleteButtonProps = {
@@ -10,6 +11,7 @@ type MarkLessonCompleteButtonProps = {
   courseId: string;
   slug: string;
   alreadyCompleted: boolean;
+  isGraded?: boolean;
   className?: string;
 };
 
@@ -18,15 +20,26 @@ export function MarkLessonCompleteButton({
   courseId,
   slug,
   alreadyCompleted,
+  isGraded,
   className,
 }: MarkLessonCompleteButtonProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(alreadyCompleted);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  function initiateCompletion() {
+    if (done) return;
+    if (isGraded) {
+      setConfirmOpen(true);
+    } else {
+      handleComplete();
+    }
+  }
 
   function handleComplete() {
-    if (done) return;
+    setConfirmOpen(false);
     setError(null);
     startTransition(async () => {
       const result = await markLessonComplete(lessonId, courseId, slug);
@@ -43,7 +56,7 @@ export function MarkLessonCompleteButton({
     <div className={cn("flex flex-col gap-1", className)}>
       <button
         type="button"
-        onClick={handleComplete}
+        onClick={initiateCompletion}
         disabled={pending || done}
         className={cn(
           "inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition disabled:cursor-default",
@@ -64,6 +77,15 @@ export function MarkLessonCompleteButton({
         )}
       </button>
       {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+
+      <DoubleConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleComplete}
+        title="Submit Graded Activity"
+        description="Are you sure you want to submit this activity for grading? This action cannot be undone."
+        confirmWord="SUBMIT"
+      />
     </div>
   );
 }

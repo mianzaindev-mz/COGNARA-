@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 type Option = {
   id: string;
@@ -364,6 +365,9 @@ export default function QuizTakePage() {
   const [passed, setPassed] = useState(false);
   const [correctAnswersMap, setCorrectAnswersMap] = useState<Record<string, string>>({}); // Maps questionId -> correct optionId
 
+  // Double Confirm Modal states
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+
   useEffect(() => {
     if (!id) return;
 
@@ -568,7 +572,7 @@ export default function QuizTakePage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handlePreSubmit = () => {
     if (submitted || submitting) return;
 
     // Validation: Ensure all questions have selections
@@ -576,6 +580,12 @@ export default function QuizTakePage() {
       alert("Please select an answer for all questions before submitting.");
       return;
     }
+
+    setConfirmModalOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (submitted || submitting) return;
 
     setSubmitting(true);
     try {
@@ -636,7 +646,7 @@ export default function QuizTakePage() {
         console.error("Warning: Failed to save details for quiz answers:", answersErr);
       }
 
-      // 3. If passed, complete the enrollment (progress to 100%) to issue certificate
+      // 3. If passed, complete the enrollment (progress to 100%) to issue certificate and award badge
       if (isPassed) {
         const { error: enrollUpdateErr } = await supabase
           .from("enrollments")
@@ -648,6 +658,40 @@ export default function QuizTakePage() {
 
         if (enrollUpdateErr) {
           console.error("Warning: Failed to update course enrollment progress:", enrollUpdateErr);
+        }
+
+        // Determine badge type based on score
+        const badgeType = finalScore >= 90 ? "platinum" : finalScore >= 80 ? "gold" : finalScore >= 70 ? "silver" : finalScore >= 60 ? "copper" : "bronze";
+
+        // Check if a badge for this student and course already exists
+        const { data: existingBadge } = await supabase
+          .from("earned_badges")
+          .select("id, score")
+          .eq("student_id", user.id)
+          .eq("course_id", courseId)
+          .maybeSingle();
+
+        if (existingBadge) {
+          // Update if the new score is better
+          if (finalScore > existingBadge.score) {
+            await supabase
+              .from("earned_badges")
+              .update({ badge_type: badgeType, score: finalScore, earned_at: new Date().toISOString() })
+              .eq("id", existingBadge.id);
+          }
+        } else {
+          const { error: badgeErr } = await supabase
+            .from("earned_badges")
+            .insert({
+              student_id: user.id,
+              course_id: courseId,
+              badge_type: badgeType,
+              score: finalScore
+            });
+
+          if (badgeErr) {
+            console.error("Warning: Failed to save earned badge:", badgeErr);
+          }
         }
       }
 
@@ -815,7 +859,7 @@ export default function QuizTakePage() {
               ) : (
                 <button
                   type="button"
-                  onClick={handleSubmit}
+                  onClick={handlePreSubmit}
                   disabled={!allAnswered || submitting}
                   className="rounded-xl bg-cn-orange px-6 py-2.5 text-sm font-bold text-white hover:bg-cn-orange-hover disabled:opacity-40 transition"
                 >
@@ -846,8 +890,8 @@ export default function QuizTakePage() {
                 : "You didn't reach the 70% passing threshold on this attempt."}
             </p>
 
-            {/* Score Ring */}
-            <div className="my-8 flex justify-center">
+            {/* Score Ring & Badge */}
+            <div className="my-8 flex justify-center gap-6">
               <div className={`rounded-2xl border px-8 py-4 ${
                 passed ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400" : "border-rose-500/20 bg-rose-500/5 text-rose-500"
               }`}>
@@ -855,6 +899,18 @@ export default function QuizTakePage() {
                 <p className="text-4xl font-extrabold mt-1">{score}%</p>
                 <p className="text-xs text-cn-ink-subtle mt-1">Passing score: 70%</p>
               </div>
+
+              {passed && (
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-8 py-4 text-amber-500 flex flex-col items-center justify-center">
+                  <p className="text-xs font-semibold uppercase tracking-wider mb-1">Badge Earned</p>
+                  <p className="text-2xl font-extrabold drop-shadow-md">
+                    {score >= 90 ? "💎 Platinum" : 
+                     score >= 80 ? "🥇 Gold" : 
+                     score >= 70 ? "🥈 Silver" : 
+                     score >= 60 ? "🥉 Copper" : "🟤 Bronze"}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Actions */}
@@ -948,6 +1004,18 @@ export default function QuizTakePage() {
           </div>
         )}
       </div>
+
+      <DoubleConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={() => {
+          setConfirmModalOpen(false);
+          void handleSubmit();
+        }}
+        title="Submit Quiz"
+        description="Are you sure you want to submit your quiz? You will use 1 attempt and cannot change your answers."
+        confirmWord="SUBMIT"
+      />
     </div>
   );
 }

@@ -177,15 +177,13 @@ export default function SettingsPage() {
 
         {/* Danger zone */}
         <SettingsSection title="Danger Zone" danger>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-lg font-bold text-on-surface">Delete Account</p>
-              <p className="text-sm font-semibold text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
-            </div>
-            <button type="button" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm">
-              Delete Account
-            </button>
+          <div className="space-y-1">
+            <p className="text-lg font-bold text-on-surface">Delete Account</p>
+            <p className="text-sm font-semibold text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
           </div>
+          <button type="button" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm shrink-0">
+            Delete Account
+          </button>
         </SettingsSection>
       </div>
 

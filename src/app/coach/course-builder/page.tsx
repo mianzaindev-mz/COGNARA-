@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import * as THREE from "three";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 // --- Types ---
 type CourseItem = {
@@ -17,6 +18,8 @@ type CourseItem = {
   chapter_count: number;
   lesson_count: number;
   progress_pct: number;
+  badge_criteria?: { bronze: number; copper: number; silver: number; gold: number; platinum: number };
+  badge_criteria_locked?: boolean;
 };
 
 type ChapterNode = {
@@ -35,6 +38,8 @@ type LessonNode = {
   title: string;
   order_index: number;
   locked: boolean;
+  type: string;
+  is_graded: boolean;
 };
 
 type ContentBlock = {
@@ -52,12 +57,12 @@ const DEFAULT_CHAPTERS: ChapterNode[] = [
 ];
 
 const DEFAULT_LESSONS: LessonNode[] = [
-  { id: "les-1-1", chapterId: "ch-1", title: "Welcome and Prerequisites", order_index: 1, locked: false },
-  { id: "les-1-2", chapterId: "ch-1", title: "Installation & Workspace", order_index: 2, locked: true },
-  { id: "les-2-1", chapterId: "ch-2", title: "Understanding Data Flow", order_index: 1, locked: true },
-  { id: "les-2-2", chapterId: "ch-2", title: "State Management Core", order_index: 2, locked: true },
-  { id: "les-3-1", chapterId: "ch-3", title: "Optimization Techniques", order_index: 1, locked: true },
-  { id: "les-3-2", chapterId: "ch-3", title: "Final Project Review", order_index: 2, locked: true },
+  { id: "les-1-1", chapterId: "ch-1", title: "Welcome and Prerequisites", order_index: 1, locked: false, type: "text", is_graded: false },
+  { id: "les-1-2", chapterId: "ch-1", title: "Installation & Workspace", order_index: 2, locked: true, type: "text", is_graded: false },
+  { id: "les-2-1", chapterId: "ch-2", title: "Understanding Data Flow", order_index: 1, locked: true, type: "text", is_graded: false },
+  { id: "les-2-2", chapterId: "ch-2", title: "State Management Core", order_index: 2, locked: true, type: "text", is_graded: false },
+  { id: "les-3-1", chapterId: "ch-3", title: "Optimization Techniques", order_index: 1, locked: true, type: "text", is_graded: false },
+  { id: "les-3-2", chapterId: "ch-3", title: "Final Project Review", order_index: 2, locked: true, type: "text", is_graded: false },
 ];
 
 export default function CourseBuilderPage() {
@@ -83,7 +88,16 @@ export default function CourseBuilderPage() {
   const [editDifficulty, setEditDifficulty] = useState("beginner");
   const [editPriceUsd, setEditPriceUsd] = useState("0");
   const [editIsPublished, setEditIsPublished] = useState(false);
+  const [editBadgeCriteria, setEditBadgeCriteria] = useState({ bronze: 50, copper: 60, silver: 70, gold: 80, platinum: 90 });
+  const [editBadgeLocked, setEditBadgeLocked] = useState(false);
   const [savingCourseDetails, setSavingCourseDetails] = useState(false);
+
+  // Double Confirm Modal states
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmModalTitle, setConfirmModalTitle] = useState("");
+  const [confirmModalDesc, setConfirmModalDesc] = useState("");
+  const [confirmWord, setConfirmWord] = useState<string | undefined>(undefined);
 
   // 3D Pathway Map Data
   const [chapters, setChapters] = useState<ChapterNode[]>([]);
@@ -117,7 +131,7 @@ export default function CourseBuilderPage() {
 
       const { data: dbCourses } = await supabase
         .from("courses")
-        .select("id, title, category, description, difficulty, price_usd, is_published, total_lessons")
+        .select("id, title, category, description, difficulty, price_usd, is_published, total_lessons, badge_criteria, badge_criteria_locked")
         .eq("coach_id", user.id);
 
       const items: CourseItem[] = (dbCourses ?? []).map(c => ({
@@ -130,7 +144,9 @@ export default function CourseBuilderPage() {
         is_published: !!c.is_published,
         chapter_count: 3,
         lesson_count: c.total_lessons ?? 6,
-        progress_pct: 0
+        progress_pct: 0,
+        badge_criteria: c.badge_criteria,
+        badge_criteria_locked: c.badge_criteria_locked
       }));
 
       setCourses(items);
@@ -198,9 +214,55 @@ export default function CourseBuilderPage() {
   };
 
   // --- Open 3D Map ---
-  const handleOpenPathway = (course: CourseItem) => {
+  const handleOpenPathway = async (course: CourseItem) => {
     setSelectedCourse(course);
-    
+    setView("pathway");
+    setActiveChapter(null);
+
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error("No supabase client");
+
+      const { data: dbChapters, error: chErr } = await supabase
+        .from("chapters")
+        .select("*")
+        .eq("course_id", course.id)
+        .order("order_index", { ascending: true });
+
+      const { data: dbLessons, error: lesErr } = await supabase
+        .from("lessons")
+        .select("*")
+        .eq("course_id", course.id)
+        .order("order_index", { ascending: true });
+
+      if (chErr || lesErr) throw new Error("Failed to fetch chapters/lessons from DB");
+
+      if (dbChapters && dbChapters.length > 0) {
+        setChapters(dbChapters.map(ch => ({
+          id: ch.id,
+          title: ch.title,
+          x: Number(ch.x_pos) || 0,
+          z: Number(ch.z_pos) || 0,
+          y: Number(ch.y_pos) || 0,
+          locked: !!ch.is_locked,
+          wallType: (ch.wall_type as any) || "none"
+        })));
+        
+        setLessons((dbLessons || []).map(l => ({
+          id: l.id,
+          chapterId: l.chapter_id || "",
+          title: l.title,
+          order_index: l.order_index,
+          locked: false, // Default to false if not stored
+          type: l.type || "text",
+          is_graded: !!l.is_graded
+        })));
+        return;
+      }
+    } catch (e) {
+      console.warn("Falling back to local storage:", e);
+    }
+
     // Load local storage custom layout for this course if it exists, or fall back to default
     const savedLayout = localStorage.getItem(`pathway-${course.id}`);
     if (savedLayout) {
@@ -211,8 +273,6 @@ export default function CourseBuilderPage() {
       setChapters(DEFAULT_CHAPTERS);
       setLessons(DEFAULT_LESSONS);
     }
-    setActiveChapter(null);
-    setView("pathway");
   };
 
   // Save layout position
@@ -301,7 +361,17 @@ export default function CourseBuilderPage() {
     setEditDifficulty(course.difficulty);
     setEditPriceUsd(String(course.price_usd));
     setEditIsPublished(course.is_published);
+    setEditBadgeCriteria(course.badge_criteria || { bronze: 50, copper: 60, silver: 70, gold: 80, platinum: 90 });
+    setEditBadgeLocked(!!course.badge_criteria_locked);
     setEditCourseModalOpen(true);
+  };
+
+  const handleLockBadgeCriteria = () => {
+    setConfirmModalTitle("Lock Badge Criteria");
+    setConfirmModalDesc("Once locked, you will not be able to change the badge threshold criteria for this course ever again.");
+    setConfirmWord("LOCK");
+    setConfirmAction(() => () => setEditBadgeLocked(true));
+    setConfirmModalOpen(true);
   };
 
   // Save/Update Course Details
@@ -322,7 +392,9 @@ export default function CourseBuilderPage() {
           description: editDescription.trim(),
           difficulty: editDifficulty,
           price_usd: Number(editPriceUsd) || 0,
-          is_published: editIsPublished
+          is_published: editIsPublished,
+          badge_criteria: editBadgeCriteria,
+          badge_criteria_locked: editBadgeLocked
         })
         .eq("id", editingCourseId);
 
@@ -340,7 +412,9 @@ export default function CourseBuilderPage() {
           description: editDescription.trim(),
           difficulty: editDifficulty,
           price_usd: Number(editPriceUsd) || 0,
-          is_published: editIsPublished
+          is_published: editIsPublished,
+          badge_criteria: editBadgeCriteria,
+          badge_criteria_locked: editBadgeLocked
         } : null);
       }
 
@@ -665,6 +739,25 @@ export default function CourseBuilderPage() {
     setChapters(updatedChs);
     setLessons(updatedLes);
     saveLayoutToLocalStorage(updatedChs, updatedLes);
+  };
+
+  // --- Add Lesson Node ---
+  const handleAddLesson = () => {
+    if (!activeChapter) return;
+    const nextLesIdx = lessons.filter(l => l.chapterId === activeChapter.id).length + 1;
+    const newLes: LessonNode = {
+      id: `les-${activeChapter.id}-${nextLesIdx}`,
+      chapterId: activeChapter.id,
+      title: `Lesson ${nextLesIdx} (Mini Activity)`,
+      order_index: nextLesIdx,
+      locked: true,
+      type: "mini_activity",
+      is_graded: false
+    };
+
+    const updatedLes = [...lessons, newLes];
+    setLessons(updatedLes);
+    saveLayoutToLocalStorage(chapters, updatedLes);
   };
 
   // --- Drag Reposition nodes (Simulated in list editor for mouse-friendly precision) ---
@@ -993,6 +1086,49 @@ export default function CourseBuilderPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Badge Criteria Section */}
+                  <div className="pt-4 border-t border-[#221740]">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-xs font-bold uppercase text-gray-400">Chapter Badge Thresholds (%)</label>
+                      {!editBadgeLocked ? (
+                        <button
+                          type="button"
+                          onClick={handleLockBadgeCriteria}
+                          className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-1 rounded font-bold hover:bg-amber-500/20 transition-colors"
+                        >
+                          🔒 Lock Criteria
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-red-400 font-bold px-2 py-1 flex items-center gap-1">
+                          🔒 Locked (Cannot change)
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-5 gap-2">
+                      {["bronze", "copper", "silver", "gold", "platinum"].map((badge) => (
+                        <div key={badge}>
+                          <span className={`block text-[9px] font-bold uppercase mb-1 text-center ${
+                            badge === 'bronze' ? 'text-orange-700' :
+                            badge === 'copper' ? 'text-orange-500' :
+                            badge === 'silver' ? 'text-gray-300' :
+                            badge === 'gold' ? 'text-yellow-400' :
+                            'text-cyan-300'
+                          }`}>{badge}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            disabled={editBadgeLocked}
+                            value={editBadgeCriteria[badge as keyof typeof editBadgeCriteria] || 0}
+                            onChange={(e) => setEditBadgeCriteria(prev => ({...prev, [badge]: Number(e.target.value)}))}
+                            className="w-full rounded-lg border border-[#221740] bg-[#120c2b] px-2 py-1.5 text-xs text-center text-white focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex justify-end gap-3 pt-3 border-t border-[#221740]">
                     <button
                       type="button"
@@ -1132,7 +1268,12 @@ export default function CourseBuilderPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Lessons Curriculum</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Lessons Curriculum</p>
+                  <button onClick={handleAddLesson} className="text-[9px] font-bold text-white bg-emerald-600/50 hover:bg-emerald-600 px-2 py-0.5 rounded border border-emerald-500/25">
+                    + Add Lesson
+                  </button>
+                </div>
                 {lessons
                   .filter(l => l.chapterId === activeChapter.id)
                   .map(lesson => {
@@ -1149,7 +1290,7 @@ export default function CourseBuilderPage() {
                       >
                         <div>
                           <p className="text-xs font-bold text-white">{lesson.title}</p>
-                          <p className="text-[9px] text-gray-400">Lesson {lesson.order_index}</p>
+                          <p className="text-[9px] text-gray-400">Lesson {lesson.order_index} {lesson.is_graded && <span className="text-emerald-400 font-bold">• Graded</span>}</p>
                         </div>
                         {isLocked ? (
                           <span className="text-xs">🔒</span>
@@ -1227,7 +1368,26 @@ export default function CourseBuilderPage() {
             <div className="flex items-center justify-between border-b border-[#221740] pb-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Lesson Workspace</span>
-                <h1 className="text-lg font-bold text-white">{activeLesson.title}</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-lg font-bold text-white">{activeLesson.title}</h1>
+                  {editorSubView === "edit" && (
+                    <label className="flex items-center gap-2 cursor-pointer ml-2 bg-[#120c2b] px-2 py-1 rounded-lg border border-[#221740]">
+                      <input 
+                        type="checkbox" 
+                        checked={activeLesson.is_graded} 
+                        onChange={(e) => {
+                          const val = e.target.checked;
+                          setActiveLesson({...activeLesson, is_graded: val});
+                          const updatedLes = lessons.map(l => l.id === activeLesson.id ? {...l, is_graded: val} : l);
+                          setLessons(updatedLes);
+                          saveLayoutToLocalStorage(chapters, updatedLes);
+                        }}
+                        className="h-3 w-3 rounded border-[#221740] bg-[#120c2b] text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Graded Activity</span>
+                    </label>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 {/* Mode Selector Toggle */}
@@ -1715,6 +1875,20 @@ export default function CourseBuilderPage() {
           )}
         </main>
       )}
+
+      {/* Double Confirm Modal */}
+      <DoubleConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={() => {
+          if (confirmAction) confirmAction();
+          setConfirmModalOpen(false);
+        }}
+        title={confirmModalTitle}
+        description={confirmModalDesc}
+        confirmWord={confirmWord}
+        danger={true}
+      />
     </div>
   );
 }
