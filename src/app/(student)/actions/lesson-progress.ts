@@ -46,7 +46,7 @@ export async function markLessonComplete(
 
   const { data: lessons } = await supabase.from("lessons").select("id").eq("course_id", courseId);
 
-  const lessonIds = (lessons ?? []).map((l) => l.id);
+  const lessonIds = (lessons ?? []).map((l: { id: string }) => l.id);
   const total = lessonIds.length;
 
   let completedCount = 0;

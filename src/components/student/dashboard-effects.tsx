@@ -54,9 +54,9 @@ export function DashboardEffects() {
 
     // Hero Progress
     const ring = document.getElementById('hero-progress-ring') as unknown as SVGCircleElement;
-    if (ring) {
-        const radius = ring.r.baseVal.value;
-        const circumference = 2 * Math.PI * radius;
+    if (ring && typeof ring.getAttribute === 'function') {
+        const rVal = parseFloat(ring.getAttribute('r') || '0');
+        const circumference = 2 * Math.PI * rVal;
         ring.style.strokeDasharray = `${circumference} ${circumference}`;
         ring.style.strokeDashoffset = String(circumference - (75 / 100) * circumference);
     }

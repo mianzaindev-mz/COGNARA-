@@ -398,7 +398,7 @@ export default function QuizTakePage() {
           .select("id")
           .eq("course_id", enrollment.course_id);
 
-        const lessonIds = lessons?.map(l => l.id) ?? [];
+        const lessonIds = lessons?.map((l: any) => l.id) ?? [];
 
         let courseQuiz = null;
         if (lessonIds.length > 0) {
@@ -488,8 +488,8 @@ export default function QuizTakePage() {
         });
 
         // 3. Check if user already passed or exceeded attempt counts
-        const courseQuizAttempts = existingAttempts?.filter(a => a.quiz_id === courseQuiz.id) ?? [];
-        const isPassed = courseQuizAttempts.some(a => a.passed);
+        const courseQuizAttempts = existingAttempts?.filter((a: any) => a.quiz_id === courseQuiz.id) ?? [];
+        const isPassed = courseQuizAttempts.some((a: any) => a.passed);
         
         if (isPassed) {
           throw new Error("You have already passed this final quiz. You can claim your certificate under Certificates.");

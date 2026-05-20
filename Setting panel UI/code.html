@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings | COGNARA</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Geist:wght@400;500;600&amp;family=Hanken+Grotesk:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffdf9e",
+                        "secondary": "#ffdf9e",
+                        "secondary-container": "#fabd00",
+                        "primary-fixed-dim": "#ffb59f",
+                        "on-error": "#690005",
+                        "surface-tint": "#ffb59f",
+                        "on-tertiary-fixed": "#1b1b1c",
+                        "on-tertiary-container": "#323131",
+                        "tertiary": "#c8c6c5",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "primary-container": "#ff6b3d",
+                        "outline": "#a88a81",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary-container": "#611700",
+                        "background": "#131313",
+                        "error": "#ffb4ab",
+                        "surface-dim": "#131313",
+                        "on-secondary-fixed-variant": "#5b4300",
+                        "on-primary": "#5f1600",
+                        "surface-container-highest": "#353534",
+                        "on-primary-fixed-variant": "#862300",
+                        "tertiary-container": "#9b9999",
+                        "on-secondary": "#3f2e00",
+                        "on-tertiary": "#303030",
+                        "on-surface-variant": "#e1bfb6",
+                        "surface-bright": "#3a3939",
+                        "surface": "#131313",
+                        "inverse-primary": "#ae3203",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "secondary-fixed-dim": "#fabd00",
+                        "outline-variant": "#59413a",
+                        "surface-container": "#201f1f",
+                        "surface-variant": "#353534",
+                        "on-primary-fixed": "#3a0a00",
+                        "primary-fixed": "#ffdbd1",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#e5e2e1",
+                        "primary": "#ffb59f",
+                        "on-secondary-container": "#6a4e00",
+                        "surface-container-high": "#2a2a2a",
+                        "on-secondary-fixed": "#261a00",
+                        "inverse-surface": "#e5e2e1",
+                        "on-background": "#e5e2e1",
+                        "inverse-on-surface": "#313030"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "card-padding": "24px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Geist"],
+                        "headline-xl": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Geist"],
+                        "headline-md": ["Manrope"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-xl": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0d0d0d 100%);
+            color: #e5e2e1;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 107, 61, 0.3);
+        }
+
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: #2a2a2a;
+            border-radius: 99px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #ff6b3d;
+            box-shadow: 0 0 15px rgba(255, 107, 61, 0.3);
+        }
+
+        .toggle-knob {
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(20px);
+        }
+
+        .mesh-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(at 0% 0%, rgba(255, 107, 61, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 107, 61, 0.03) 0px, transparent 50%);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .active-glow {
+            box-shadow: 0 0 15px rgba(255, 107, 61, 0.2);
+        }
+
+        /* Sidebar Custom Styles from SCREEN_20 */
+        .sidebar-logo-glow {
+            background: linear-gradient(135deg, #ff6b3d 0%, #ff8c66 100%);
+            box-shadow: 0 0 20px rgba(255, 107, 61, 0.3);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<div class="mesh-bg"></div>
+<!-- Locked-In Symmetric SideNavBar (Based on SCREEN_20) -->
+<!-- Main Content -->
+<main class="w-full flex flex-col min-h-screen justify-center">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-6 md:px-margin-desktop py-4 bg-background/80 backdrop-blur-xl sticky top-0 z-50 border-b border-white/5 max-w-4xl mx-auto rounded-full mt-4">
+<div class="flex items-center gap-4">
+<div class="md:hidden w-8 h-8 sidebar-logo-glow rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-white">bolt</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-primary font-bold uppercase tracking-widest md:hidden">COGNARA</span>
+<nav class="hidden md:flex gap-4 items-center">
+<span class="text-on-surface-variant text-[11px] font-bold tracking-wider uppercase">DASHBOARD</span>
+<span class="text-white/20">/</span>
+<span class="text-on-surface font-bold text-[11px] tracking-wider uppercase border-b border-primary">SETTINGS</span>
+</nav>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+<input class="bg-surface-container-highest/30 border border-white/5 rounded-full pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary w-64 transition-all outline-none" placeholder="Search lessons..." type="text"/>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">light_mode</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-white/10">
+<div class="text-right hidden lg:block">
+<p class="text-sm font-bold text-on-surface">Muhammad Zain</p>
+<p class="text-[10px] text-on-surface-variant">@zainwatch2</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-black border border-white/10">
+                        M
+                    </div>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="max-w-4xl mx-auto w-full px-6 md:px-margin-desktop py-12 space-y-12">
+<!-- Page Header -->
+<div class="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+<h2 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Settings</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant opacity-80">Manage your preferences, notifications, and privacy.</p>
+</div>
+<!-- Bento Sections (Keep from SCREEN_26) -->
+<div class="grid grid-cols-1 gap-8">
+<!-- Appearance Section -->
+<section class="glass-card rounded-[2rem] p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">palette</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Appearance</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-3">
+<label class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Theme Preference</label>
+<div class="relative group">
+<select class="w-full bg-surface-container-highest/50 border border-white/10 rounded-2xl py-4 px-5 text-on-surface appearance-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-body-md">
+<option>System (Adaptive)</option>
+<option>Light Mode</option>
+<option selected="">Dark Mode (Onyx)</option>
+</select>
+<span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">unfold_more</span>
+</div>
+</div>
+<div class="space-y-3">
+<label class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Font Size</label>
+<div class="relative group">
+<select class="w-full bg-surface-container-highest/50 border border-white/10 rounded-2xl py-4 px-5 text-on-surface appearance-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-body-md">
+<option>Small (12px)</option>
+<option selected="">Medium (16px)</option>
+<option>Large (20px)</option>
+</select>
+<span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">unfold_more</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Notifications Section -->
+<section class="glass-card rounded-[2rem] p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Notifications</h3>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="space-y-1">
+<p class="text-body-lg font-bold text-on-surface">Email notifications</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Course updates, agent insights, and billing alerts.</p>
+</div>
+<div class="toggle-switch active" onclick="this.classList.toggle('active')">
+<div class="toggle-knob"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer">
+<div class="space-y-1">
+<p class="text-body-lg font-bold text-on-surface">Push notifications</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">In-browser alerts for live events and quizzes.</p>
+</div>
+<div class="toggle-switch active" onclick="this.classList.toggle('active')">
+<div class="toggle-knob"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer">
+<div class="space-y-1">
+<p class="text-body-lg font-bold text-on-surface">Digest mode</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Bundle all notifications into a single daily email.</p>
+</div>
+<div class="toggle-switch" onclick="this.classList.toggle('active')">
+<div class="toggle-knob"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Privacy Section -->
+<section class="glass-card rounded-[2rem] p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Privacy &amp; Cookies</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<p class="text-body-lg font-bold text-on-surface">Essential cookies</p>
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded text-on-surface-variant uppercase font-bold">Required</span>
+</div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Authentication and security — always active.</p>
+</div>
+<div class="toggle-switch active cursor-not-allowed opacity-50">
+<div class="toggle-knob"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer">
+<div class="space-y-1">
+<p class="text-body-lg font-bold text-on-surface">Functional cookies</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Language and custom theme preferences.</p>
+</div>
+<div class="toggle-switch active" onclick="this.classList.toggle('active')">
+<div class="toggle-knob"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer">
+<div class="space-y-1">
+<p class="text-body-lg font-bold text-on-surface">Analytics cookies</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Page views and performance metrics to improve the agent.</p>
+</div>
+<div class="toggle-switch" onclick="this.classList.toggle('active')">
+<div class="toggle-knob"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Danger Zone -->
+<section class="glass-card rounded-[2rem] p-8 border-error/20 bg-error-container/5 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-error/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-error">Danger Zone</h3>
+</div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-white/5 border border-error/10">
+<div class="space-y-1">
+<p class="text-body-lg font-bold text-on-surface">Delete Account</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
+</div>
+<button class="bg-error text-on-error px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-label-md">
+                            Delete Account
+                        </button>
+</div>
+</section>
+<!-- Save Footer -->
+<div class="sticky bottom-8 z-40 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+<button class="w-full bg-primary-container text-on-primary-container font-black py-5 rounded-[2rem] text-headline-md shadow-[0_20px_50px_rgba(255,107,61,0.4)] hover:shadow-[0_25px_60px_rgba(255,107,61,0.6)] hover:-translate-y-1 active:scale-95 active:translate-y-0 transition-all duration-300">
+                        Save Settings
+                    </button>
+</div>
+</div>
+<!-- Bottom Spacer -->
+<div class="h-12"></div>
+</div>
+</main>
+<!-- Mobile Nav Bar (only visible on small screens) -->
+<!-- Floating Atmosphere FX -->
+<div class="fixed top-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/2 -translate-y-1/2 z-[-1] hidden md:block" id="cursor-glow"></div>
+<script>
+        // Micro-interaction: Cursor light effect
+        const glow = document.getElementById('cursor-glow');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        // Add subtle scale effect to select inputs on focus
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('focus', () => {
+                select.parentElement.classList.add('active-glow');
+            });
+            select.addEventListener('blur', () => {
+                select.parentElement.classList.remove('active-glow');
+            });
+        });
+    </script>
+</body></html>

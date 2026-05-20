@@ -98,17 +98,19 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
         {/* System Group */}
         <div className="nav-glass-container mb-2 shrink-0">
           <nav className="space-y-1">
-            <Link href="/settings" className="nav-item">
+
+            
+            <Link href="/settings" className={`nav-item ${isActive("/settings") ? 'active' : ''}`}>
               <div className="nav-icon-wrapper">
-                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">settings_suggest</span>
+                <span className={`material-symbols-outlined text-[20px] ${isActive("/settings") ? '' : 'text-on-surface-variant'}`} style={isActive("/settings") ? { fontVariationSettings: "'FILL' 1" } : undefined}>settings_suggest</span>
               </div>
-              <span className="nav-text text-on-surface-variant">Settings</span>
+              <span className={`nav-text ${isActive("/settings") ? '' : 'text-on-surface-variant'}`}>Settings</span>
             </Link>
-            <Link href="/billing" className="nav-item">
+            <Link href="/billing" className={`nav-item ${isActive("/billing") ? 'active' : ''}`}>
               <div className="nav-icon-wrapper">
-                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">account_balance_wallet</span>
+                <span className={`material-symbols-outlined text-[20px] ${isActive("/billing") ? '' : 'text-on-surface-variant'}`} style={isActive("/billing") ? { fontVariationSettings: "'FILL' 1" } : undefined}>account_balance_wallet</span>
               </div>
-              <span className="nav-text text-on-surface-variant">Billing</span>
+              <span className={`nav-text ${isActive("/billing") ? '' : 'text-on-surface-variant'}`}>Billing</span>
             </Link>
             <div className="nav-item group/signout cursor-pointer">
               <div className="nav-icon-wrapper">
@@ -147,6 +149,10 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
             </div>
 
             <div className="flex items-center gap-4">
+              <Link href="/billing" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-cn-orange/10 hover:bg-cn-orange/20 text-cn-orange font-bold transition-all interactive-element group shadow-lg shadow-cn-orange/5">
+                <span className="material-symbols-outlined text-[18px] animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                <span className="text-sm">Upgrade Now</span>
+              </Link>
               <button 
                 onClick={toggleTheme}
                 className="p-2 text-on-surface-variant interactive-element hover:bg-black/5 dark:hover:bg-white/10 rounded-full"

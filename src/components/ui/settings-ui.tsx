@@ -1,0 +1,98 @@
+"use client";
+
+import React from "react";
+
+export function SettingsSection({ title, icon, children, danger }: { title: string; icon?: string; children: React.ReactNode; danger?: boolean }) {
+  return (
+    <section className={`glass-card rounded-[2rem] p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 ${danger ? "border-red-500/20 bg-red-500/5" : ""}`}>
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 rounded-2xl ${danger ? "bg-red-500/10" : "bg-white/5"} flex items-center justify-center`}>
+          <span className={`material-symbols-outlined ${danger ? "text-red-500" : "text-cn-orange"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+            {icon || (danger ? "warning" : "settings")}
+          </span>
+        </div>
+        <h3 className={`text-2xl font-bold ${danger ? "text-red-500" : "text-on-surface dark:text-white"}`}>{title}</h3>
+      </div>
+      <div className={danger ? "flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-white/5 border border-red-500/10" : "w-full"}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+export function SettingsToggle({ label, description, checked, onChange, disabled }: {
+  label: string; description: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean;
+}) {
+  return (
+    <div 
+      className={`flex items-center justify-between p-4 rounded-2xl transition-colors ${disabled ? "bg-white/5 border border-white/5 opacity-50 cursor-not-allowed" : "hover:bg-white/5 cursor-pointer group"}`}
+      onClick={() => !disabled && onChange(!checked)}
+    >
+      <div className="space-y-1 pr-4">
+        <p className="text-lg font-bold text-on-surface dark:text-white">{label}</p>
+        <p className="text-xs font-semibold text-on-surface-variant opacity-80">{description}</p>
+      </div>
+      <div className={`relative w-11 h-6 rounded-full transition-colors ${checked ? "bg-cn-orange shadow-[0_0_15px_rgba(255,90,38,0.3)]" : "bg-[#2a2a2a]"} shrink-0`}>
+        <div className={`absolute top-[3px] left-[3px] w-[18px] h-[18px] bg-white rounded-full transition-transform ${checked ? "translate-x-[20px]" : "translate-x-0"}`} />
+      </div>
+    </div>
+  );
+}
+
+export function SettingsSelect({ label, value, onChange, options }: {
+  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="space-y-3">
+      <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{label}</label>
+      <div className="relative group">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl py-4 px-5 text-on-surface dark:text-white appearance-none focus:ring-2 focus:ring-cn-orange focus:border-transparent outline-none transition-all"
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">unfold_more</span>
+      </div>
+    </div>
+  );
+}
+
+export function SettingsInput({ label, id, value, onChange, placeholder }: {
+  label: string; id: string; value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <label htmlFor={id} className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{label}</label>
+      <input 
+        id={id} 
+        type="text" 
+        value={value} 
+        onChange={e => onChange(e.target.value)} 
+        placeholder={placeholder} 
+        className="w-full bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl py-4 px-5 text-on-surface dark:text-white focus:ring-2 focus:ring-cn-orange focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/40" 
+      />
+    </div>
+  );
+}
+
+export function SettingsTextarea({ label, id, value, onChange, placeholder, rows = 3 }: {
+  label: string; id: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number;
+}) {
+  return (
+    <div className="space-y-3 sm:col-span-2">
+      <label htmlFor={id} className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{label}</label>
+      <textarea 
+        id={id} 
+        rows={rows} 
+        value={value} 
+        onChange={e => onChange(e.target.value)} 
+        placeholder={placeholder} 
+        className="w-full bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl py-4 px-5 text-on-surface dark:text-white focus:ring-2 focus:ring-cn-orange focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/40 resize-none" 
+      />
+    </div>
+  );
+}

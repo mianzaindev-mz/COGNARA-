@@ -140,9 +140,9 @@
 .nav-item {
     display: flex;
     align-items: center;
-    height: 48px;
-    border-radius: 16px;
-    margin-bottom: 4px;
+    height: 42px;
+    border-radius: 12px;
+    margin-bottom: 2px;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
 }
@@ -151,7 +151,7 @@
 
 .nav-icon-wrapper {
     width: 56px; /* Precise icon container width */
-    height: 48px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;

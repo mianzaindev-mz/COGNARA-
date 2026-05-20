@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { SettingsSection, SettingsInput, SettingsTextarea, SettingsToggle } from "@/components/ui/settings-ui";
 
 export default function CoachSettingsPage() {
   const [fullName, setFullName] = useState("");
@@ -87,34 +88,23 @@ export default function CoachSettingsPage() {
 
       <div className="space-y-6">
         {/* Profile */}
-        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-          <h2 className="text-base font-bold text-cn-ink mb-4">Profile Information</h2>
+        <SettingsSection title="Profile Information">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="coach-name" className="block text-xs font-semibold text-cn-ink-muted mb-1.5">Full Name</label>
-              <input id="coach-name" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your name" className="w-full rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition" />
-            </div>
-            <div>
-              <label htmlFor="coach-username" className="block text-xs font-semibold text-cn-ink-muted mb-1.5">Username</label>
-              <input id="coach-username" type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="@username" className="w-full rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition" />
-            </div>
-            <div className="sm:col-span-2">
-              <label htmlFor="coach-bio" className="block text-xs font-semibold text-cn-ink-muted mb-1.5">Bio</label>
-              <textarea id="coach-bio" rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell students about your expertise…" className="w-full rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition resize-none" />
-            </div>
+            <SettingsInput label="Full Name" id="coach-name" value={fullName} onChange={setFullName} placeholder="Your name" />
+            <SettingsInput label="Username" id="coach-username" value={username} onChange={setUsername} placeholder="@username" />
+            <SettingsTextarea label="Bio" id="coach-bio" value={bio} onChange={setBio} placeholder="Tell students about your expertise…" />
           </div>
-        </div>
+        </SettingsSection>
 
         {/* Payment */}
-        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-          <h2 className="text-base font-bold text-cn-ink mb-4">Payment Setup</h2>
+        <SettingsSection title="Payment Setup">
           <p className="text-sm text-cn-ink-muted mb-4">Connect Stripe to receive payouts for your courses. COGNARA takes a 15% platform fee.</p>
-          <div className="flex items-center gap-4 rounded-xl border border-cn-border bg-cn-canvas p-4">
+          <div className="flex items-center gap-4 rounded-xl border border-cn-border bg-cn-canvas dark:bg-[#0f0e0e] dark:border-[#2e2a2a] p-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
               <svg className="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="currentColor"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-cn-ink">Stripe Connect</p>
+              <p className="text-sm font-semibold text-cn-ink dark:text-white">Stripe Connect</p>
               <p className="text-xs text-cn-ink-muted">Not connected — set up to start receiving payments</p>
             </div>
             <button className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 shadow-md shadow-indigo-500/20">
@@ -122,36 +112,28 @@ export default function CoachSettingsPage() {
             </button>
           </div>
           <p className="mt-2 text-[11px] text-cn-ink-subtle">Revenue share: 85% to you, 15% platform fee. Payouts every 2 weeks.</p>
-        </div>
+        </SettingsSection>
 
         {/* Notifications */}
-        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-          <h2 className="text-base font-bold text-cn-ink mb-4">Notifications</h2>
-          <div className="space-y-3">
-            {(["enrollment", "completion", "review", "payout"] as const).map(key => {
-              const labels = { enrollment: "New enrollment", completion: "Student completion", review: "New review", payout: "Payout received" };
-              return (
-                <label key={key} className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-cn-canvas/60 transition-colors cursor-pointer">
-                  <span className="text-sm text-cn-ink">{labels[key]}</span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={notifications[key]}
-                    onClick={() => setNotifications(n => ({ ...n, [key]: !n[key] }))}
-                    className={`relative h-6 w-11 rounded-full transition-colors ${notifications[key] ? "bg-indigo-500" : "bg-cn-border"}`}
-                  >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${notifications[key] ? "left-[1.375rem]" : "left-0.5"}`} />
-                  </button>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+        <SettingsSection title="Notifications">
+          {(["enrollment", "completion", "review", "payout"] as const).map(key => {
+            const labels = { enrollment: "New enrollment", completion: "Student completion", review: "New review", payout: "Payout received" };
+            return (
+              <SettingsToggle
+                key={key}
+                label={labels[key]}
+                description={`Get notified about ${labels[key].toLowerCase()}`}
+                checked={notifications[key]}
+                onChange={() => setNotifications(n => ({ ...n, [key]: !n[key] }))}
+              />
+            );
+          })}
+        </SettingsSection>
 
         <button
           onClick={() => void handleSave()}
           disabled={saving}
-          className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-indigo-700 shadow-md shadow-indigo-500/20 disabled:opacity-50"
+          className="rounded-xl bg-cn-orange px-6 py-3 text-sm font-bold text-white transition hover:bg-cn-orange-hover shadow-md disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save Changes"}
         </button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/theme/theme-provider";
+import { SettingsSection, SettingsToggle, SettingsSelect } from "@/components/ui/settings-ui";
 
 export default function SettingsPage() {
   const { setTheme: setActiveTheme } = useTheme();
@@ -131,131 +132,80 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        {/* Breadcrumb Navigation */}
-        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-cn-ink-subtle dark:text-cn-ink-muted">
-          <a href="/dashboard" className="hover:text-cn-orange transition">Dashboard</a>
-          <span>/</span>
-          <span className="text-cn-ink dark:text-white">Settings</span>
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Settings</h1>
-        <p className="mt-0.5 text-sm text-cn-ink-muted">
-          Manage your preferences, notifications, and privacy.
-        </p>
+    <div className="max-w-4xl mx-auto w-full space-y-12 pb-12">
+      {/* Page Header */}
+      <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <h2 className="text-4xl font-bold text-on-surface tracking-tight">Settings</h2>
+        <p className="text-lg text-on-surface-variant opacity-80">Manage your preferences, notifications, and privacy.</p>
       </div>
 
-      <div className="mx-auto w-full max-w-lg space-y-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Appearance */}
-        <SettingsSection title="Appearance">
-          <SettingsSelect label="Theme" value={theme} onChange={setTheme} options={[
-            { value: "light", label: "Light" },
-            { value: "dark", label: "Dark" },
-            { value: "system", label: "System" },
-          ]} />
-          <SettingsSelect label="Font Size" value={fontSize} onChange={setFontSize} options={[
-            { value: "small", label: "Small" },
-            { value: "medium", label: "Medium" },
-            { value: "large", label: "Large" },
-            { value: "xlarge", label: "Extra Large" },
-          ]} />
+        <SettingsSection title="Appearance" icon="palette">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <SettingsSelect label="Theme Preference" value={theme} onChange={setTheme} options={[
+              { value: "light", label: "Light Mode" },
+              { value: "dark", label: "Dark Mode (Onyx)" },
+              { value: "system", label: "System (Adaptive)" },
+            ]} />
+            <SettingsSelect label="Font Size" value={fontSize} onChange={setFontSize} options={[
+              { value: "small", label: "Small (12px)" },
+              { value: "medium", label: "Medium (16px)" },
+              { value: "large", label: "Large (20px)" },
+              { value: "xlarge", label: "Extra Large (24px)" },
+            ]} />
+          </div>
         </SettingsSection>
 
         {/* Notifications */}
-        <SettingsSection title="Notifications">
-          <SettingsToggle label="Email notifications" description="Course updates, agent insights, billing" checked={emailNotifs} onChange={setEmailNotifs} />
-          <SettingsToggle label="Push notifications" description="In-browser alerts for live events" checked={pushNotifs} onChange={setPushNotifs} />
-          <SettingsToggle label="Digest mode" description="Bundle notifications into a daily email" checked={digestMode} onChange={setDigestMode} />
+        <SettingsSection title="Notifications" icon="notifications_active">
+          <div className="space-y-6">
+            <SettingsToggle label="Email notifications" description="Course updates, agent insights, and billing alerts." checked={emailNotifs} onChange={setEmailNotifs} />
+            <SettingsToggle label="Push notifications" description="In-browser alerts for live events and quizzes." checked={pushNotifs} onChange={setPushNotifs} />
+            <SettingsToggle label="Digest mode" description="Bundle all notifications into a single daily email." checked={digestMode} onChange={setDigestMode} />
+          </div>
         </SettingsSection>
 
         {/* Privacy */}
-        <SettingsSection title="Privacy & Cookies">
-          <SettingsToggle label="Essential cookies" description="Authentication, security — required" checked={true} onChange={() => {}} disabled />
-          <SettingsToggle label="Functional cookies" description="Language, theme preferences" checked={cookieFunctional} onChange={setCookieFunctional} />
-          <SettingsToggle label="Analytics cookies" description="Page views, performance metrics" checked={cookieAnalytics} onChange={setCookieAnalytics} />
+        <SettingsSection title="Privacy & Cookies" icon="verified_user">
+          <div className="space-y-4">
+            <SettingsToggle label="Essential cookies" description="Authentication and security — always active." checked={true} onChange={() => {}} disabled />
+            <SettingsToggle label="Functional cookies" description="Language and custom theme preferences." checked={cookieFunctional} onChange={setCookieFunctional} />
+            <SettingsToggle label="Analytics cookies" description="Page views and performance metrics to improve the agent." checked={cookieAnalytics} onChange={setCookieAnalytics} />
+          </div>
         </SettingsSection>
 
         {/* Danger zone */}
         <SettingsSection title="Danger Zone" danger>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-cn-ink">Delete Account</p>
-              <p className="text-xs text-cn-ink-muted">Permanently delete your data. This cannot be undone.</p>
+            <div className="space-y-1">
+              <p className="text-lg font-bold text-on-surface">Delete Account</p>
+              <p className="text-sm font-semibold text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
             </div>
-            <button type="button" className="rounded-xl border border-red-500/30 px-4 py-2 text-sm font-bold text-red-500 transition hover:bg-red-500/10">
-              Delete
+            <button type="button" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm">
+              Delete Account
             </button>
           </div>
         </SettingsSection>
+      </div>
 
-        {error && (
-          <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-600 dark:text-rose-400">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-500">
+          {error}
+        </div>
+      )}
 
+      {/* Save Footer */}
+      <div className="sticky bottom-8 z-40 animate-in fade-in slide-in-from-bottom-12 duration-1000 mt-12">
         <button
           type="button"
           disabled={saving}
           onClick={() => void handleSave()}
-          className="w-full rounded-xl bg-cn-orange py-3 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50"
+          className="w-full bg-cn-orange text-[#5f1600] font-black py-5 rounded-[2rem] text-2xl shadow-[0_20px_50px_rgba(255,90,38,0.4)] hover:shadow-[0_25px_60px_rgba(255,90,38,0.6)] hover:-translate-y-1 active:scale-95 active:translate-y-0 transition-all duration-300 disabled:opacity-50"
         >
           {saving ? "Saving..." : saveSuccess ? "✓ Settings Saved" : "Save Settings"}
         </button>
       </div>
-    </div>
-  );
-}
-
-function SettingsSection({ title, children, danger }: { title: string; children: React.ReactNode; danger?: boolean }) {
-  return (
-    <div className={`rounded-2xl border p-5 ${danger ? "border-red-500/20 bg-red-500/5" : "border-cn-border bg-cn-surface dark:border-[#2e2a2a] dark:bg-[#1a1818]"}`}>
-      <h2 className={`mb-4 text-sm font-bold ${danger ? "text-red-500" : "text-cn-ink dark:text-white"}`}>{title}</h2>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-}
-
-function SettingsToggle({ label, description, checked, onChange, disabled }: {
-  label: string; description: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-semibold text-cn-ink dark:text-white">{label}</p>
-        <p className="text-xs text-cn-ink-muted dark:text-cn-ink-subtle">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-          checked ? "bg-cn-orange" : "bg-cn-border dark:bg-[#2e2a2a]"
-        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-      >
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`} />
-      </button>
-    </div>
-  );
-}
-
-function SettingsSelect({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <p className="text-sm font-semibold text-cn-ink dark:text-white">{label}</p>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-9 rounded-xl border border-cn-border bg-cn-canvas px-3 text-sm text-cn-ink dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white focus:border-cn-orange focus:outline-none"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
     </div>
   );
 }
