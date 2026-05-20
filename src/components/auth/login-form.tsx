@@ -53,9 +53,9 @@ export function LoginForm() {
   const oauthError = searchParams.get("error");
 
   return (
-    <div className="flex flex-col gap-8">
+    <>
       {oauthError ? (
-        <div className="rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-left text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-100">
+        <div className="mb-6 rounded-xl border border-red-200/90 bg-red-50 px-4 py-3 text-left text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-100">
           <p className="font-medium">
             {oauthError === "oauth"
               ? "OAuth sign-in failed."
@@ -69,43 +69,50 @@ export function LoginForm() {
         </div>
       ) : null}
 
-      <OAuthButtons redirectTo={redirectTo} />
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-cn-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase tracking-wider">
-          <span className="bg-cn-surface px-3 text-cn-ink-subtle">or email</span>
-        </div>
+      <div className="mb-6">
+        <OAuthButtons redirectTo={redirectTo} />
       </div>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-cn-ink">Email</span>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="h-[1px] flex-1 bg-cn-border"></div>
+        <span className="text-[10px] font-bold text-cn-ink-subtle uppercase tracking-widest">OR EMAIL</span>
+        <div className="h-[1px] flex-1 bg-cn-border"></div>
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <label className="font-semibold text-sm text-cn-ink ml-1">Email</label>
           <input
             autoComplete="email"
-            className="h-12 rounded-2xl border border-cn-border bg-cn-canvas px-4 text-cn-ink outline-none focus:ring-2 focus:ring-cn-orange/35"
+            className="w-full px-4 py-3 bg-cn-canvas border border-cn-border focus:border-cn-orange focus:ring-4 focus:ring-cn-orange/10 outline-none rounded-xl text-cn-ink transition-all"
             type="email"
+            placeholder="name@example.com"
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
             required
           />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-cn-ink">Password</span>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center px-1">
+            <label className="font-semibold text-sm text-cn-ink">Password</label>
+            <Link className="text-xs text-cn-orange hover:underline font-medium" href="/forgot-password">
+              Forgot?
+            </Link>
+          </div>
           <input
             autoComplete="current-password"
-            className="h-12 rounded-2xl border border-cn-border bg-cn-canvas px-4 text-cn-ink outline-none focus:ring-2 focus:ring-cn-orange/35"
+            className="w-full px-4 py-3 bg-cn-canvas border border-cn-border focus:border-cn-orange focus:ring-4 focus:ring-cn-orange/10 outline-none rounded-xl text-cn-ink transition-all"
             type="password"
+            placeholder="••••••••"
             value={password}
             onChange={(ev) => setPassword(ev.target.value)}
             required
           />
-        </label>
+        </div>
 
         {error ? (
-          <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <div className="rounded-lg border border-red-200/80 bg-red-50/90 px-3 py-2.5 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200 mt-2">
             <p>{error}</p>
             {(error.includes("Backend") || error.includes(".env.local")) ? (
               <Link href="/setup" className="mt-1.5 inline-block text-xs font-semibold text-cn-orange hover:underline">
@@ -118,60 +125,20 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="h-12 w-full rounded-2xl bg-cn-orange text-sm font-bold text-white shadow-md transition hover:bg-cn-orange-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full py-4 bg-cn-orange text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(255,107,61,0.39)] hover:opacity-90 active:scale-[0.99] transition-all mt-6 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-cn-ink-muted">
-        <Link className="font-semibold text-cn-orange hover:underline" href="/forgot-password">
-          Forgot password?
-        </Link>
-      </p>
-
-      {/* Demo accounts for testing */}
-      <div className="rounded-2xl border border-dashed border-cn-orange/30 bg-cn-orange/5 p-4">
-        <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-wider text-cn-orange">
-          Demo Accounts
+      <div className="mt-8 text-center">
+        <p className="text-sm text-cn-ink-subtle">
+          No account?{" "}
+          <Link className="font-medium text-cn-orange hover:underline underline-offset-4 ml-1" href="/register">
+            Create one
+          </Link>
         </p>
-        <div className="flex flex-col gap-2">
-          {[
-            { email: "student@gmail.com", pass: "user123", role: "Student", path: "/dashboard" },
-            { email: "coach@gmail.com", pass: "coach123", role: "Coach", path: "/coach/dashboard" },
-            { email: "admin@gmail.com", pass: "admin123", role: "Admin", path: "/admin/dashboard" },
-          ].map((acc) => (
-            <button
-              key={acc.role}
-              type="button"
-              disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-                setError(null);
-                try {
-                  const res = await fetch("/api/auth/demo-login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: acc.email, password: acc.pass }),
-                  });
-                  const data = await res.json();
-                  if (!res.ok) throw new Error(data.error);
-                  router.replace(data.redirectTo ?? acc.path);
-                  router.refresh();
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "Demo login failed");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              className="flex items-center justify-between rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm transition hover:border-cn-orange/40 hover:bg-cn-orange/5 disabled:opacity-50"
-            >
-              <span className="font-semibold text-cn-ink">{acc.role}</span>
-              <span className="text-xs text-cn-ink-muted">{acc.email}</span>
-            </button>
-          ))}
-        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -26,7 +26,7 @@ function GitHubIcon({ className }: { className?: string }) {
 }
 
 const oauthBtn =
-  "flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl border text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cn-orange";
+  "flex-1 flex h-12 items-center justify-center gap-3 rounded-xl border border-cn-border bg-cn-canvas hover:bg-cn-surface transition-all group active:scale-95 duration-150 font-semibold text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cn-orange";
 
 export function OAuthButtons({ redirectTo }: { redirectTo?: string }) {
   const supabase = createClient();
@@ -48,22 +48,22 @@ export function OAuthButtons({ redirectTo }: { redirectTo?: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col sm:flex-row gap-4 w-full">
       <button
         type="button"
         onClick={() => void signIn("google")}
-        className={cn(oauthBtn, "border-cn-border bg-cn-surface text-cn-ink shadow-sm hover:border-cn-border-strong hover:bg-cn-canvas")}
+        className={cn(oauthBtn, "text-cn-ink")}
       >
-        <GoogleIcon className="h-5 w-5" />
-        Continue with Google
+        <GoogleIcon className="h-5 w-5 grayscale group-hover:grayscale-0 transition-all" />
+        <span>Google</span>
       </button>
       <button
         type="button"
         onClick={() => void signIn("github")}
-        className={cn(oauthBtn, "border-cn-sidebar bg-cn-sidebar text-white hover:opacity-90")}
+        className={cn(oauthBtn, "text-cn-ink")}
       >
-        <GitHubIcon className="h-5 w-5" />
-        Continue with GitHub
+        <GitHubIcon className="h-5 w-5 opacity-70 group-hover:opacity-100 transition-all text-cn-ink" />
+        <span>GitHub</span>
       </button>
     </div>
   );

@@ -8,66 +8,72 @@ export default function AuthLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="grid h-screen overflow-hidden bg-cn-canvas lg:grid-cols-2">
-      {/* Brand panel — dark rail */}
-      <aside className="relative hidden flex-col items-start justify-center overflow-hidden bg-cn-sidebar p-10 text-white lg:flex lg:p-14">
-        <div className="pointer-events-none absolute inset-0 opacity-40" aria-hidden>
-          <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-cn-orange/30 blur-3xl" />
-          <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-cn-lavender/25 blur-3xl" />
-          <div className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cn-yellow/10 blur-3xl" />
+    <div className="flex h-screen w-full bg-cn-surface text-cn-ink font-body">
+      {/* Left Panel: Branding & Marketing */}
+      <section className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-[#131313] to-[#1c1b1b] p-16 text-white relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-cn-orange/10 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-5%] left-[-5%] w-[300px] h-[300px] bg-cn-lavender/5 rounded-full blur-[100px]"></div>
+        
+        <div className="z-10">
+          <div className="flex items-center gap-3 mb-16">
+            <Link href="/" className="inline-block">
+              <CognaraLogo variant="full" size={32} onDark />
+            </Link>
+          </div>
+          <div className="max-w-md">
+            <h2 className="font-headline text-5xl mb-6 leading-tight font-bold">Where knowledge finds its place.</h2>
+            <p className="text-white/70 mb-12 text-lg">Warm, focused learning — courses, code lab, AI agent, and progress in one student hub.</p>
+            
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-cn-yellow flex items-center justify-center text-yellow-900 shrink-0 font-bold">1</div>
+                <p className="text-white/90 pt-1">Enroll in courses with clear progress tracking</p>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-cn-lavender flex items-center justify-center text-white shrink-0 font-bold">2</div>
+                <p className="text-white/90 pt-1">Learn with a tool-using AI tutor by your side</p>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-cn-orange flex items-center justify-center text-white shrink-0 font-bold">3</div>
+                <p className="text-white/90 pt-1">Earn certificates &amp; track XP as you grow</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="z-10 opacity-50 flex flex-col gap-2">
+          <p className="text-sm">SDG 4 · Quality Education</p>
+          <p className="text-sm">© 2026 COGNARA. Built for learners &amp; coaches.</p>
+        </div>
+      </section>
+
+      {/* Right Panel: Auth Forms */}
+      <section className="w-full lg:w-1/2 flex flex-col bg-[#fcfbf9] dark:bg-[#131313] relative overflow-y-auto px-8 py-6 min-h-screen">
+        {/* Top Header Row */}
+        <div className="flex w-full justify-between items-center shrink-0">
+          <div className="lg:hidden flex items-center gap-2">
+            <Link href="/">
+              <CognaraLogo variant="icon" size={28} />
+            </Link>
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </div>
 
-        <div className="relative w-full max-w-md">
-          <Link href="/" className="inline-block">
-            <CognaraLogo variant="full" size={32} onDark />
-          </Link>
-
-          <p className="mt-6 text-xl font-semibold leading-snug text-white/90">
-            Where knowledge finds its place.
-          </p>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/50">
-            Warm, focused learning — courses, code lab, AI agent, and progress in one student hub.
-          </p>
-
-          <div className="my-8 h-px w-16 bg-white/15" />
-
-          <ul className="space-y-4 text-sm text-white/55">
-            <li className="flex items-center gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-cn-yellow/90 text-cn-sidebar text-xs font-bold">1</span>
-              Enroll in courses with clear progress
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-cn-lavender/90 text-cn-sidebar text-xs font-bold">2</span>
-              Learn with a tool-using AI tutor
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-cn-orange text-xs font-bold text-white">3</span>
-              Earn certificates &amp; track XP
-            </li>
-          </ul>
-
-          <p className="mt-10 text-xs font-medium tracking-wide text-white/25">
-            SDG 4 · Quality Education · Built for learners &amp; coaches
-          </p>
-        </div>
-      </aside>
-
-      {/* Form column — NO SCROLL */}
-      <div className="relative flex h-full flex-col overflow-hidden px-4 py-4 sm:px-8 lg:px-14 lg:py-6">
-        <div className="flex items-center justify-between lg:absolute lg:right-8 lg:top-6">
-          <Link href="/" className="lg:hidden">
-            <CognaraLogo variant="icon" size={28} />
-          </Link>
-          <ThemeToggle className="ml-auto" />
+        {/* Content Wrapper */}
+        <div className="w-full flex justify-center my-auto py-4">
+          {children}
         </div>
 
-        <div className="mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-center">
-          <div className="cn-card p-6 sm:p-8">{children}</div>
-          <p className="mt-4 text-center text-xs leading-relaxed text-cn-ink-subtle">
-            COGNARA™ · SDG 4 Quality Education
-          </p>
+        {/* Bottom Links */}
+        <div className="flex justify-center gap-6 text-cn-ink-subtle text-sm shrink-0">
+          <Link className="hover:text-cn-ink transition-colors" href="/legal/privacy">Privacy Policy</Link>
+          <Link className="hover:text-cn-ink transition-colors" href="/legal/terms">Terms of Service</Link>
+          <a className="hover:text-cn-ink transition-colors" href="mailto:support@cognara.app">Contact</a>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
