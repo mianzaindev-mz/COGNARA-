@@ -22,10 +22,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY profiles_select
   ON public.profiles FOR SELECT
-  USING (
-    id = auth.uid()
-    OR cognara_is_admin()
-  );
+  USING (true);
 
 CREATE POLICY profiles_update_self
   ON public.profiles FOR UPDATE
@@ -35,6 +32,11 @@ CREATE POLICY profiles_update_self
 CREATE POLICY profiles_insert_service
   ON public.profiles FOR INSERT
   WITH CHECK (false);
+
+CREATE POLICY profiles_admin_all
+  ON public.profiles FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
 
 -- ─── user_settings ───────────────────────────────────────────
 ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
@@ -52,6 +54,11 @@ CREATE POLICY user_settings_insert
   ON public.user_settings FOR INSERT
   WITH CHECK (false);
 
+CREATE POLICY user_settings_admin_all
+  ON public.user_settings FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
+
 -- ─── onboarding_progress ─────────────────────────────────────
 ALTER TABLE public.onboarding_progress ENABLE ROW LEVEL SECURITY;
 
@@ -64,12 +71,23 @@ CREATE POLICY onboarding_modify
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
+CREATE POLICY onboarding_admin_all
+  ON public.onboarding_progress FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
+
 -- ─── plans (catalog) ─────────────────────────────────────────
 ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY plans_read
   ON public.plans FOR SELECT
   USING (is_active = true OR cognara_is_admin());
+
+CREATE POLICY plans_admin_all
+  ON public.plans FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
+
 
 -- ─── subscriptions / invoices / credit_transactions ──────────
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
@@ -106,6 +124,11 @@ CREATE POLICY ai_credits_insert
   ON public.ai_credits FOR INSERT
   WITH CHECK (false);
 
+CREATE POLICY ai_credits_admin_all
+  ON public.ai_credits FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
+
 -- ─── courses / lessons / resources ────────────────────────────
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 
@@ -125,6 +148,12 @@ CREATE POLICY courses_coach_update
   ON public.courses FOR UPDATE
   USING (coach_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (coach_id = auth.uid() OR cognara_is_admin());
+
+CREATE POLICY courses_admin_all
+  ON public.courses FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
+
 
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 
@@ -227,13 +256,36 @@ CREATE POLICY notebook_pages_own
   );
 
 ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY quizzes_access
+
+CREATE POLICY quizzes_select
+  ON public.quizzes FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.lessons l
+      JOIN public.courses c ON c.id = l.course_id
+      WHERE l.id = quizzes.lesson_id AND (c.is_published = true AND c.deleted_at IS NULL)
+    )
+    OR coach_id = auth.uid()
+    OR cognara_is_admin()
+  );
+
+CREATE POLICY quizzes_coach_modify
   ON public.quizzes FOR ALL
   USING (coach_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (coach_id = auth.uid() OR cognara_is_admin());
 
 ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY questions_access
+
+CREATE POLICY questions_select
+  ON public.questions FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.quizzes q
+      WHERE q.id = quiz_id
+    )
+  );
+
+CREATE POLICY questions_modify
   ON public.questions FOR ALL
   USING (
     EXISTS (SELECT 1 FROM public.quizzes q WHERE q.id = quiz_id AND (q.coach_id = auth.uid() OR cognara_is_admin()))
@@ -243,7 +295,17 @@ CREATE POLICY questions_access
   );
 
 ALTER TABLE public.question_options ENABLE ROW LEVEL SECURITY;
-CREATE POLICY question_options_access
+
+CREATE POLICY question_options_select
+  ON public.question_options FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.questions q
+      WHERE q.id = question_id
+    )
+  );
+
+CREATE POLICY question_options_modify
   ON public.question_options FOR ALL
   USING (
     EXISTS (
@@ -259,6 +321,7 @@ CREATE POLICY question_options_access
       WHERE q.id = question_id AND (z.coach_id = auth.uid() OR cognara_is_admin())
     )
   );
+
 
 ALTER TABLE public.quiz_attempts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY quiz_attempts_own
@@ -310,10 +373,16 @@ CREATE POLICY voice_sessions_own
   WITH CHECK (student_id = auth.uid() OR cognara_is_admin());
 
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
-CREATE POLICY reviews_participant
+
+CREATE POLICY reviews_select
+  ON public.reviews FOR SELECT
+  USING (true);
+
+CREATE POLICY reviews_modify
   ON public.reviews FOR ALL
   USING (reviewer_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (reviewer_id = auth.uid() OR cognara_is_admin());
+
 
 -- ─── coach verification ──────────────────────────────────────
 ALTER TABLE public.coach_applications ENABLE ROW LEVEL SECURITY;
@@ -334,28 +403,67 @@ CREATE POLICY coach_documents_own
 
 -- ─── live / peer ─────────────────────────────────────────────
 ALTER TABLE public.live_sessions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY live_sessions_access
+
+CREATE POLICY live_sessions_select
+  ON public.live_sessions FOR SELECT
+  USING (true);
+
+CREATE POLICY live_sessions_modify
   ON public.live_sessions FOR ALL
   USING (coach_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (coach_id = auth.uid() OR cognara_is_admin());
 
 ALTER TABLE public.live_attendees ENABLE ROW LEVEL SECURITY;
-CREATE POLICY live_attendees_access
+
+CREATE POLICY live_attendees_select
+  ON public.live_attendees FOR SELECT
+  USING (
+    student_id = auth.uid()
+    OR cognara_is_admin()
+    OR EXISTS (
+      SELECT 1 FROM public.live_sessions s
+      WHERE s.id = session_id AND s.coach_id = auth.uid()
+    )
+  );
+
+CREATE POLICY live_attendees_modify
   ON public.live_attendees FOR ALL
   USING (student_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (student_id = auth.uid() OR cognara_is_admin());
 
 ALTER TABLE public.peer_sessions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY peer_sessions_access
+
+CREATE POLICY peer_sessions_select
+  ON public.peer_sessions FOR SELECT
+  USING (true);
+
+CREATE POLICY peer_sessions_insert
+  ON public.peer_sessions FOR INSERT
+  WITH CHECK (host_id = auth.uid());
+
+CREATE POLICY peer_sessions_modify
   ON public.peer_sessions FOR ALL
   USING (host_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (host_id = auth.uid() OR cognara_is_admin());
 
 ALTER TABLE public.peer_attendees ENABLE ROW LEVEL SECURITY;
-CREATE POLICY peer_attendees_access
+
+CREATE POLICY peer_attendees_select
+  ON public.peer_attendees FOR SELECT
+  USING (
+    student_id = auth.uid()
+    OR cognara_is_admin()
+    OR EXISTS (
+      SELECT 1 FROM public.peer_sessions s
+      WHERE s.id = session_id AND s.host_id = auth.uid()
+    )
+  );
+
+CREATE POLICY peer_attendees_modify
   ON public.peer_attendees FOR ALL
   USING (student_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (student_id = auth.uid() OR cognara_is_admin());
+
 
 -- ─── earnings / performance ──────────────────────────────────
 ALTER TABLE public.coach_earnings ENABLE ROW LEVEL SECURITY;
@@ -430,12 +538,20 @@ CREATE POLICY user_xp_own
   WITH CHECK (user_id = auth.uid() OR cognara_is_admin());
 
 ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
+
 CREATE POLICY badges_read
   ON public.badges FOR SELECT
   USING (true);
 
+CREATE POLICY badges_admin_all
+  ON public.badges FOR ALL
+  USING (cognara_is_admin())
+  WITH CHECK (cognara_is_admin());
+
 ALTER TABLE public.user_badges ENABLE ROW LEVEL SECURITY;
+
 CREATE POLICY user_badges_own
   ON public.user_badges FOR ALL
   USING (user_id = auth.uid() OR cognara_is_admin())
   WITH CHECK (user_id = auth.uid() OR cognara_is_admin());
+

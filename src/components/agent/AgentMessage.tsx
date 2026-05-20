@@ -392,20 +392,23 @@ function ExplainButton({ text }: { text: string }) {
       .slice(0, 1200);
 
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = "en-US";
+    utterance.lang = lang === "ur" ? "ur-PK" : "en-US";
     utterance.rate = 0.92;
     utterance.pitch = 0.95;
 
     const voices = window.speechSynthesis.getVoices();
-    const v =
-      voices.find(v => v.name.includes("Microsoft David")) ||
-      voices.find(v => v.name.includes("Microsoft Mark")) ||
-      voices.find(v => v.name.includes("Microsoft Guy")) ||
-      voices.find(v => v.name.includes("Google UK English Male")) ||
-      voices.find(v => v.name.includes("Alex")) ||
-      voices.find(v => v.name.includes("Daniel")) ||
-      voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
-      voices.find(v => v.lang === "en-US");
+    const v = lang === "ur"
+      ? (voices.find(v => v.lang.startsWith("ur") || v.name.toLowerCase().includes("urdu")) ||
+         voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
+         voices.find(v => v.lang === "en-US"))
+      : (voices.find(v => v.name.includes("Microsoft David")) ||
+         voices.find(v => v.name.includes("Microsoft Mark")) ||
+         voices.find(v => v.name.includes("Microsoft Guy")) ||
+         voices.find(v => v.name.includes("Google UK English Male")) ||
+         voices.find(v => v.name.includes("Alex")) ||
+         voices.find(v => v.name.includes("Daniel")) ||
+         voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
+         voices.find(v => v.lang === "en-US"));
     if (v) utterance.voice = v;
 
     utterance.onstart = () => setSpeaking(true);

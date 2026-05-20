@@ -13,8 +13,6 @@ interface VoiceButtonProps {
   disabled?: boolean;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Voice input/output button using native Web Speech API.
  * Supports English (en-US) and Urdu (ur-PK) speech recognition and synthesis.

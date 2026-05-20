@@ -79,9 +79,10 @@ $$;
 
 DROP TRIGGER IF EXISTS enforce_free_content ON public.resources;
 CREATE TRIGGER enforce_free_content
-  BEFORE UPDATE ON public.resources
+  BEFORE INSERT OR UPDATE ON public.resources
   FOR EACH ROW
   EXECUTE PROCEDURE public.enforce_free_content_guarantee();
+
 
 CREATE TABLE public.enrollments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

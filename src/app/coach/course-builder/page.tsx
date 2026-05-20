@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import * as THREE from "three";
@@ -225,7 +225,7 @@ export default function CourseBuilderPage() {
   };
 
   // --- Open Lesson Editor ---
-  const handleOpenLesson = async (lesson: LessonNode) => {
+  const handleOpenLesson = useCallback(async (lesson: LessonNode) => {
     setActiveLesson(lesson);
     setView("editor");
     setSelectedBlockId(null);
@@ -262,7 +262,7 @@ export default function CourseBuilderPage() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [selectedCourse]);
 
   // Save lesson editor content
   const handleSaveLessonContent = async () => {
@@ -530,7 +530,7 @@ export default function CourseBuilderPage() {
     });
 
     // 5. Animation Render Loop
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
     let animId: number;
 
     const animate = () => {
@@ -640,7 +640,7 @@ export default function CourseBuilderPage() {
       }
       renderer.dispose();
     };
-  }, [view, chapters, lessons, simulationMode]);
+  }, [view, chapters, lessons, simulationMode, handleOpenLesson]);
 
   // --- Add Chapter Node ---
   const handleAddChapterNode = () => {
@@ -1331,6 +1331,7 @@ export default function CourseBuilderPage() {
                           {block.type === "image" && (
                             block.content && block.content.startsWith("http") ? (
                               <div className="rounded-2xl overflow-hidden border border-[#221740] bg-black/40 flex items-center justify-center max-h-[400px]">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={block.content} alt="Lesson visual module" className="max-h-[400px] object-contain w-full" />
                               </div>
                             ) : (
@@ -1517,6 +1518,7 @@ export default function CourseBuilderPage() {
                           />
                           {block.content && block.content.startsWith("http") ? (
                             <div className="rounded-xl overflow-hidden border border-[#221740] bg-black/40 max-h-[300px] flex items-center justify-center">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={block.content} alt="Preview inline" className="max-h-[300px] object-contain" />
                             </div>
                           ) : (

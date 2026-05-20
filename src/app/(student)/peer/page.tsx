@@ -23,34 +23,214 @@ const DEMO_SESSIONS: PeerSession[] = [
 ];
 
 export default function PeerPage() {
-  const [sessions, setSessions] = useState<PeerSession[]>(DEMO_SESSIONS);
+  const [sessions, setSessions] = useState<PeerSession[]>([]);
+  const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  
+  // Custom interactive state for Hosting
+  const [hostOpen, setHostOpen] = useState(false);
+  const [hosting, setHosting] = useState(false);
+  const [newSession, setNewSession] = useState({
+    title: "",
+    topic: "",
+    date: "",
+    maxSpots: 10,
+    price: "Free",
+  });
+
+  const loadSessions = async (currentUserId: string | null) => {
+    const supabase = createClient();
+    if (!supabase) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("peer_sessions")
+        .select(`
+          id,
+          title,
+          topic,
+          scheduled_at,
+          max_students,
+          price_usd,
+          host_id,
+          profiles:host_id (
+            full_name
+          ),
+          peer_attendees (
+            student_id
+          )
+        `)
+        .order("scheduled_at", { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        const formatted: PeerSession[] = data.map((s: any) => {
+          const isHost = s.host_id === currentUserId;
+          const attendeeIds = s.peer_attendees ? s.peer_attendees.map((a: any) => a.student_id) : [];
+          const isRegistered = attendeeIds.includes(currentUserId) || isHost;
+          
+          const d = new Date(s.scheduled_at);
+          const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+          return {
+            id: s.id,
+            title: s.title,
+            host: isHost ? "You (Host)" : (s.profiles?.full_name || "Student Tutor"),
+            topic: s.topic || "General",
+            date: dateStr,
+            maxSpots: s.max_students || 10,
+            registered: attendeeIds.length,
+            price: Number(s.price_usd) === 0 ? "Free" : `$${Number(s.price_usd).toFixed(2)}`,
+            isRegistered,
+          };
+        });
+        setSessions(formatted);
+      }
+    } catch (err: any) {
+      console.error("Error loading peer sessions:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadUser() {
+    async function init() {
       const supabase = createClient();
-      if (!supabase) return;
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserId(user.id);
+      let currentUserId: string | null = null;
+      if (user) {
+        setUserId(user.id);
+        currentUserId = user.id;
+      }
+      await loadSessions(currentUserId);
     }
-    void loadUser();
+    void init();
   }, []);
 
   const handleRegister = async (sessionId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      alert("Please log in to register for peer sessions!");
+      return;
+    }
     setRegistering(sessionId);
 
-    // Simulate registration (in production this would write to a peer_registrations table)
-    await new Promise(r => setTimeout(r, 800));
+    const supabase = createClient();
+    if (!supabase) {
+      setRegistering(null);
+      return;
+    }
 
-    setSessions(prev => prev.map(s =>
-      s.id === sessionId
-        ? { ...s, registered: s.registered + 1, isRegistered: true }
-        : s
-    ));
-    setRegistering(null);
+    try {
+      const { error } = await supabase
+        .from("peer_attendees")
+        .insert({
+          session_id: sessionId,
+          student_id: userId,
+          disclaimer_confirmed: true
+        });
+
+      if (error) throw error;
+
+      setSessions(prev => prev.map(s =>
+        s.id === sessionId
+          ? { ...s, registered: s.registered + 1, isRegistered: true }
+          : s
+      ));
+    } catch (err: any) {
+      alert(`Registration failed: ${err.message}`);
+    } finally {
+      setRegistering(null);
+    }
   };
+
+  const handleHostSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) {
+      alert("Please log in to host study sessions!");
+      return;
+    }
+    if (!newSession.title || !newSession.topic || !newSession.date) {
+      alert("Please fill in all required fields!");
+      return;
+    }
+
+    setHosting(true);
+    const supabase = createClient();
+    if (!supabase) {
+      setHosting(false);
+      return;
+    }
+
+    try {
+      const parsedPrice = newSession.price === "Free" ? 0 : Number(newSession.price);
+
+      const { data, error } = await supabase
+        .from("peer_sessions")
+        .insert({
+          host_id: userId,
+          title: newSession.title,
+          topic: newSession.topic,
+          scheduled_at: newSession.date,
+          max_students: Number(newSession.maxSpots),
+          price_usd: parsedPrice,
+          status: "scheduled",
+          host_confirmed_student: true
+        })
+        .select(`
+          id,
+          title,
+          topic,
+          scheduled_at,
+          max_students,
+          price_usd,
+          host_id,
+          profiles:host_id (
+            full_name
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const d = new Date(data.scheduled_at);
+        const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+        const added: PeerSession = {
+          id: data.id,
+          title: data.title,
+          host: "You (Host)",
+          topic: data.topic || "General",
+          date: dateStr,
+          maxSpots: data.max_students || 10,
+          registered: 0,
+          price: Number(data.price_usd) === 0 ? "Free" : `$${Number(data.price_usd).toFixed(2)}`,
+          isRegistered: true,
+        };
+
+        setSessions(prev => [added, ...prev]);
+        setNewSession({
+          title: "",
+          topic: "",
+          date: "",
+          maxSpots: 10,
+          price: "Free",
+        });
+        setHostOpen(false);
+      }
+    } catch (err: any) {
+      alert(`Failed to create session: ${err.message}`);
+    } finally {
+      setHosting(false);
+    }
+  };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,6 +243,7 @@ export default function PeerPage() {
         </div>
         <button
           type="button"
+          onClick={() => setHostOpen(true)}
           className="rounded-xl bg-cn-orange px-4 py-2 text-sm font-bold text-white transition hover:bg-cn-orange-hover"
         >
           + Host a Session
@@ -127,6 +308,101 @@ export default function PeerPage() {
           );
         })}
       </div>
+
+      {/* Host a Session Modal */}
+      {hostOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-cn-surface w-full max-w-[440px] rounded-[24px] p-6 shadow-2xl border border-cn-border animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-lg text-cn-ink">Host a Study Session</h3>
+              <button
+                type="button"
+                onClick={() => setHostOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cn-canvas text-cn-ink-muted"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={(e) => void handleHostSubmit(e)} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Session Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Advanced Calculus Workshop"
+                  value={newSession.title}
+                  onChange={(e) => setNewSession(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-cn-canvas border border-cn-border rounded-xl px-3 py-2 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Subject / Topic *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Calculus"
+                    value={newSession.topic}
+                    onChange={(e) => setNewSession(prev => ({ ...prev, topic: e.target.value }))}
+                    className="w-full bg-cn-canvas border border-cn-border rounded-xl px-3 py-2 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Date & Time *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. May 25, 4PM"
+                    value={newSession.date}
+                    onChange={(e) => setNewSession(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full bg-cn-canvas border border-cn-border rounded-xl px-3 py-2 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Max Spots</label>
+                  <input
+                    type="number"
+                    min={2}
+                    max={50}
+                    value={newSession.maxSpots}
+                    onChange={(e) => setNewSession(prev => ({ ...prev, maxSpots: Math.max(2, Number(e.target.value)) }))}
+                    className="w-full bg-cn-canvas border border-cn-border rounded-xl px-3 py-2 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Price (Free or $)</label>
+                  <select
+                    value={newSession.price}
+                    onChange={(e) => setNewSession(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full bg-cn-canvas border border-cn-border rounded-xl px-3 py-2 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                  >
+                    <option value="Free">Free</option>
+                    <option value="1.00">$1.00</option>
+                    <option value="3.00">$3.00</option>
+                    <option value="5.00">$5.00</option>
+                    <option value="8.00">$8.00 (Max Limit)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={hosting}
+                className="w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50 mt-2"
+              >
+                {hosting ? "Publishing Session…" : "Create Session"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
