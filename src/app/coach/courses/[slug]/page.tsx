@@ -13,6 +13,52 @@ type Lesson = {
   type: string;
 };
 
+type BlockType =
+  | "heading"
+  | "paragraph"
+  | "image"
+  | "video"
+  | "code"
+  | "url"
+  | "divider"
+  | "callout"
+  | "quote"
+  | "resource"
+  | "activity"
+  | "embed";
+
+type ContentBlock = {
+  id: string;
+  type: BlockType;
+  content: string;
+  properties: {
+    level?: number;
+    align?: "left" | "center" | "right";
+    caption?: string;
+    language?: string;
+    author?: string;
+    title?: string;
+    duration?: number;
+    activityType?: string;
+    url?: string;
+  };
+};
+
+const EDIT_BLOCK_TYPES: Array<{ type: BlockType; label: string; icon: string; desc: string }> = [
+  { type: "heading", label: "Heading", icon: "H1", desc: "Title or section header" },
+  { type: "paragraph", label: "Paragraph", icon: "¶", desc: "Rich text paragraph" },
+  { type: "code", label: "Code Block", icon: "</>", desc: "Syntax-highlighted code" },
+  { type: "image", label: "Image", icon: "IMG", desc: "Image from a web URL" },
+  { type: "video", label: "Video Player", icon: "▶", desc: "Video streaming player" },
+  { type: "embed", label: "Embed Frame", icon: "🔗", desc: "Web iframe content link" },
+  { type: "url", label: "Link Card", icon: "🔗", desc: "Bookmark card layout" },
+  { type: "callout", label: "Callout Box", icon: "💡", desc: "Important reminder text" },
+  { type: "quote", label: "Quote Box", icon: "“", desc: "Italicized custom quote" },
+  { type: "resource", label: "Resource Link", icon: "📂", desc: "Downloadable attachment details" },
+  { type: "activity", label: "Activity Task", icon: "⚙️", desc: "Actionable hands-on task block" },
+  { type: "divider", label: "Divider Line", icon: "—", desc: "Thin separator rule" },
+];
+
 type Course = {
   id: string;
   title: string;
@@ -53,8 +99,8 @@ export default function EditCoursePage() {
   // Lesson form state
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [lessonTitle, setLessonTitle] = useState("");
-  const [lessonContent, setLessonContent] = useState("");
   const [lessonType, setLessonType] = useState("text");
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -163,12 +209,76 @@ export default function EditCoursePage() {
   };
 
   // Lesson Management Actions
+  const createNewBlock = (type: BlockType): ContentBlock => {
+    return {
+      id: `block-${Math.random().toString(36).substring(2, 9)}`,
+      type,
+      content:
+        type === "heading"
+          ? "New Section Heading"
+          : type === "divider"
+          ? ""
+          : type === "paragraph"
+          ? "Start drafting your lesson content here..."
+          : type === "code"
+          ? "// Insert sample code or script snippet here"
+          : "",
+      properties:
+        type === "heading"
+          ? { level: 2 }
+          : type === "code"
+          ? { language: "javascript" }
+          : type === "quote"
+          ? { author: "Famous Scholar" }
+          : type === "resource"
+          ? { title: "Cheat Sheet PDF" }
+          : type === "activity"
+          ? { duration: 15, activityType: "challenge" }
+          : {},
+    };
+  };
+
+  const handleAddBlock = (type: BlockType) => {
+    setBlocks((prev) => [...prev, createNewBlock(type)]);
+  };
+
+  const handleDeleteBlock = (id: string) => {
+    setBlocks((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const handleUpdateBlockContent = (id: string, newContent: string) => {
+    setBlocks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, content: newContent } : b))
+    );
+  };
+
+  const handleUpdateBlockProperty = (id: string, key: string, val: any) => {
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.id === id ? { ...b, properties: { ...b.properties, [key]: val } } : b
+      )
+    );
+  };
+
+  const handleMoveBlock = (index: number, direction: "up" | "down") => {
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= blocks.length) return;
+    const copy = [...blocks];
+    const temp = copy[index];
+    copy[index] = copy[swapIndex];
+    copy[swapIndex] = temp;
+    setBlocks(copy);
+  };
+
   const openCreateLessonModal = () => {
     setLessonModalMode("create");
     setEditingLessonId(null);
     setLessonTitle("");
-    setLessonContent("");
     setLessonType("text");
+    setBlocks([
+      { id: "b-1", type: "heading", content: "Introduction", properties: { level: 2 } },
+      { id: "b-2", type: "paragraph", content: "Write lesson content blocks here...", properties: {} }
+    ]);
     setLessonError(null);
     setLessonModalOpen(true);
   };
@@ -177,8 +287,27 @@ export default function EditCoursePage() {
     setLessonModalMode("edit");
     setEditingLessonId(lesson.id);
     setLessonTitle(lesson.title);
-    setLessonContent(lesson.content ?? "");
     setLessonType(lesson.type);
+
+    let parsedBlocks: ContentBlock[] = [];
+    try {
+      if (lesson.content) {
+        const parsed = JSON.parse(lesson.content);
+        if (Array.isArray(parsed)) {
+          parsedBlocks = parsed;
+        } else {
+          parsedBlocks = [{ id: "b-1", type: "paragraph", content: lesson.content, properties: {} }];
+        }
+      } else {
+        parsedBlocks = [
+          { id: "b-1", type: "heading", content: lesson.title, properties: { level: 2 } },
+          { id: "b-2", type: "paragraph", content: "Write lesson content blocks here...", properties: {} }
+        ];
+      }
+    } catch {
+      parsedBlocks = [{ id: "b-1", type: "paragraph", content: lesson.content || "", properties: {} }];
+    }
+    setBlocks(parsedBlocks);
     setLessonError(null);
     setLessonModalOpen(true);
   };
@@ -201,6 +330,8 @@ export default function EditCoursePage() {
       const supabase = createClient();
       if (!supabase) throw new Error("Could not connect to database.");
 
+      const serializedContent = JSON.stringify(blocks);
+
       if (lessonModalMode === "create") {
         const nextOrderIndex = lessons.length > 0 ? Math.max(...lessons.map(l => l.order_index)) + 1 : 1;
 
@@ -209,7 +340,7 @@ export default function EditCoursePage() {
           .insert({
             course_id: course.id,
             title: trimmedTitle,
-            content: lessonContent.trim(),
+            content: serializedContent,
             order_index: nextOrderIndex,
             type: lessonType
           })
@@ -230,7 +361,7 @@ export default function EditCoursePage() {
           .from("lessons")
           .update({
             title: trimmedTitle,
-            content: lessonContent.trim(),
+            content: serializedContent,
             type: lessonType
           })
           .eq("id", editingLessonId);
@@ -238,7 +369,7 @@ export default function EditCoursePage() {
         if (updateErr) throw updateErr;
 
         setLessons(prev =>
-          prev.map(l => (l.id === editingLessonId ? { ...l, title: trimmedTitle, content: lessonContent.trim(), type: lessonType } : l))
+          prev.map(l => (l.id === editingLessonId ? { ...l, title: trimmedTitle, content: serializedContent, type: lessonType } : l))
         );
       }
 
@@ -608,10 +739,11 @@ export default function EditCoursePage() {
       {/* Lesson Details Edit/Create Modal Overlay */}
       {lessonModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="w-full max-w-xl rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in fade-in zoom-in-95 duration-200">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-base font-bold text-cn-ink dark:text-white">
-                {lessonModalMode === "create" ? "Add Lesson" : "Edit Lesson"}
+          <div className="w-full max-w-5xl rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="mb-4 flex items-center justify-between border-b border-cn-border pb-3 dark:border-[#2e2a2a]">
+              <h3 className="text-base font-bold text-cn-ink dark:text-white flex items-center gap-2">
+                <span>⚡</span>
+                <span>{lessonModalMode === "create" ? "Add Lesson (Modular Creator)" : "Edit Lesson (Modular Creator)"}</span>
               </h3>
               <button
                 type="button"
@@ -628,51 +760,324 @@ export default function EditCoursePage() {
               </div>
             )}
 
-            <form onSubmit={handleSaveLesson} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-cn-ink-muted mb-1.5">
-                  Lesson Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Setting Up Local Tools"
-                  value={lessonTitle}
-                  onChange={(e) => setLessonTitle(e.target.value)}
-                  className="w-full rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
-                />
+            <form onSubmit={handleSaveLesson} className="flex-1 flex flex-col overflow-hidden space-y-4">
+              {/* Top metadata row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0 bg-cn-canvas dark:bg-[#0f0e0e] p-4 rounded-xl border border-cn-border dark:border-[#2e2a2a]">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-cn-ink-muted mb-1">
+                    Lesson Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Setting Up Local Tools"
+                    value={lessonTitle}
+                    onChange={(e) => setLessonTitle(e.target.value)}
+                    className="w-full rounded-lg border border-cn-border bg-cn-surface px-3 py-2 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#161414] dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-cn-ink-muted mb-1">
+                    Content Type Category
+                  </label>
+                  <select
+                    value={lessonType}
+                    onChange={(e) => setLessonType(e.target.value)}
+                    className="w-full rounded-lg border border-cn-border bg-cn-surface px-3 py-2 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#161414] dark:text-white"
+                  >
+                    <option value="text">Text Document</option>
+                    <option value="video">Video Lecture</option>
+                    <option value="code">Interactive Code Editor</option>
+                    <option value="quiz">Final Quiz Lesson</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-cn-ink-muted mb-1.5">
-                  Content Type
-                </label>
-                <select
-                  value={lessonType}
-                  onChange={(e) => setLessonType(e.target.value)}
-                  className="w-full rounded-xl border border-cn-border bg-cn-canvas px-3 py-2.5 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
-                >
-                  <option value="text">Text Document</option>
-                  <option value="video">Video Lecture</option>
-                  <option value="code">Interactive Code Editor</option>
-                  <option value="quiz">Final Quiz Lesson</option>
-                </select>
+              {/* Modular content workspace (2 columns) */}
+              <div className="flex-1 flex overflow-hidden gap-4 min-h-0">
+                {/* Left side: Tool Palette */}
+                <div className="w-64 border border-cn-border dark:border-[#2e2a2a] bg-cn-canvas dark:bg-[#0f0e0e] rounded-xl flex flex-col p-4 overflow-y-auto shrink-0 select-none">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 dark:text-indigo-400 mb-3 border-b border-cn-border dark:border-[#2e2a2a] pb-1">
+                    Lesson Blocks Palette
+                  </h4>
+                  <div className="space-y-2">
+                    {EDIT_BLOCK_TYPES.map((blockDef) => (
+                      <button
+                        key={blockDef.type}
+                        type="button"
+                        onClick={() => handleAddBlock(blockDef.type)}
+                        className="w-full text-left rounded-xl border border-cn-border dark:border-[#2e2a2a] bg-cn-surface dark:bg-[#161414] p-2.5 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition flex items-center gap-3 active:scale-95 duration-150 group"
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-xs font-bold text-indigo-500 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white group-hover:border-indigo-500 transition">
+                          {blockDef.icon}
+                        </span>
+                        <div>
+                          <p className="text-xs font-semibold text-cn-ink dark:text-white">{blockDef.label}</p>
+                          <p className="text-[9px] text-cn-ink-subtle leading-tight">{blockDef.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right side: Interactive Blocks Canvas */}
+                <div className="flex-1 border border-cn-border dark:border-[#2e2a2a] bg-cn-canvas dark:bg-[#0f0e0e] rounded-xl p-4 overflow-y-auto min-h-0 flex flex-col gap-4">
+                  {blocks.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-cn-border dark:border-[#2e2a2a] rounded-xl py-12 text-center">
+                      <p className="text-sm font-bold text-cn-ink dark:text-white">Empty lesson canvas</p>
+                      <p className="text-xs text-cn-ink-muted mt-1 max-w-xs">Click block buttons on the left to add items to your curriculum outline.</p>
+                    </div>
+                  ) : (
+                    blocks.map((block, idx) => {
+                      return (
+                        <div
+                          key={block.id}
+                          className="group relative rounded-xl border border-cn-border dark:border-[#2e2a2a] bg-cn-surface dark:bg-[#161414] p-4 shadow-sm space-y-3 transition-all hover:border-indigo-500/30"
+                        >
+                          {/* Block Header with Controls */}
+                          <div className="flex items-center justify-between border-b border-cn-border dark:border-[#2e2a2a]/60 pb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                              {block.type} Block
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => handleMoveBlock(idx, "up")}
+                                className="h-5 px-1.5 text-[9px] font-bold rounded bg-cn-canvas dark:bg-[#0f0e0e] border border-cn-border dark:border-[#2e2a2a] text-cn-ink hover:border-indigo-500 disabled:opacity-30 disabled:hover:border-cn-border"
+                              >
+                                ▲ Up
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === blocks.length - 1}
+                                onClick={() => handleMoveBlock(idx, "down")}
+                                className="h-5 px-1.5 text-[9px] font-bold rounded bg-cn-canvas dark:bg-[#0f0e0e] border border-cn-border dark:border-[#2e2a2a] text-cn-ink hover:border-indigo-500 disabled:opacity-30 disabled:hover:border-cn-border"
+                              >
+                                ▼ Down
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteBlock(block.id)}
+                                className="h-5 px-1.5 text-[9px] font-bold rounded bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                              >
+                                ✕ Delete
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Block Type Fields */}
+                          {block.type === "heading" && (
+                            <div className="flex gap-3">
+                              <select
+                                value={block.properties.level || 2}
+                                onChange={(e) => handleUpdateBlockProperty(block.id, "level", Number(e.target.value))}
+                                className="rounded border border-cn-border bg-cn-canvas px-2 py-1 text-xs text-cn-ink focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white shrink-0 font-bold"
+                              >
+                                <option value={1}>H1</option>
+                                <option value={2}>H2</option>
+                                <option value={3}>H3</option>
+                              </select>
+                              <input
+                                type="text"
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="flex-1 rounded border border-cn-border bg-cn-canvas px-3 py-1 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white font-bold"
+                                placeholder="Section Heading"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "paragraph" && (
+                            <textarea
+                              rows={3}
+                              value={block.content}
+                              onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                              className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white resize-y leading-relaxed"
+                              placeholder="Type paragraph content (markdown supported)..."
+                            />
+                          )}
+
+                          {block.type === "code" && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <label className="text-[9px] uppercase font-bold text-cn-ink-muted">Code Language</label>
+                                <input
+                                  type="text"
+                                  value={block.properties.language || "javascript"}
+                                  onChange={(e) => handleUpdateBlockProperty(block.id, "language", e.target.value)}
+                                  className="rounded border border-cn-border bg-cn-canvas px-2.5 py-0.5 text-[10px] text-cn-ink dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white font-bold"
+                                  placeholder="e.g. typescript, python, html"
+                                />
+                              </div>
+                              <textarea
+                                rows={5}
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-[#030107] px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-indigo-500 resize-y"
+                                placeholder="// Write code script here"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "image" && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Image Source URL (https://...)"
+                              />
+                              <input
+                                type="text"
+                                value={block.properties.caption || ""}
+                                onChange={(e) => handleUpdateBlockProperty(block.id, "caption", e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Image Caption / Alternative text label"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "video" && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Video Streaming URL (Direct .mp4 / YouTube embed link)"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "embed" && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Embed Iframe source URL (https://...)"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "url" && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Link URL (https://...)"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "callout" && (
+                            <textarea
+                              rows={2}
+                              value={block.content}
+                              onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                              className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white resize-y"
+                              placeholder="💡 Callout box message..."
+                            />
+                          )}
+
+                          {block.type === "quote" && (
+                            <div className="space-y-2">
+                              <textarea
+                                rows={2}
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white italic"
+                                placeholder="“Write the quote here...”"
+                              />
+                              <input
+                                type="text"
+                                value={block.properties.author || ""}
+                                onChange={(e) => handleUpdateBlockProperty(block.id, "author", e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Quote Author / Source"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "resource" && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={block.properties.title || ""}
+                                onChange={(e) => handleUpdateBlockProperty(block.id, "title", e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white font-bold"
+                                placeholder="Resource Link Label (e.g. Python Syllabus PDF)"
+                              />
+                              <textarea
+                                rows={2}
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Short description of this resource..."
+                              />
+                              <input
+                                type="text"
+                                value={block.properties.url || ""}
+                                onChange={(e) => handleUpdateBlockProperty(block.id, "url", e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-1.5 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Download URL Link (https://...)"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "activity" && (
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center gap-2">
+                                  <label className="text-[9px] uppercase font-bold text-cn-ink-muted">Duration (min)</label>
+                                  <input
+                                    type="number"
+                                    value={block.properties.duration || 10}
+                                    onChange={(e) => handleUpdateBlockProperty(block.id, "duration", Number(e.target.value))}
+                                    className="w-16 rounded border border-cn-border bg-cn-canvas px-2 py-0.5 text-xs text-cn-ink dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white font-bold"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <label className="text-[9px] uppercase font-bold text-cn-ink-muted">Task Type</label>
+                                  <input
+                                    type="text"
+                                    value={block.properties.activityType || "challenge"}
+                                    onChange={(e) => handleUpdateBlockProperty(block.id, "activityType", e.target.value)}
+                                    className="w-full rounded border border-cn-border bg-cn-canvas px-2 py-0.5 text-xs text-cn-ink dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white font-bold"
+                                    placeholder="e.g. coding, lab, review"
+                                  />
+                                </div>
+                              </div>
+                              <textarea
+                                rows={2}
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                className="w-full rounded border border-cn-border bg-cn-canvas px-3 py-2 text-xs text-cn-ink focus:outline-none focus:border-indigo-500 dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                                placeholder="Describe the hands-on instructions for the activity task..."
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "divider" && (
+                            <div className="flex items-center justify-center py-2 border-t border-dashed border-cn-border dark:border-[#2e2a2a]/60">
+                              <span className="text-[9px] font-bold text-cn-ink-subtle uppercase tracking-wider">[ Divider Line separator ]</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-cn-ink-muted mb-1.5">
-                  Lesson Content (Markdown support)
-                </label>
-                <textarea
-                  rows={8}
-                  placeholder="Draft your lesson instructions or reference code structures here..."
-                  value={lessonContent}
-                  onChange={(e) => setLessonContent(e.target.value)}
-                  className="w-full rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white font-mono text-xs"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-cn-border dark:border-[#2e2a2a]">
+              {/* Modal controls footer */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-cn-border dark:border-[#2e2a2a] shrink-0">
                 <button
                   type="button"
                   onClick={() => setLessonModalOpen(false)}
