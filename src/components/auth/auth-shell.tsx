@@ -26,7 +26,7 @@ export function AuthShell({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/auth/demo-login", {
+      const res = await fetch(`${window.location.origin}/api/demo-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password: pass }),
@@ -117,8 +117,12 @@ export function AuthShell({
               ].map((acc) => (
                 <button
                   key={acc.role}
+                  type="button"
                   disabled={loading}
-                  onClick={() => handleDemoLogin(acc.email, acc.pass, acc.path)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDemoLogin(acc.email, acc.pass, acc.path);
+                  }}
                   className={`w-full flex items-center justify-between p-4 bg-cn-canvas rounded-xl hover:ring-2 ${acc.hover} group transition-all disabled:opacity-50`}
                 >
                   <div className="flex items-center gap-3">

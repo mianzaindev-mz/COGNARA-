@@ -1,4 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap");
 @import "tailwindcss";
+@import "./dashboard.css";
 
 /* Match ThemeProvider: dark: utilities follow .dark on <html>, not prefers-color-scheme */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -32,6 +34,22 @@
   --theme-transition: 0.42s cubic-bezier(0.4, 0, 0.2, 1);
   --background: var(--cn-canvas);
   --foreground: var(--cn-ink);
+
+  /* Lumina Light Theme Tokens */
+  --lm-background: #FAF8F5; /* creamy white canvas */
+  --lm-surface: #ffffff; /* plain white */
+  --lm-on-surface: #1E1B1A; /* dark charcoal */
+  --lm-on-surface-variant: #5C5552; /* muted charcoal */
+  --lm-surface-container-lowest: #F4EFEA;
+  --lm-surface-container-low: #FDFBF7;
+  --lm-surface-container: #F7F2EC;
+  --lm-surface-container-high: #EFE7DD;
+  --lm-surface-container-highest: #E7DCD0;
+  --lm-outline-variant: #D5C8BA;
+  --lm-primary: #FF5A26;
+  --lm-secondary: #E0A300;
+  --lm-accent-purple: #8B5CF6;
+  --lm-accent-teal: #0D9488;
 }
 
 .dark {
@@ -60,6 +78,22 @@
   --cn-hero-gold-glow: rgba(252, 204, 66, 0.06);
   --background: var(--cn-canvas);
   --foreground: var(--cn-ink);
+
+  /* Lumina Dark Theme Tokens */
+  --lm-background: #131313;
+  --lm-surface: #131313;
+  --lm-on-surface: #e5e2e1;
+  --lm-on-surface-variant: #e1bfb6;
+  --lm-surface-container-lowest: #0e0e0e;
+  --lm-surface-container-low: #1c1b1b;
+  --lm-surface-container: #201f1f;
+  --lm-surface-container-high: #2a2a2a;
+  --lm-surface-container-highest: #353534;
+  --lm-outline-variant: #59413a;
+  --lm-primary: #ff6b3d;
+  --lm-secondary: #ffdf9e;
+  --lm-accent-purple: #a855f7;
+  --lm-accent-teal: #2dd4bf;
 }
 
 @theme inline {
@@ -83,6 +117,66 @@
   --color-cn-sidebar: var(--cn-sidebar);
   --font-sans: var(--font-kodchasan), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Lumina Dashboard Theme Additions */
+  --color-surface-tint: #ffb59f;
+  --color-on-tertiary: #303030;
+  --color-error: #ffb4ab;
+  --color-on-tertiary-container: #323131;
+  --color-on-error: #690005;
+  --color-surface-container: var(--lm-surface-container);
+  --color-surface-variant: #353534;
+  --color-tertiary-fixed-dim: #c8c6c5;
+  --color-surface-container-high: var(--lm-surface-container-high);
+  --color-surface-bright: #3a3939;
+  --color-secondary-fixed-dim: #fabd00;
+  --color-on-error-container: #ffdad6;
+  --color-tertiary-container: #9b9999;
+  --color-surface-container-lowest: var(--lm-surface-container-lowest);
+  --color-primary-fixed-dim: #ffb59f;
+  --color-on-primary-container: #611700;
+  --color-on-secondary-fixed: #261a00;
+  --color-inverse-primary: #ae3203;
+  --color-secondary-fixed: #ffdf9e;
+  --color-on-primary-fixed-variant: #862300;
+  --color-surface-dim: var(--lm-surface);
+  --color-outline: #a88a81;
+  --color-inverse-on-surface: #313030;
+  --color-tertiary-fixed: #e5e2e1;
+  --color-inverse-surface: #e5e2e1;
+  --color-surface-container-highest: var(--lm-surface-container-highest);
+  --color-on-secondary: #3f2e00;
+  --color-on-primary-fixed: #3a0a00;
+  --color-surface-container-low: var(--lm-surface-container-low);
+  --color-on-tertiary-fixed: #1b1b1c;
+  --color-outline-variant: var(--lm-outline-variant);
+  --color-on-secondary-container: #6a4e00;
+  --color-secondary-container: #fabd00;
+  --color-primary: var(--lm-primary);
+  --color-on-tertiary-fixed-variant: #474746;
+  --color-primary-fixed: #ffdbd1;
+  --color-tertiary: #c8c6c5;
+  --color-on-surface-variant: var(--lm-on-surface-variant);
+  --color-on-surface: var(--lm-on-surface);
+  --color-on-primary: #5f1600;
+  --color-error-container: #93000a;
+  --color-primary-container: var(--lm-primary);
+  --color-secondary: var(--lm-secondary);
+  --color-on-background: var(--lm-on-surface);
+  --color-accent-purple: var(--lm-accent-purple);
+  --color-accent-teal: var(--lm-accent-teal);
+  --spacing-margin-desktop: 32px;
+  --spacing-card-padding: 24px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 16px;
+  --spacing-unit: 4px;
+  --font-body-lg: var(--font-hanken-grotesk), sans-serif;
+  --font-headline-lg: var(--font-manrope), sans-serif;
+  --font-label-sm: "Geist", sans-serif;
+  --font-headline-md: var(--font-manrope), sans-serif;
+  --font-headline-xl: var(--font-manrope), sans-serif;
+  --font-label-md: "Geist", sans-serif;
+  --font-body-md: var(--font-hanken-grotesk), sans-serif;
 }
 
 html {

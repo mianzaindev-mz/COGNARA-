@@ -1,25 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useTheme } from "@/components/theme/theme-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { TopBarSearch } from "@/components/shared/top-bar-search";
-import { WelcomeBrand } from "@/components/shared/welcome-brand";
-import { CognaraLogo } from "@/components/shared/cognara-logo";
-import { PageTransition } from "@/components/shared/page-transition";
 
 const nav = [
-  { href: "/dashboard", label: "Home", icon: IconGrid },
-  { href: "/my-courses", label: "Courses", icon: IconBook },
-  { href: "/editor", label: "Code lab", icon: IconCode },
-  { href: "/notebook", label: "Notebook", icon: IconNotebook },
-  { href: "/agent", label: "Agent", icon: IconSpark },
-  { href: "/quizzes", label: "Quizzes", icon: IconQuiz },
-  { href: "/progress", label: "Progress", icon: IconChart },
-  { href: "/peer", label: "Peer", icon: IconUsers },
-  { href: "/settings", label: "Settings", icon: IconCog },
+  { href: "/dashboard", label: "Home", icon: "dashboard", activeFill: true },
+  { href: "/my-courses", label: "Courses", icon: "book_2", activeFill: false },
+  { href: "/editor", label: "Code lab", icon: "terminal", activeFill: false },
+  { href: "/notebook", label: "Notebook", icon: "auto_stories", activeFill: false },
+  { href: "/agent", label: "Agent", icon: "magic_button", activeFill: false },
+  { href: "/quizzes", label: "Quizzes", icon: "assignment", activeFill: false },
+  { href: "/progress", label: "Progress", icon: "bar_chart_4_bars", activeFill: false },
+  { href: "/peer", label: "Peer", icon: "hub", activeFill: false },
 ] as const;
 
 type StudentShellProps = {
@@ -29,10 +24,10 @@ type StudentShellProps = {
   children: React.ReactNode;
 };
 
-export function StudentShell({ displayName, email, creditBalance: _creditBalance, children }: StudentShellProps) {
+export function StudentShell({ displayName, email, children }: StudentShellProps) {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const handle = email?.split("@")[0] ? `@${email.split("@")[0]}` : "@learner";
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -41,247 +36,144 @@ export function StudentShell({ displayName, email, creditBalance: _creditBalance
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
-  /* ---- Shared sidebar content ---- */
-  function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-    return (
-      <>
-        {/* Brand */}
-        <Link
-          href="/"
-          onClick={onNavigate}
-          className="mb-6 flex items-center gap-3 overflow-hidden px-4"
-        >
-          <CognaraLogo variant="icon" size={28} />
-          <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider text-white md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
-            COGNARA
-          </span>
-        </Link>
-
-        {/* Nav items */}
-        <nav className="cn-stagger-left flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
-          {nav.map(({ href, label, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={onNavigate}
-                className={`cn-sidebar-link flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
-                  active
-                    ? "bg-cn-yellow text-cn-sidebar shadow-sm"
-                    : "text-white/55 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="whitespace-nowrap text-sm font-medium md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Bottom actions */}
-        <div className="flex flex-col gap-1 px-3 pb-2">
-          <Link
-            href="/billing"
-            onClick={onNavigate}
-            className={`flex h-11 items-center gap-3 rounded-xl px-3 transition-colors ${
-              pathname.startsWith("/billing")
-                ? "bg-cn-yellow text-cn-sidebar"
-                : "text-white/55 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <IconCard className="h-5 w-5 shrink-0" />
-            <span className="whitespace-nowrap text-sm font-medium md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
-              Billing
-            </span>
-          </Link>
-          <div className="flex h-11 items-center gap-3 rounded-xl px-3 text-white/55 transition-colors hover:bg-white/10 hover:text-white">
-            <SignOutButton variant="sidebar" />
-            <span className="whitespace-nowrap text-sm font-medium md:opacity-0 md:transition-opacity md:duration-200 md:group-hover/sidebar:opacity-100">
-              Sign out
-            </span>
-          </div>
-        </div>
-      </>
-    );
-  }
+  // Parallax Effect for Background Blobs
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const blobs = document.querySelectorAll('.parallax-blob');
+      blobs.forEach(blob => {
+        const speed = parseFloat(blob.getAttribute('data-speed') || "0");
+        const x = (window.innerWidth - e.clientX * speed) / 20;
+        const y = (window.innerHeight - e.clientY * speed) / 20;
+        (blob as HTMLElement).style.transform = `translateX(${x}px) translateY(${y}px)`;
+      });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
-    <div className="flex min-h-screen bg-cn-canvas font-sans text-cn-ink">
-      {/* Desktop sidebar — expandable on hover */}
-      <aside className="group/sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-[5.25rem] flex-col border-r border-white/10 bg-cn-sidebar py-6 transition-[width] duration-300 ease-in-out hover:w-56 hover:shadow-2xl md:flex">
-        <SidebarContent />
+    <div className="student-portal font-body-md text-on-surface selection:bg-primary/30 min-h-screen bg-background overflow-x-hidden relative">
+      {/* Subtle Background Ambient Glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[10%] w-[700px] h-[700px] glow-accent-purple parallax-blob" data-speed="0.05"></div>
+        <div className="absolute bottom-[20%] left-[-10%] w-[800px] h-[800px] glow-accent-teal parallax-blob" data-speed="-0.03"></div>
+        <div className="absolute top-[40%] right-[-5%] w-[600px] h-[600px] glow-accent-yellow parallax-blob" data-speed="0.04"></div>
+      </div>
+
+      {/* Persistent Sidebar */}
+      <aside className="fixed left-0 top-0 h-full bg-surface-container-lowest/20 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 shadow-[25px_0_50px_rgba(0,0,0,0.05)] dark:shadow-[25px_0_50px_rgba(0,0,0,0.4)] flex flex-col py-8 z-[60] overflow-hidden group/sidebar" id="main-sidebar">
+        {/* Brand */}
+        <Link href="/" className="mb-10 px-5 flex items-center gap-4 shrink-0 h-10">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-xl shadow-primary/30 interactive-element">
+            <span className="material-symbols-outlined text-white text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span>
+          </div>
+          <div className="brand-text">
+            <h1 className="font-headline-md text-xl font-bold text-on-surface flex items-center gap-1 tracking-tight">COGNARA<span className="text-[10px] self-start mt-1 opacity-50 font-medium">TM</span></h1>
+          </div>
+        </Link>
+
+        {/* Navigation Group */}
+        <div className="nav-glass-container flex flex-col custom-scrollbar overflow-y-auto overflow-x-hidden h-fit shrink-0">
+          <nav className="space-y-1">
+            {nav.map(({ href, label, icon, activeFill }) => {
+              const active = isActive(href);
+              return (
+                <Link key={href} href={href} className={`nav-item ${active ? 'active' : ''}`}>
+                  <div className="nav-icon-wrapper">
+                    <span className={`material-symbols-outlined text-[24px] ${active ? '' : 'text-on-surface-variant'}`} style={active && activeFill ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                      {icon}
+                    </span>
+                  </div>
+                  <span className={`nav-text ${active ? '' : 'text-on-surface-variant'}`}>{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Flexible Spacer */}
+        <div className="flex-1"></div>
+
+        {/* System Group */}
+        <div className="nav-glass-container mb-2 shrink-0">
+          <nav className="space-y-1">
+            <Link href="/settings" className="nav-item">
+              <div className="nav-icon-wrapper">
+                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">settings_suggest</span>
+              </div>
+              <span className="nav-text text-on-surface-variant">Settings</span>
+            </Link>
+            <Link href="/billing" className="nav-item">
+              <div className="nav-icon-wrapper">
+                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">account_balance_wallet</span>
+              </div>
+              <span className="nav-text text-on-surface-variant">Billing</span>
+            </Link>
+            <div className="nav-item group/signout cursor-pointer">
+              <div className="nav-icon-wrapper">
+                <span className="material-symbols-outlined text-[20px] text-error/80 group-hover/signout:text-error transition-colors">power_settings_new</span>
+              </div>
+              <div className="nav-text relative w-full h-full flex items-center">
+                <SignOutButton variant="sidebar" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" />
+                <span className="text-error/80 font-bold uppercase tracking-wider group-hover/signout:text-error">Sign out</span>
+              </div>
+            </div>
+          </nav>
+        </div>
       </aside>
 
-      {/* Mobile sidebar — overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <aside
-            className="absolute bottom-0 left-0 top-0 flex w-64 flex-col bg-cn-sidebar py-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SidebarContent onNavigate={() => setMobileOpen(false)} />
-          </aside>
-        </div>
-      )}
+      {/* Main Content Area */}
+      <main className="ml-[88px] min-h-screen pb-20 relative z-10 transition-all duration-300">
+        {/* TopAppBar */}
+        <header className="flex justify-between items-center px-margin-desktop h-[80px] sticky top-0 z-50 bg-surface-container-lowest/30 backdrop-blur-2xl border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-2">
+            <span className="text-on-surface-variant font-label-md tracking-widest uppercase text-[10px]">Student Workspace / Dashboard</span>
+          </div>
 
-      {/* Main column */}
-      <div className="flex min-h-screen flex-1 flex-col md:pl-[5.25rem]">
-        <header className="sticky top-0 z-20 border-b border-cn-border bg-cn-canvas/95 px-4 py-3 backdrop-blur-md sm:px-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3">
-            <div className="flex h-14 items-center gap-4 lg:gap-6">
-              {/* Mobile hamburger */}
-              <button
-                type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-xl border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink md:hidden"
-                onClick={() => setMobileOpen(true)}
-                aria-label="Open menu"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-              </button>
-
-              <WelcomeBrand href="/dashboard" />
-              <div className="hidden min-w-0 flex-1 md:flex md:justify-center md:px-2">
-                <TopBarSearch className="max-w-2xl" placeholder="Search courses, lessons…" />
-              </div>
-
-              <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-                <ThemeToggle className="hidden sm:inline-flex" />
-                <button
-                  type="button"
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-cn-border bg-cn-surface text-cn-ink-muted transition hover:text-cn-ink relative group"
-                  aria-label="Notifications"
-                  title="Notifications — coming soon"
-                >
-                  <IconBell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-cn-orange text-[8px] font-bold text-white">0</span>
+          <div className="flex items-center gap-6">
+            <div className="relative group hidden lg:block search-focus rounded-full transition-all">
+              <input 
+                className="bg-surface-container-low/30 border border-black/5 dark:border-white/5 rounded-full pl-6 pr-32 py-2.5 text-sm focus:ring-0 w-80 transition-all outline-none backdrop-blur-md placeholder:text-on-surface-variant/40" 
+                placeholder="Search courses, lessons..." 
+                type="text"
+              />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-3 pr-1">
+                <span className="text-[10px] font-bold text-on-surface-variant/30 bg-black/5 dark:bg-white/5 px-2 py-1 rounded-lg border border-black/5 dark:border-white/5 tracking-tighter">⌘K</span>
+                <button className="w-9 h-9 bg-primary/90 hover:bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/20 interactive-element transition-all group-hover:scale-105 active:scale-95">
+                  <span className="material-symbols-outlined text-[20px]">search</span>
                 </button>
-                <Link
-                  href="/profile"
-                  className="flex max-w-[11rem] items-center gap-2.5 sm:max-w-none"
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cn-lavender/40 text-sm font-bold text-cn-ink ring-2 ring-cn-surface">
-                    {displayName.charAt(0).toUpperCase()}
-                  </span>
-                  <span className="hidden min-w-0 sm:block">
-                    <span className="block truncate text-sm font-bold text-cn-ink">{displayName}</span>
-                    <span className="block truncate text-xs text-cn-ink-subtle">{handle}</span>
-                  </span>
-                </Link>
               </div>
             </div>
 
-            <div className="pb-1 md:hidden">
-              <TopBarSearch placeholder="Search courses, lessons…" />
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 text-on-surface-variant interactive-element hover:bg-black/5 dark:hover:bg-white/10 rounded-full"
+                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                <span className="material-symbols-outlined">
+                  {theme === "dark" ? "light_mode" : "dark_mode"}
+                </span>
+              </button>
+              <div className="relative p-2 text-on-surface-variant interactive-element hover:bg-black/5 dark:hover:bg-white/10 rounded-full">
+                <span className="material-symbols-outlined">notifications_active</span>
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-surface-container-lowest">3</span>
+              </div>
+              <div className="flex items-center gap-3 pl-4 border-l border-black/10 dark:border-white/10">
+                <div className="text-right hidden sm:block">
+                  <p className="font-label-md text-on-surface leading-none">{displayName}</p>
+                  <p className="text-[10px] text-on-surface-variant opacity-70">{handle}</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center border border-black/10 dark:border-white/20 text-white font-bold shadow-lg interactive-element">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              </div>
             </div>
           </div>
         </header>
 
-        <main className="cn-page-enter mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">{children}</main>
-      </div>
+        {children}
+      </main>
     </div>
-  );
-}
-
-/* ── Icons ───────────────────────────────────── */
-
-function IconGrid({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-    </svg>
-  );
-}
-
-function IconBook({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A9 9 0 0111.25 21c0 .394.013.787.038 1.172M12 6.042A8.967 8.967 0 0018 3.75c1.052 0 2.062.18 3 .512v14.25a9 9 0 01-5.25 2.844" />
-    </svg>
-  );
-}
-
-function IconCode({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-    </svg>
-  );
-}
-
-function IconNotebook({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75M8.25 21h8.25a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0016.5 4.5H8.25A2.25 2.25 0 006 6.75v12A2.25 2.25 0 008.25 21z" />
-    </svg>
-  );
-}
-
-function IconSpark({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Main 4-point sparkle */}
-      <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" />
-      {/* Small sparkle */}
-      <path d="M19 14L19.75 16.25L22 17L19.75 17.75L19 20L18.25 17.75L16 17L18.25 16.25L19 14Z" opacity="0.7" />
-    </svg>
-  );
-}
-
-function IconQuiz({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
-    </svg>
-  );
-}
-
-function IconUsers({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.433-2.367M18 14a2.25 2.25 0 11-4.5 0m4.5 0a2.25 2.25 0 10-4.5 0M6.75 9a3.75 3.75 0 116 2.652M6.75 9a3.75 3.25 0 10-6 2.652m0 0a3 3 0 105.25 2.382A3 3 0 006.75 9z" />
-    </svg>
-  );
-}
-
-function IconCog({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.37.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-
-function IconCard({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-    </svg>
-  );
-}
-
-function IconBell({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9a4.5 4.5 0 00-9 0v.75v.7m12 6.75v1a2.25 2.25 0 01-2.25 2.25h-13.5A2.25 2.25 0 014.5 18.75v-1m16.5-9.75V9a6 6 0 00-6-6v0a6 6 0 00-6 6v.75"
-      />
-    </svg>
-  );
-}
-
-function IconChart({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-    </svg>
   );
 }
