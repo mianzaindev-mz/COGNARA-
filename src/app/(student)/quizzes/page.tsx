@@ -50,7 +50,7 @@ export default function QuizzesPage() {
           return;
         }
 
-        const courseIds = enrollments.map(e => e.course_id);
+        const courseIds = enrollments.map((e: any) => e.course_id);
 
         // Fetch all lessons of these courses to find quizzes linked to lessons
         const { data: lessons } = await supabase
@@ -58,7 +58,7 @@ export default function QuizzesPage() {
           .select("id, course_id")
           .in("course_id", courseIds);
 
-        const lessonIds = lessons?.map(l => l.id) ?? [];
+        const lessonIds = lessons?.map((l: any) => l.id) ?? [];
 
         // Fetch quizzes
         let quizzesList: any[] = [];
@@ -76,23 +76,23 @@ export default function QuizzesPage() {
           .select("*")
           .eq("student_id", user.id);
 
-        const items: QuizItem[] = enrollments.map(e => {
+        const items: QuizItem[] = enrollments.map((e: any) => {
           const course: any = Array.isArray(e.courses) ? e.courses[0] : e.courses;
           if (!course) return null;
 
           // Find lessons belonging to this course
-          const courseLessons = lessons?.filter(l => l.course_id === course.id) ?? [];
-          const courseLessonIds = courseLessons.map(cl => cl.id);
+          const courseLessons = lessons?.filter((l: any) => l.course_id === course.id) ?? [];
+          const courseLessonIds = courseLessons.map((cl: any) => cl.id);
 
           // Locate quiz associated with this course
-          const quiz = quizzesList?.find(q => q.lesson_id && courseLessonIds.includes(q.lesson_id))
-            || quizzesList?.find(q => q.title && course.title && q.title.includes(course.title));
+          const quiz = quizzesList?.find((q: any) => q.lesson_id && courseLessonIds.includes(q.lesson_id))
+            || quizzesList?.find((q: any) => q.title && course.title && q.title.includes(course.title));
 
           // Get attempts for this specific quiz
-          const courseAttempts = quiz ? (attempts?.filter(a => a.quiz_id === quiz.id) ?? []) : [];
-          const bestScore = courseAttempts.length > 0 ? Math.max(...courseAttempts.map(a => a.score ?? 0)) : null;
+          const courseAttempts = quiz ? (attempts?.filter((a: any) => a.quiz_id === quiz.id) ?? []) : [];
+          const bestScore = courseAttempts.length > 0 ? Math.max(...courseAttempts.map((a: any) => a.score ?? 0)) : null;
           const attemptsCount = courseAttempts.length;
-          const passed = courseAttempts.some(a => a.passed);
+          const passed = courseAttempts.some((a: any) => a.passed);
 
           return {
             id: e.id, // Enrollment ID
@@ -103,7 +103,7 @@ export default function QuizzesPage() {
             attempts: attemptsCount,
             passed,
           };
-        }).filter((item): item is QuizItem => item !== null);
+        }).filter((item: any): item is QuizItem => item !== null);
 
         setQuizzes(items);
       } catch (err) {

@@ -10,25 +10,40 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+let cachedClient: any = null;
+
 export function createClient() {
-  const clientUserCookie = getCookie("cognara_demo_client_user");
-  if (clientUserCookie) {
-    try {
-      const demoUser = JSON.parse(clientUserCookie);
-      return createMockSupabaseClient(demoUser, () => {
-        // Delete cookies client-side
-        document.cookie = "cognara_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-        document.cookie = "cognara_demo_client_user=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      });
-    } catch {
-      // Fall through to standard client
+  if (typeof window === "undefined") {
+    // Server-side: always create a new client
+    const url = getSupabasePublicUrl();
+    const anonKey = getSupabasePublicAnonKey();
+    if (!url || !anonKey) return null;
+    return createBrowserClient(url, anonKey);
+  }
+
+  // Client-side: use a singleton to prevent infinite re-renders in hooks
+  if (!cachedClient) {
+    const clientUserCookie = getCookie("cognara_demo_client_user");
+    if (clientUserCookie) {
+      try {
+        const demoUser = JSON.parse(clientUserCookie);
+        cachedClient = createMockSupabaseClient(demoUser, () => {
+          document.cookie = "cognara_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+          document.cookie = "cognara_demo_client_user=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        });
+      } catch {
+        // Fall through
+      }
+    }
+
+    if (!cachedClient) {
+      const url = getSupabasePublicUrl();
+      const anonKey = getSupabasePublicAnonKey();
+      if (url && anonKey) {
+        cachedClient = createBrowserClient(url, anonKey);
+      }
     }
   }
 
-  const url = getSupabasePublicUrl();
-  const anonKey = getSupabasePublicAnonKey();
-  if (!url || !anonKey) {
-    return null;
-  }
-  return createBrowserClient(url, anonKey);
+  return cachedClient;
 }

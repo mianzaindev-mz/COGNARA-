@@ -19,13 +19,13 @@ export default async function CoachAnalyticsPage() {
     .eq("coach_id", user.id);
 
   const list = courses ?? [];
-  const totalEnrolled = list.reduce((s, c) => s + (c.total_enrolled ?? 0), 0);
+  const totalEnrolled = list.reduce((s: number, c: any) => s + (c.total_enrolled ?? 0), 0);
   const avgRating = list.length > 0
-    ? list.reduce((s, c) => s + (Number(c.avg_rating) || 0), 0) / list.filter(c => Number(c.avg_rating) > 0).length || 0
+    ? list.reduce((s: number, c: any) => s + (Number(c.avg_rating) || 0), 0) / list.filter((c: any) => Number(c.avg_rating) > 0).length || 0
     : 0;
 
   // Get enrollments with progress for funnel
-  const courseIds = list.map(c => c.id);
+  const courseIds = list.map((c: any) => c.id);
   let progressData: { progress_pct: number }[] = [];
   if (courseIds.length > 0) {
     const { data } = await supabase
@@ -35,10 +35,10 @@ export default async function CoachAnalyticsPage() {
     progressData = data ?? [];
   }
 
-  const started = progressData.filter(e => e.progress_pct > 0).length;
-  const half = progressData.filter(e => e.progress_pct >= 50).length;
-  const threeQ = progressData.filter(e => e.progress_pct >= 75).length;
-  const completed = progressData.filter(e => e.progress_pct >= 100).length;
+  const started = progressData.filter((e: any) => e.progress_pct > 0).length;
+  const half = progressData.filter((e: any) => e.progress_pct >= 50).length;
+  const threeQ = progressData.filter((e: any) => e.progress_pct >= 75).length;
+  const completed = progressData.filter((e: any) => e.progress_pct >= 100).length;
   const completionRate = totalEnrolled > 0 ? Math.round((completed / totalEnrolled) * 100) : 0;
 
   const funnelData = [
@@ -50,7 +50,7 @@ export default async function CoachAnalyticsPage() {
   ];
 
   // Per-course enrollment chart
-  const courseChart = list.slice(0, 8).map(c => ({
+  const courseChart = list.slice(0, 8).map((c: any) => ({
     label: c.title.length > 12 ? c.title.slice(0, 12) + "…" : c.title,
     value: c.total_enrolled ?? 0,
   }));

@@ -38,7 +38,8 @@ export function ResetPasswordForm() {
       return;
     }
 
-    void supabase.auth.setSession({ access_token, refresh_token }).then(({ error: sessionError }) => {
+    void supabase.auth.setSession({ access_token, refresh_token }).then((res: any) => {
+      const sessionError = res.error;
       if (sessionError) {
         setError(sessionError.message);
         return;

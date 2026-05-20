@@ -52,7 +52,7 @@ export const loadCourseLearnContext = cache(
         .order("order_index", { ascending: true });
 
       const lessonRows = lessons ?? [];
-      const lessonIds = lessonRows.map((l) => l.id);
+      const lessonIds = lessonRows.map((l: any) => l.id);
 
       let completedLessonIds: string[] = [];
       if (lessonIds.length > 0) {
@@ -63,7 +63,7 @@ export const loadCourseLearnContext = cache(
           .eq("completed", true)
           .in("lesson_id", lessonIds);
 
-        completedLessonIds = (progress ?? []).map((p) => p.lesson_id);
+        completedLessonIds = (progress ?? []).map((p: any) => p.lesson_id);
       }
 
       return {
@@ -72,7 +72,7 @@ export const loadCourseLearnContext = cache(
         slug: course.slug,
         category: course.category,
         totalLessons: course.total_lessons ?? lessonRows.length,
-        lessons: lessonRows.map((l) => ({
+        lessons: lessonRows.map((l: any) => ({
           id: l.id,
           title: l.title,
           content: l.content,

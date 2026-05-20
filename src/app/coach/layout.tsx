@@ -37,12 +37,23 @@ export default async function CoachLayout({
     user.email?.split("@")[0] ||
     "Coach";
 
+  // Fetch coach's courses to calculate net monthly earnings dynamically
+  const { data: courses } = await supabase
+    .from("courses")
+    .select("total_enrolled, price_usd")
+    .eq("coach_id", user.id);
+
+  const monthlyEarnings = (courses ?? []).reduce(
+    (sum: number, c: any) => sum + (c.total_enrolled ?? 0) * (Number(c.price_usd) || 0) * 0.8,
+    0
+  );
+
   return (
     <CoachShell
       displayName={displayName}
       email={user.email ?? undefined}
       isVerified={profile?.is_verified ?? false}
-      monthlyEarnings={0}
+      monthlyEarnings={monthlyEarnings}
     >
       {children}
     </CoachShell>

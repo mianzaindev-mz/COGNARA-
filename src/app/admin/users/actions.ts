@@ -39,13 +39,13 @@ export async function getUsersWithEmails() {
   try {
     const { data: { users: authUsers } } = await adminSupabase.auth.admin.listUsers({ perPage: 100 });
     if (authUsers) {
-      emailMap = new Map(authUsers.map(u => [u.id, u.email ?? ""]));
+      emailMap = new Map(authUsers.map((u: any) => [u.id, u.email ?? ""]));
     }
   } catch (err) {
     console.error("Failed to list auth users in server action:", err);
   }
 
-  return (profiles ?? []).map(p => ({
+  return (profiles ?? []).map((p: any) => ({
     id: p.id,
     name: p.full_name || emailMap.get(p.id)?.split("@")[0] || "User",
     email: emailMap.get(p.id) || "",

@@ -94,7 +94,7 @@ export default function CoachQuizzesPage() {
         setCourses(coursesData);
 
         // Fetch lessons of those courses
-        const courseIds = coursesData.map(c => c.id);
+        const courseIds = coursesData.map((c: any) => c.id);
         if (courseIds.length > 0) {
           const { data: lessonsData } = await supabase
             .from("lessons")

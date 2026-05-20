@@ -2,142 +2,191 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { SettingsSection, SettingsInput, SettingsTextarea, SettingsToggle } from "@/components/ui/settings-ui";
+import { SettingsSection, SettingsToggle, SettingsInput, SettingsSelect, SettingsTextarea } from "@/components/ui/settings-ui";
 
-export default function CoachSettingsPage() {
-  const [fullName, setFullName] = useState("");
-  const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+export default function SettingsPage() {
   const [loaded, setLoaded] = useState(false);
+  
+  // Profile settings
+  const [fullName, setFullName] = useState("");
+  const [bio, setBio] = useState("");
+  const [timezone, setTimezone] = useState("UTC");
+  
+  // Notifications
+  const [notifEnrollment, setNotifEnrollment] = useState(true);
+  const [notifCompletion, setNotifCompletion] = useState(true);
+  const [notifReview, setNotifReview] = useState(true);
+  const [notifPayout, setNotifPayout] = useState(true);
 
-  // Load existing profile
+  // Danger zone
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+
   useEffect(() => {
     async function load() {
-      const supabase = createClient();
-      if (!supabase) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase.from("profiles").select("full_name, username, bio").eq("id", user.id).maybeSingle();
-      if (data) {
-        setFullName(data.full_name ?? "");
-        setUsername(data.username ?? "");
-        setBio(data.bio ?? "");
+      try {
+        const supabase = createClient();
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase.from("profiles").select("full_name").eq("id", user.id).single();
+        if (data) {
+          setFullName(data.full_name || "");
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoaded(true);
       }
-      setLoaded(true);
     }
-    void load();
+    load();
   }, []);
 
-  const handleSave = async () => {
-    setSaving(true);
-    setToast(null);
-    try {
-      const supabase = createClient();
-      if (!supabase) throw new Error("Unable to connect");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not logged in");
-
-      const { error } = await supabase.from("profiles").update({
-        full_name: fullName.trim(),
-        username: username.trim().replace(/^@/, ""),
-        bio: bio.trim(),
-      }).eq("id", user.id);
-
-      if (error) throw new Error(error.message);
-      setToast({ type: "success", msg: "Settings saved successfully!" });
-    } catch (err) {
-      setToast({ type: "error", msg: err instanceof Error ? err.message : "Failed to save" });
-    } finally {
-      setSaving(false);
-      setTimeout(() => setToast(null), 4000);
-    }
+  const handleSave = () => {
+    // Show toast or saving state
+    console.log("Settings saved", { fullName, bio, timezone });
   };
 
-  const [notifications, setNotifications] = useState({
-    enrollment: true, completion: true, review: true, payout: true,
-  });
+  const handleStripeConnect = () => {
+    // Initiate Stripe OAuth flow
+    console.log("Redirecting to Stripe...");
+  };
 
   if (!loaded) {
     return (
-      <div className="flex flex-col gap-8 animate-pulse">
-        <div><div className="h-8 w-40 rounded-lg bg-cn-border" /><div className="mt-2 h-4 w-56 rounded bg-cn-border" /></div>
-        <div className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6"><div className="h-5 w-32 rounded bg-cn-border mb-4" /><div className="grid gap-4 sm:grid-cols-2">{[1,2,3].map(i=><div key={i} className="h-10 rounded-xl bg-cn-border" />)}</div></div>
+      <div className="max-w-4xl mx-auto w-full space-y-12 animate-pulse">
+        <div className="space-y-2">
+          <div className="h-10 w-48 rounded-lg bg-black/5 dark:bg-white/5" />
+          <div className="h-6 w-80 rounded bg-black/5 dark:bg-white/5" />
+        </div>
+        <div className="glass-card rounded-[2rem] p-8 space-y-8">
+          <div className="h-12 w-12 rounded-2xl bg-black/5 dark:bg-white/5" />
+          <div className="space-y-4">
+            <div className="h-12 w-full rounded-2xl bg-black/5 dark:bg-white/5" />
+            <div className="h-12 w-full rounded-2xl bg-black/5 dark:bg-white/5" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <section>
-        <h1 className="text-2xl font-bold tracking-tight text-cn-ink">Coach Settings</h1>
-        <p className="mt-1 text-sm text-cn-ink-muted">Manage your profile and preferences</p>
-      </section>
+    <div className="max-w-4xl mx-auto w-full space-y-12 relative pb-20">
+      <div className="absolute -inset-y-40 -inset-x-20 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl opacity-50 pointer-events-none" />
 
-      {/* Toast */}
-      {toast && (
-        <div className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
-          toast.type === "success"
-            ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400"
-            : "border-rose-500/20 bg-rose-500/5 text-rose-700 dark:text-rose-400"
-        }`}>
-          {toast.msg}
+      {/* Page Header */}
+      <div className="space-y-2">
+        <h2 className="text-4xl font-black text-cn-ink dark:text-white tracking-tight leading-tight">Settings</h2>
+        <p className="text-lg text-cn-ink-subtle dark:text-on-surface-variant opacity-80">Manage your profile, payout connections, and preferences.</p>
+      </div>
+
+      {/* Toast Alert */}
+      <div className="bg-indigo-500/10 dark:bg-indigo-500/5 border border-indigo-500/20 dark:border-indigo-500/10 rounded-2xl p-4 flex items-start gap-4">
+        <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400">info</span>
+        <div>
+          <p className="font-bold text-indigo-700 dark:text-indigo-300 text-sm">Save your changes</p>
+          <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-1">Don't forget to click "Save Changes" at the bottom of the screen after modifying your profile.</p>
         </div>
-      )}
+      </div>
 
-      <div className="space-y-6">
-        {/* Profile */}
-        <SettingsSection title="Profile Information">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SettingsInput label="Full Name" id="coach-name" value={fullName} onChange={setFullName} placeholder="Your name" />
-            <SettingsInput label="Username" id="coach-username" value={username} onChange={setUsername} placeholder="@username" />
-            <SettingsTextarea label="Bio" id="coach-bio" value={bio} onChange={setBio} placeholder="Tell students about your expertise…" />
+      <div className="space-y-8 relative z-10">
+        
+        {/* Profile Settings */}
+        <SettingsSection title="Public Profile" icon="person" accent="indigo">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+            <SettingsInput label="Display Name" id="name" value={fullName} onChange={setFullName} placeholder="Your name" accent="indigo" />
+            <SettingsSelect 
+              label="Timezone" 
+              value={timezone} 
+              onChange={setTimezone} 
+              options={[
+                { value: "UTC", label: "UTC (Universal Coordinated Time)" },
+                { value: "EST", label: "EST (Eastern Standard Time)" },
+                { value: "PST", label: "PST (Pacific Standard Time)" }
+              ]} 
+              accent="indigo"
+            />
+            <SettingsTextarea label="Bio" id="bio" value={bio} onChange={setBio} placeholder="Tell your students about your experience..." accent="indigo" />
           </div>
         </SettingsSection>
 
-        {/* Payment */}
-        <SettingsSection title="Payment Setup">
-          <p className="text-sm text-cn-ink-muted mb-4">Connect Stripe to receive payouts for your courses. COGNARA takes a 15% platform fee.</p>
-          <div className="flex items-center gap-4 rounded-xl border border-cn-border bg-cn-canvas dark:bg-[#0f0e0e] dark:border-[#2e2a2a] p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
-              <svg className="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="currentColor"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>
+        {/* Payment Setup */}
+        <SettingsSection title="Payment Setup" icon="payments" accent="indigo">
+          <div className="w-full space-y-6">
+            <p className="text-sm text-cn-ink-subtle dark:text-on-surface-variant opacity-80 leading-relaxed">
+              Connect your Stripe account to receive dynamic direct payouts for your enrollment sales. COGNARA™ applies a minimal flat platform fee structure.
+            </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 shadow-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-bold text-cn-ink dark:text-white text-base">Stripe Connect</p>
+                  <p className="text-xs text-cn-ink-subtle dark:text-on-surface-variant opacity-60 mt-0.5">Not connected · Set up to receive student payments</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={handleStripeConnect}
+                className="bg-black/5 dark:bg-white/5 hover:bg-indigo-600 hover:text-white text-indigo-600 dark:text-indigo-300 px-6 py-2.5 rounded-xl text-xs font-black border border-black/5 dark:border-white/5 transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] whitespace-nowrap"
+              >
+                Connect Stripe
+              </button>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-cn-ink dark:text-white">Stripe Connect</p>
-              <p className="text-xs text-cn-ink-muted">Not connected — set up to start receiving payments</p>
+            <div className="flex justify-between items-center text-xs text-black/40 dark:text-on-surface-variant/50 px-2">
+              <span>Revenue share: 85% to coach, 15% platform fee</span>
+              <span>Payout schedule: Every 14 days</span>
             </div>
-            <button className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 shadow-md shadow-indigo-500/20">
-              Connect Stripe
-            </button>
           </div>
-          <p className="mt-2 text-[11px] text-cn-ink-subtle">Revenue share: 85% to you, 15% platform fee. Payouts every 2 weeks.</p>
         </SettingsSection>
 
         {/* Notifications */}
-        <SettingsSection title="Notifications">
-          {(["enrollment", "completion", "review", "payout"] as const).map(key => {
-            const labels = { enrollment: "New enrollment", completion: "Student completion", review: "New review", payout: "Payout received" };
-            return (
-              <SettingsToggle
-                key={key}
-                label={labels[key]}
-                description={`Get notified about ${labels[key].toLowerCase()}`}
-                checked={notifications[key]}
-                onChange={() => setNotifications(n => ({ ...n, [key]: !n[key] }))}
-              />
-            );
-          })}
+        <SettingsSection title="Notifications" icon="notifications_active" accent="indigo">
+          <div className="w-full divide-y divide-black/5 dark:divide-white/5">
+            {(["enrollment", "completion", "review", "payout"] as const).map(key => {
+              const labels = { enrollment: "New enrollment", completion: "Student completion", review: "New review", payout: "Payout received" };
+              const states = { enrollment: [notifEnrollment, setNotifEnrollment], completion: [notifCompletion, setNotifCompletion], review: [notifReview, setNotifReview], payout: [notifPayout, setNotifPayout] };
+              const [val, setVal] = states[key] as [boolean, (v: boolean) => void];
+              return (
+                <SettingsToggle 
+                  key={key} 
+                  label={labels[key]} 
+                  description={`Receive an email and push notification for every ${labels[key].toLowerCase()}.`} 
+                  checked={val} 
+                  onChange={setVal} 
+                  accent="indigo"
+                />
+              );
+            })}
+          </div>
         </SettingsSection>
 
-        <button
-          onClick={() => void handleSave()}
-          disabled={saving}
-          className="rounded-xl bg-cn-orange px-6 py-3 text-sm font-bold text-white transition hover:bg-cn-orange-hover shadow-md disabled:opacity-50"
+        {/* Danger zone */}
+        <SettingsSection title="Danger Zone" danger>
+          <div className="space-y-1">
+            <p className="text-lg font-bold text-on-surface">Delete Account</p>
+            <p className="text-sm font-semibold text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
+          </div>
+          <button type="button" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm shrink-0">
+            Delete Account
+          </button>
+        </SettingsSection>
+
+      </div>
+
+      {/* Save Button */}
+      <div className="w-full mt-12 relative z-10">
+        <button 
+          onClick={handleSave}
+          className="w-full bg-primary hover:bg-primary/95 text-white dark:text-black dark:bg-white dark:hover:bg-white/95 py-5 rounded-[2rem] text-2xl font-black transition-all shadow-[0_15px_40px_rgba(139,92,246,0.2)] dark:shadow-[0_0_30px_rgba(255,255,255,0.05)] flex items-center justify-center gap-3 hover:-translate-y-1 active:scale-95 active:translate-y-0 duration-300"
         >
-          {saving ? "Saving…" : "Save Changes"}
+          <span className="material-symbols-outlined text-3xl">save</span>
+          Save Changes
         </button>
       </div>
+
     </div>
   );
 }

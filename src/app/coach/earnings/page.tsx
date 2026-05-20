@@ -59,7 +59,7 @@ export default function CoachEarningsPage() {
         .select("title, price_usd, total_enrolled")
         .eq("coach_id", user.id);
 
-      const list: CourseSales[] = (coursesData || []).map(c => ({
+      const list: CourseSales[] = (coursesData || []).map((c: any) => ({
         title: c.title,
         price_usd: Number(c.price_usd) || 0,
         total_enrolled: c.total_enrolled || 0

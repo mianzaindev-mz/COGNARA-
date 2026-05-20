@@ -35,6 +35,7 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
           bio: "Passionate learner exploring advanced technologies on COGNARA™.",
           github_url: "https://github.com",
           linkedin_url: "https://linkedin.com",
+          is_verified: demoUser.role === "coach" ? false : true, // Mock verification false for coaches to show banner
         };
       } else if (tableName === "user_settings") {
         data = {
@@ -65,11 +66,57 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
         data = [
           {
             id: "c1",
-            title: "Data Structures & Algorithms",
-            slug: "dsa",
-            category: "Computer Science",
-            total_lessons: 20,
+            coach_id: demoUser.id,
+            title: "Advanced Algorithms",
+            slug: "advanced-algorithms",
+            category: "CS Core",
+            total_enrolled: 124,
+            avg_rating: 4.9,
+            price_usd: 50.00,
             is_published: true,
+            updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: "c2",
+            coach_id: demoUser.id,
+            title: "Systems Architecture",
+            slug: "systems-architecture",
+            category: "Engineering",
+            total_enrolled: 89,
+            avg_rating: 4.7,
+            price_usd: 17.42,
+            is_published: true,
+            updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          }
+        ];
+      } else if (tableName === "notifications") {
+        data = [
+          {
+            id: "n1",
+            user_id: demoUser.id,
+            type: "verified",
+            title: "Ahmed K. mastered \"Recursive Structures\"",
+            message: "Ahmed K. completed all modules and quizzes for Recursive Structures with 100% score.",
+            is_read: false,
+            created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          },
+          {
+            id: "n2",
+            user_id: demoUser.id,
+            type: "feedback",
+            title: "Sara M. left a 5-star review: \"Excellent depth.\"",
+            message: "Sara M. rated your course 5 stars and wrote: 'Excellent depth, very well explained.'",
+            is_read: false,
+            created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+          },
+          {
+            id: "n3",
+            user_id: demoUser.id,
+            type: "conversion",
+            title: "New Enrollment: Bilal J. joined Architecture",
+            message: "Bilal J. purchased and enrolled in Systems Architecture course.",
+            is_read: false,
+            created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
           }
         ];
       } else {

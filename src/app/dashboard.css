@@ -387,3 +387,208 @@
     to { background-position: 200% center; }
 }
 
+/* ━━━ Animated Mesh & Coach Premium Sidebar styling ━━━ */
+@keyframes meshGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Student Dashboard Orange Mesh */
+.animated-mesh {
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(255, 107, 61, 0.1) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(255, 181, 159, 0.1) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(250, 248, 245, 1) 0%, rgba(247, 247, 245, 1) 100%) !important;
+    background-size: 200% 200% !important;
+    animation: meshGradient 40s ease-in-out infinite !important;
+}
+
+.dark .animated-mesh {
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(255, 107, 61, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(255, 181, 159, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(15, 15, 15, 1) 0%, rgba(5, 5, 5, 1) 100%) !important;
+}
+
+/* Coach Dashboard Purple Mesh */
+.coach-mesh {
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(167, 139, 250, 0.1) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.1) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(250, 248, 245, 1) 0%, rgba(247, 247, 245, 1) 100%) !important;
+    background-size: 200% 200% !important;
+    animation: meshGradient 40s ease-in-out infinite !important;
+}
+
+.dark .coach-mesh {
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(167, 139, 250, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(15, 15, 15, 1) 0%, rgba(5, 5, 5, 1) 100%) !important;
+}
+
+.coach-sidebar {
+    width: 80px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(250, 248, 245, 0.45) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .coach-sidebar {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.coach-sidebar:hover, .coach-sidebar-expanded {
+    width: 260px;
+}
+
+.coach-header {
+    background: rgba(250, 248, 245, 0.45) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .coach-header {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.coach-nav-item {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    border-radius: 14px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    color: rgba(30, 27, 26, 0.55) !important;
+    padding: 0;
+    overflow: hidden;
+    width: 48px;
+    margin: 0 auto;
+}
+
+.dark .coach-nav-item {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.coach-sidebar:hover .coach-nav-item,
+.coach-sidebar-expanded .coach-nav-item,
+.coach-sidebar-mobile .coach-nav-item {
+    width: 100%;
+    margin: 0;
+    padding: 0 12px;
+}
+
+.coach-nav-item:hover {
+    background: rgba(139, 92, 246, 0.06) !important;
+    color: #7c3aed !important;
+}
+
+.dark .coach-nav-item:hover {
+    background: rgba(167, 139, 250, 0.08) !important;
+    color: #a78bfa !important;
+}
+
+.coach-nav-item.active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    color: white !important;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.35), inset 0 1px 1px rgba(255,255,255,0.2) !important;
+}
+
+.coach-nav-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.coach-sidebar:hover .coach-nav-icon,
+.coach-sidebar-expanded .coach-nav-icon,
+.coach-sidebar-mobile .coach-nav-icon {
+    width: 24px;
+    margin-right: 4px;
+}
+
+.coach-nav-label {
+    margin-left: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+
+.coach-sidebar:hover .coach-nav-label,
+.coach-sidebar-expanded .coach-nav-label,
+.coach-sidebar-mobile .coach-nav-label {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+/* Sidebar sibling transitions for layout */
+.coach-main-wrapper {
+    padding-left: 0;
+    transition: padding-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+    .coach-main-wrapper {
+        padding-left: 80px;
+    }
+    .coach-sidebar:hover ~ .coach-main-wrapper {
+        padding-left: 260px;
+    }
+}
+
+/* Brand text display transitions */
+.coach-brand-text {
+    opacity: 0;
+    transform: translateX(-10px);
+    width: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.coach-sidebar:hover .coach-brand-text,
+.coach-sidebar-mobile .coach-brand-text {
+    opacity: 1;
+    transform: translateX(0);
+    width: auto;
+    pointer-events: auto;
+}
+
+/* Logo brand icon transition */
+.coach-logo {
+    transition: margin 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.coach-sidebar:hover .coach-logo,
+.coach-sidebar-mobile .coach-logo {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.logo-glow {
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4));
+}
+
+.pulse-dot {
+    animation: pulseGlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 0.6; transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3); }
+    50% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+}
+
+.inner-purple-glow {
+    box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.05);
+}
+

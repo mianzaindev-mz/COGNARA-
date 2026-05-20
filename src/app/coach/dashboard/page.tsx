@@ -1,46 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { StatCard } from "@/components/ui/stat-card";
-import { BarChart } from "@/components/ui/chart-bar";
-import { Badge } from "@/components/ui/badge";
-import { ProgressBar } from "@/components/ui/progress-bar";
-import { AgentIcon } from "@/components/ui/agent-icon";
+import { CreateCourseButton } from "@/components/coach/create-course-button";
+import { DashboardEffects } from "@/components/coach/dashboard-effects";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Coach dashboard — COGNARA™",
-};
-
-/* Earnings visualization data — populated from Supabase transactions when Stripe is connected */
-const earningsData = [
-  { label: "1", value: 12 }, { label: "2", value: 8 }, { label: "3", value: 24 },
-  { label: "4", value: 18 }, { label: "5", value: 32 }, { label: "6", value: 28 },
-  { label: "7", value: 15 }, { label: "8", value: 22 }, { label: "9", value: 35 },
-  { label: "10", value: 42 }, { label: "11", value: 38 }, { label: "12", value: 29 },
-  { label: "13", value: 45 }, { label: "14", value: 31 }, { label: "15", value: 19 },
-  { label: "16", value: 27 }, { label: "17", value: 50 }, { label: "18", value: 44 },
-  { label: "19", value: 36 }, { label: "20", value: 22 }, { label: "21", value: 41 },
-  { label: "22", value: 33 }, { label: "23", value: 48 }, { label: "24", value: 39 },
-  { label: "25", value: 26 }, { label: "26", value: 55 }, { label: "27", value: 47 },
-  { label: "28", value: 30 }, { label: "29", value: 52 }, { label: "30", value: 43 },
-];
-
-const recentActivity = [
-  { text: "Ahmed completed Lesson 4 of Python Basics", time: "2m ago", type: "completion" },
-  { text: "Sara scored 92% on your Variables Quiz", time: "15m ago", type: "quiz" },
-  { text: 'Bilal left a 5-star review: "Best course!"', time: "1h ago", type: "review" },
-  { text: "New enrollment: Fatima joined React Course", time: "3h ago", type: "enrollment" },
-  { text: "Peer session request for Data Structures", time: "5h ago", type: "peer" },
-];
-
-const activityIcons: Record<string, string> = {
-  completion: "✓",
-  quiz: "✎",
-  review: "★",
-  enrollment: "✦",
-  peer: "↔",
+  title: "Coach Studio — COGNARA™",
 };
 
 export default async function CoachDashboardPage() {
@@ -57,228 +24,314 @@ export default async function CoachDashboardPage() {
     .eq("id", user.id)
     .maybeSingle();
 
-  // Fetch coach's courses for the performance table
-  const { data: courses } = await supabase
-    .from("courses")
-    .select("title, total_enrolled, avg_rating, price_usd, is_published")
-    .eq("coach_id", user.id)
-    .order("total_enrolled", { ascending: false })
-    .limit(5);
-
-  const coachCourses = (courses ?? []).map(c => ({
-    title: c.title,
-    students: c.total_enrolled ?? 0,
-    rating: Number(c.avg_rating) || 0,
-    revenue: (c.total_enrolled ?? 0) * Number(c.price_usd || 0),
-    status: c.is_published ? ("published" as const) : ("draft" as const),
-  }));
-
   const firstName = profile?.full_name?.split(/\s+/)[0] || user.email?.split("@")[0] || "Coach";
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header */}
-      <section>
-        <h1 className="text-2xl font-bold tracking-tight text-cn-ink sm:text-3xl">
-          Welcome back, {firstName}
-        </h1>
-        <p className="mt-1 text-sm text-cn-ink-muted">
-          Here&apos;s how your courses are performing this month.
-        </p>
-      </section>
+    <>
+      <DashboardEffects />
+      
+      {/* Welcome Header */}
+      <div className="mb-10 flex flex-col md:flex-row md:justify-between md:items-end gap-6 entrance-stagger">
+        <div>
+          <h2 className="font-headline-xl text-4xl text-cn-ink dark:text-white font-black">
+            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-indigo-400">{firstName}</span>
+          </h2>
+          <p className="text-on-surface-variant/50 font-body-lg mt-2 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]"></span>
+            System status optimal. Performance trend +12% this week.
+          </p>
+        </div>
+        <CreateCourseButton />
+      </div>
 
       {/* Verification Banner */}
       {!profile?.is_verified && (
-        <div className="flex items-center gap-4 rounded-2xl border border-amber-300/30 bg-amber-50 px-5 py-4 dark:border-amber-500/20 dark:bg-amber-500/10">
-          <span className="text-2xl">⚠️</span>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
-              Your account is pending verification
-            </p>
-            <p className="mt-0.5 text-xs text-amber-700/80 dark:text-amber-400/60">
-              You can build courses but cannot publish until verified.
-            </p>
+        <div className="glass-card inner-purple-glow rounded-2xl p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group entrance-stagger">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+          <div className="flex items-center gap-6 relative z-10">
+            <div className="w-14 h-14 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-transform shrink-0">
+              <span className="material-symbols-outlined text-3xl">verified_user</span>
+            </div>
+            <div>
+              <h3 className="font-headline-sm text-lg font-black text-amber-500/90 mb-0.5">Identity Verification Required</h3>
+              <p className="text-on-surface-variant/50 text-sm">Upload your professional credentials to unlock global course publishing.</p>
+            </div>
           </div>
-          <Link
-            href="/coach/verification"
-            className="shrink-0 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-amber-700"
-          >
-            Upload Documents →
+          <Link href="/coach/verification" className="bg-white/5 hover:bg-amber-500/90 text-white px-6 py-2.5 rounded-xl text-xs font-black border border-white/5 transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] relative z-10 whitespace-nowrap">
+            Verify Identity
           </Link>
         </div>
       )}
 
-      {/* Stats */}
-      <section className="cn-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard
-          label="Total Students"
-          value="124"
-          hint="All-time enrolled"
-          accent="indigo"
-          trend={{ value: "+12%", positive: true }}
-          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.433-2.367M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>}
-        />
-        <StatCard
-          label="Active This Month"
-          value="89"
-          hint="Currently learning"
-          accent="emerald"
-          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
-        />
-        <StatCard
-          label="Monthly Earnings"
-          value="$247.50"
-          hint="After platform fee"
-          accent="emerald"
-          trend={{ value: "+8%", positive: true }}
-          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-        />
-        <StatCard
-          label="Avg Rating"
-          value="4.8 ★"
-          hint="From 47 reviews"
-          accent="amber"
-          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>}
-        />
-        <StatCard
-          label="Completion Rate"
-          value="78%"
-          hint="+5% bonus earned"
-          accent="lavender"
-          trend={{ value: "+5%", positive: true }}
-          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-        />
-      </section>
-
-      {/* AI Coach Agent Tools */}
-      <section className="rounded-2xl border border-indigo-200/50 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/50 p-6 dark:border-indigo-500/20 dark:from-indigo-950/30 dark:via-cn-surface dark:to-purple-950/20">
-        <div className="flex items-center gap-2 mb-5">
-          <AgentIcon size={24} />
-          <h2 className="text-base font-bold text-cn-ink">Coach Agent Tools</h2>
-          <Badge variant="success" size="sm">FREE for coaches</Badge>
+      {/* Stats Bento Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-10 entrance-stagger">
+        <div className="glass-card inner-purple-glow rounded-[1.75rem] p-7 group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500/10 transition-all">
+              <span className="material-symbols-outlined text-xl">group</span>
+            </div>
+            <span className="text-green-500 text-[10px] font-black bg-green-500/5 px-2 py-1 rounded-lg border border-green-500/10 tracking-tight">+12%</span>
+          </div>
+          <p className="text-4xl font-black mb-1 text-cn-ink dark:text-white tracking-tighter">124</p>
+          <p className="text-on-surface-variant/30 font-bold uppercase tracking-[0.15em] text-[10px]">Total Students</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {[
-            { icon: "•", title: "PDF → Course Outline", desc: "AI drafts a full course from your PDF" },
-            { icon: "•", title: "Generate Quiz Bank", desc: "Create quizzes from any topic instantly" },
-            { icon: "•", title: "Analyze My Students", desc: "AI insights on student performance" },
-          ].map(tool => (
-            <button
-              key={tool.title}
-              className="group flex flex-col gap-2 rounded-xl border border-cn-border bg-cn-surface p-4 text-left transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
-            >
-              <span className="text-2xl transition-transform duration-200 group-hover:scale-110">{tool.icon}</span>
-              <span className="text-sm font-bold text-cn-ink">{tool.title}</span>
-              <span className="text-xs text-cn-ink-muted">{tool.desc}</span>
-            </button>
-          ))}
+        <div className="glass-card inner-purple-glow rounded-[1.75rem] p-7 group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/5 border border-teal-500/10 flex items-center justify-center text-teal-400 group-hover:bg-teal-500/10 transition-all">
+              <span className="material-symbols-outlined text-xl">visibility</span>
+            </div>
+            <div className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 pulse-dot mt-1"></span>
+            </div>
+          </div>
+          <p className="text-4xl font-black mb-1 text-cn-ink dark:text-white tracking-tighter">89</p>
+          <p className="text-on-surface-variant/30 font-bold uppercase tracking-[0.15em] text-[10px]">Active Now</p>
         </div>
-      </section>
-
-      {/* Earnings Chart + Performance */}
-      <div className="grid gap-6 lg:grid-cols-5">
-        <section className="lg:col-span-3 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-cn-ink">Earnings — Last 30 days</h2>
-            <span className="text-xs text-cn-ink-subtle">Daily revenue ($)</span>
-          </div>
-          <BarChart data={earningsData} color="indigo" height={140} />
-        </section>
-
-        <section className="lg:col-span-2 cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-          <h2 className="text-base font-bold text-cn-ink mb-4">Performance Multiplier</h2>
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">1.08×</span>
-            <Badge variant="success" size="sm">+8% this month</Badge>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-cn-ink-muted">Completion rate</span>
-                <span className="font-semibold text-cn-ink">78% <span className="text-emerald-500">+5%</span></span>
-              </div>
-              <ProgressBar value={78} color="emerald" size="sm" />
+        <div className="glass-card inner-purple-glow rounded-[1.75rem] p-7 group border-primary/10 bg-primary/5">
+          <div className="flex justify-between items-start mb-6">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+              <span className="material-symbols-outlined text-xl">payments</span>
             </div>
-            <div>
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-cn-ink-muted">Avg rating</span>
-                <span className="font-semibold text-cn-ink">4.8/5 <span className="text-emerald-500">+3%</span></span>
-              </div>
-              <ProgressBar value={96} color="amber" size="sm" />
-            </div>
-            <div>
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-cn-ink-muted">Student volume</span>
-                <span className="font-semibold text-cn-ink">89 active</span>
-              </div>
-              <ProgressBar value={45} color="indigo" size="sm" />
+            <span className="text-green-500 text-[10px] font-black bg-green-500/5 px-2 py-1 rounded-lg border border-green-500/10 tracking-tight">+8%</span>
+          </div>
+          <p className="text-4xl font-black mb-1 text-cn-ink dark:text-white tracking-tighter">$247</p>
+          <p className="text-on-surface-variant/30 font-bold uppercase tracking-[0.15em] text-[10px]">Monthly Revenue</p>
+        </div>
+        <div className="glass-card inner-purple-glow rounded-[1.75rem] p-7 group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500/10 transition-all">
+              <span className="material-symbols-outlined text-xl">star</span>
             </div>
           </div>
-          <div className="mt-5 rounded-xl bg-cn-canvas p-3 text-xs text-cn-ink-muted space-y-1">
-            <div className="flex justify-between"><span>Gross revenue</span><span className="font-semibold text-cn-ink">$297.62</span></div>
-            <div className="flex justify-between"><span>Platform fee (20%)</span><span className="text-rose-500">−$59.52</span></div>
-            <div className="flex justify-between border-t border-cn-border pt-1 mt-1"><span className="font-bold text-cn-ink">Net payout</span><span className="font-bold text-emerald-600 dark:text-emerald-400">$247.50</span></div>
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <p className="text-4xl font-black text-cn-ink dark:text-white tracking-tighter">4.8</p>
+            <span className="text-amber-500 text-lg drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">★</span>
           </div>
-        </section>
+          <p className="text-on-surface-variant/30 font-bold uppercase tracking-[0.15em] text-[10px]">Average Rating</p>
+        </div>
+        <div className="glass-card inner-purple-glow rounded-[1.75rem] p-7 group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/5 border border-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/10 transition-all">
+              <span className="material-symbols-outlined text-xl">verified</span>
+            </div>
+          </div>
+          <p className="text-4xl font-black mb-1 text-cn-ink dark:text-white tracking-tighter">78%</p>
+          <p className="text-on-surface-variant/30 font-bold uppercase tracking-[0.15em] text-[10px]">Completion Rate</p>
+        </div>
       </div>
 
-      {/* Course Performance Table */}
-      <section className="rounded-2xl border border-cn-border bg-cn-surface shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-cn-border flex items-center justify-between">
-          <h2 className="text-base font-bold text-cn-ink">Course Performance</h2>
-          <Link href="/coach/courses" className="text-xs font-semibold text-indigo-500 hover:underline">
-            Manage courses →
-          </Link>
+      {/* Charts & Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10 entrance-stagger">
+        <div className="lg:col-span-2 glass-card inner-purple-glow rounded-[2rem] p-8 relative group">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+            <div>
+              <h3 className="font-headline-md text-xl font-black text-cn-ink dark:text-white">Revenue Stream</h3>
+              <p className="text-on-surface-variant/40 text-xs mt-1">Net performance across active modules</p>
+            </div>
+            <div className="flex gap-2">
+              <button className="bg-white/[0.03] border border-white/5 rounded-lg px-4 py-2 text-[10px] font-black text-on-surface-variant hover:bg-white/10 transition-all uppercase tracking-wider">Export</button>
+              <select className="bg-white/[0.05] border-none text-on-surface text-[10px] font-black rounded-lg py-2 pl-3 pr-8 focus:ring-1 focus:ring-primary/40 outline-none cursor-pointer appearance-none uppercase tracking-wider">
+                <option>Monthly (USD)</option>
+                <option>Weekly (USD)</option>
+              </select>
+            </div>
+          </div>
+          <div className="h-80 w-full relative flex items-end">
+            <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 300">
+              <defs>
+                <linearGradient id="chartGlow" x1="0%" x2="0%" y1="0%" y2="100%">
+                  <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.35"></stop>
+                  <stop offset="100%" stopColor="#a78bfa" stopOpacity="0"></stop>
+                </linearGradient>
+                <linearGradient id="lineGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stopColor="#a78bfa" stopOpacity="1"></stop>
+                  <stop offset="50%" stopColor="#a78bfa"></stop>
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="1"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M0,250 Q50,220 100,240 T200,180 T300,210 T400,140 T500,170 T600,110 T700,150 T800,80 T900,120 T1000,50 L1000,300 L0,300 Z" fill="url(#chartGlow)"></path>
+              <path className="drop-shadow-[0_0_12px_rgba(139,92,246,0.6)] chart-path" d="M0,250 Q50,220 100,240 T200,180 T300,210 T400,140 T500,170 T600,110 T700,150 T800,80 T900,120 T1000,50" fill="none" stroke="url(#lineGradient)" strokeLinecap="round" strokeWidth="4"></path>
+              <circle className="animate-pulse" cx="800" cy="80" fill="#fff" r="5" style={{ filter: "drop-shadow(0 0 8px #a78bfa)" }}></circle>
+              <circle className="animate-pulse" cx="1000" cy="50" fill="#fff" r="5" style={{ filter: "drop-shadow(0 0 8px #a78bfa)" }}></circle>
+            </svg>
+            <div className="absolute bottom-0 left-0 w-full flex justify-between px-4 pt-6 text-[9px] text-on-surface-variant/20 font-black uppercase tracking-[0.2em] border-t border-white/5">
+              <span>Oct 1</span><span>Oct 10</span><span>Oct 20</span><span>Oct 30</span>
+            </div>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-cn-canvas/50">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Course</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Students</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Rating</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Revenue</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-cn-ink-subtle">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cn-border">
-              {coachCourses.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-cn-ink-muted">No courses yet — create your first course to see performance data.</td>
-                </tr>
-              ) : coachCourses.map(c => (
-                <tr key={c.title} className="hover:bg-cn-canvas/60 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-cn-ink">{c.title}</td>
-                  <td className="px-4 py-4 text-cn-ink-muted">{c.students}</td>
-                  <td className="px-4 py-4 text-cn-ink-muted">{c.rating > 0 ? `${c.rating.toFixed(1)} ★` : "—"}</td>
-                  <td className="px-4 py-4 font-semibold text-cn-ink">{c.revenue > 0 ? `$${c.revenue.toFixed(2)}` : "Free"}</td>
-                  <td className="px-4 py-4">
-                    <Badge variant={c.status === "published" ? "success" : "warning"} dot>
-                      {c.status}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Recent Activity */}
-      <section className="cn-card-lift cn-card-shine rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
-        <h2 className="text-base font-bold text-cn-ink mb-4">Recent Student Activity</h2>
-        <div className="space-y-3">
-          {recentActivity.map((item, i) => (
-            <div key={i} className="flex items-start gap-3 cn-row-hover rounded-xl px-3 py-2.5 transition-colors">
-              <span className="mt-0.5 text-lg text-cn-orange">{activityIcons[item.type] || "•"}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-cn-ink">{item.text}</p>
-                <p className="mt-0.5 text-xs text-cn-ink-subtle">{item.time}</p>
+        <div className="glass-card inner-purple-glow rounded-[2rem] p-8 flex flex-col">
+          <h3 className="font-headline-md text-xl font-black text-cn-ink dark:text-white mb-8">Efficiency Score</h3>
+          <div className="flex items-center gap-4 mb-10">
+            <div className="text-6xl font-black text-primary tracking-tighter drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">1.08<span className="text-xl ml-0.5 font-bold">x</span></div>
+            <div className="bg-green-500/5 text-green-500 px-3 py-1.5 rounded-lg text-[9px] font-black border border-green-500/10 uppercase tracking-widest">
+              OPTIMIZED
+            </div>
+          </div>
+          <div className="space-y-8 flex-1">
+            <div className="group">
+              <div className="flex justify-between text-[10px] font-black mb-3 uppercase tracking-[0.15em] text-on-surface-variant/30">
+                <span className="">Course Completion</span>
+                <span className="text-cn-ink dark:text-white">78% <span className="text-green-500 ml-1">↑ 5%</span></span>
+              </div>
+              <div className="h-1.5 w-full bg-white/[0.03] rounded-full overflow-hidden border border-white/5">
+                <div className="h-full bg-gradient-to-r from-primary via-purple-400 to-indigo-500 w-[78%] rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] transition-all duration-1000 ease-out"></div>
               </div>
             </div>
-          ))}
+            <div className="group">
+              <div className="flex justify-between text-[10px] font-black mb-3 uppercase tracking-[0.15em] text-on-surface-variant/30">
+                <span className="">Student Feedback</span>
+                <span className="text-cn-ink dark:text-white">4.8/5 <span className="text-green-500 ml-1">↑ 3%</span></span>
+              </div>
+              <div className="h-1.5 w-full bg-white/[0.03] rounded-full overflow-hidden border border-white/5">
+                <div className="h-full bg-gradient-to-r from-amber-400 to-amber-600 w-[96%] rounded-full shadow-[0_0_8px_rgba(245,158,11,0.3)] transition-all duration-1000 ease-out"></div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 pt-6 border-t border-white/5 space-y-3">
+            <div className="flex justify-between text-xs font-bold text-on-surface-variant/50">
+              <span className="">Gross Yield</span>
+              <span className="text-cn-ink dark:text-white">$297.62</span>
+            </div>
+            <div className="flex justify-between text-xs font-bold text-on-surface-variant/50">
+              <span className="">Platform Fee</span>
+              <span className="text-error/70">-$59.52</span>
+            </div>
+            <div className="flex justify-between items-center pt-5 border-t border-white/5">
+              <span className="font-black text-lg text-cn-ink dark:text-white">Net Payout</span>
+              <span className="text-2xl font-black text-primary drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">$247.50</span>
+            </div>
+          </div>
         </div>
-      </section>
-    </div>
+      </div>
+
+      {/* AI Agent Tools */}
+      <div className="mb-10 relative group entrance-stagger">
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-purple-600/10 to-indigo-600/10 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+        <div className="glass-card inner-purple-glow rounded-[2.5rem] p-10 bg-black/20 relative border-white/5">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-purple-600/10 border border-primary/20 flex items-center justify-center text-primary shadow-xl shrink-0">
+              <span className="material-symbols-outlined text-3xl">auto_awesome</span>
+            </div>
+            <div>
+              <h3 className="font-headline-md text-3xl font-black text-cn-ink dark:text-white tracking-tight">Coach Intelligence Suite</h3>
+              <p className="text-on-surface-variant/40 text-base mt-1 font-medium">Elevate your mentorship with predictive AI and automated analysis.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="glass-card bg-white/[0.01] border-white/5 p-8 rounded-[1.75rem] group/tool cursor-pointer hover:bg-white/[0.03] hover:-translate-y-1 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-8 group-hover/tool:scale-105 group-hover/tool:bg-primary/10 transition-all">
+                <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+              </div>
+              <h4 className="font-black text-xl mb-3 text-cn-ink dark:text-white">Smart PDF Parser</h4>
+              <p className="text-on-surface-variant/40 text-sm leading-relaxed font-medium">Turn flat documentation into structured dynamic learning modules.</p>
+            </div>
+            <div className="glass-card bg-white/[0.01] border-white/5 p-8 rounded-[1.75rem] group/tool cursor-pointer hover:bg-white/[0.03] hover:-translate-y-1 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-8 group-hover/tool:scale-105 group-hover/tool:bg-primary/10 transition-all">
+                <span className="material-symbols-outlined text-2xl">quiz</span>
+              </div>
+              <h4 className="font-black text-xl mb-3 text-cn-ink dark:text-white">Quiz Engine</h4>
+              <p className="text-on-surface-variant/40 text-sm leading-relaxed font-medium">Generate adaptive assessments based on student performance curves.</p>
+            </div>
+            <div className="glass-card bg-white/[0.01] border-white/5 p-8 rounded-[1.75rem] group/tool cursor-pointer hover:bg-white/[0.03] hover:-translate-y-1 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary mb-8 group-hover/tool:scale-105 group-hover/tool:bg-primary/10 transition-all">
+                <span className="material-symbols-outlined text-2xl">insights</span>
+              </div>
+              <h4 className="font-black text-xl mb-3 text-cn-ink dark:text-white">Predictive Edge</h4>
+              <p className="text-on-surface-variant/40 text-sm leading-relaxed font-medium">Detect engagement drops early with behavioral AI heatmaps.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Data Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 entrance-stagger">
+        {/* Table Section */}
+        <div className="glass-card inner-purple-glow rounded-[2rem] p-8 overflow-hidden">
+          <div className="flex justify-between items-center mb-10 px-2">
+            <h3 className="font-headline-md text-xl font-black text-cn-ink dark:text-white">High Impact Courses</h3>
+            <Link href="/coach/courses" className="text-primary text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 group/link">
+              Full Inventory 
+              <span className="material-symbols-outlined text-base group-hover/link:translate-x-1 transition-transform">arrow_forward</span>
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-on-surface-variant/20 text-[9px] uppercase font-black tracking-[0.2em] border-b border-white/5">
+                  <th className="pb-6 pl-4">Course Path</th>
+                  <th className="pb-6 text-center">Students</th>
+                  <th className="pb-6 text-center">Yield</th>
+                  <th className="pb-6 text-right pr-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                <tr className="group/row hover:bg-white/[0.01] transition-colors hover:scale-[1.005] cursor-pointer">
+                  <td className="py-6 pl-4">
+                    <p className="font-black text-base text-cn-ink dark:text-white group-hover/row:text-primary transition-colors">Advanced Algorithms</p>
+                    <p className="text-[9px] text-on-surface-variant/30 font-black uppercase tracking-widest mt-1.5">CS CORE • UPDATED 2D AGO</p>
+                  </td>
+                  <td className="py-6 text-center text-cn-ink dark:text-white font-black text-base">124</td>
+                  <td className="py-6 text-center font-black text-base text-primary">$4,960</td>
+                  <td className="py-6 text-right pr-4">
+                    <span className="bg-primary/5 text-primary text-[9px] font-black px-3 py-1 rounded-lg border border-primary/10 tracking-widest">LIVE</span>
+                  </td>
+                </tr>
+                <tr className="group/row hover:bg-white/[0.01] transition-colors hover:scale-[1.005] cursor-pointer">
+                  <td className="py-6 pl-4">
+                    <p className="font-black text-base text-cn-ink dark:text-white group-hover/row:text-primary transition-colors">Systems Architecture</p>
+                    <p className="text-[9px] text-on-surface-variant/30 font-black uppercase tracking-widest mt-1.5">ENGINEERING • UPDATED 5D AGO</p>
+                  </td>
+                  <td className="py-6 text-center text-cn-ink dark:text-white font-black text-base">89</td>
+                  <td className="py-6 text-center font-black text-base text-primary">$1,240</td>
+                  <td className="py-6 text-right pr-4">
+                    <span className="bg-primary/5 text-primary text-[9px] font-black px-3 py-1 rounded-lg border border-primary/10 tracking-widest">LIVE</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {/* Activity Feed */}
+        <div className="glass-card inner-purple-glow rounded-[2rem] p-8">
+          <h3 className="font-headline-md text-xl font-black text-cn-ink dark:text-white mb-10">Live Transmission</h3>
+          <div className="space-y-8 relative">
+            <div className="absolute left-6 top-4 bottom-4 w-px bg-gradient-to-b from-primary/20 via-white/5 to-transparent"></div>
+            
+            <div className="flex items-start gap-6 relative group/item">
+              <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary z-10 bg-background group-hover/item:scale-105 transition-transform shadow-md">
+                <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              </div>
+              <div className="pt-0.5">
+                <p className="font-bold text-base text-on-surface leading-tight"><span className="text-cn-ink dark:text-white font-black">Ahmed K.</span> mastered "Recursive Structures"</p>
+                <p className="text-[10px] text-on-surface-variant/30 font-black uppercase tracking-[0.15em] mt-2.5 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot"></span>
+                  2 MINUTES AGO • VERIFIED
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-6 relative group/item">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center text-amber-500 z-10 bg-background group-hover/item:scale-105 transition-transform shadow-md">
+                <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+              </div>
+              <div className="pt-0.5">
+                <p className="font-bold text-base text-on-surface leading-tight"><span className="text-cn-ink dark:text-white font-black">Sara M.</span> left a 5-star review: "Excellent depth."</p>
+                <p className="text-[10px] text-on-surface-variant/30 font-black uppercase tracking-[0.15em] mt-2.5">15 MINUTES AGO • FEEDBACK</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-6 relative group/item">
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-400 z-10 bg-background group-hover/item:scale-105 transition-transform shadow-md">
+                <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+              </div>
+              <div className="pt-0.5">
+                <p className="font-bold text-base text-on-surface leading-tight">New Enrollment: <span className="text-cn-ink dark:text-white font-black">Bilal J.</span> joined Architecture</p>
+                <p className="text-[10px] text-on-surface-variant/30 font-black uppercase tracking-[0.15em] mt-2.5">1 HOUR AGO • CONVERSION</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

@@ -26,8 +26,8 @@ export const loadStudentUpcomingLessons = cache(
       if (!enrollments?.length) return [];
 
       const courseIds = enrollments
-        .map((e) => e.course_id)
-        .filter((id): id is string => Boolean(id));
+        .map((e: any) => e.course_id)
+        .filter((id: any): id is string => Boolean(id));
 
       if (courseIds.length === 0) return [];
 
@@ -44,7 +44,7 @@ export const loadStudentUpcomingLessons = cache(
           .eq("completed", true),
       ]);
 
-      const completedIds = new Set((completed ?? []).map((r) => r.lesson_id));
+      const completedIds = new Set((completed ?? []).map((r: any) => r.lesson_id));
       const courseMeta = new Map<string, { title: string; slug: string }>();
 
       for (const e of enrollments) {

@@ -17,8 +17,8 @@ export default async function CoachStudentsPage() {
     .select("id, title, slug")
     .eq("coach_id", user.id);
 
-  const courseIds = (courses ?? []).map(c => c.id);
-  const courseMap = Object.fromEntries((courses ?? []).map(c => [c.id, c.title]));
+  const courseIds = (courses ?? []).map((c: any) => c.id);
+  const courseMap = Object.fromEntries((courses ?? []).map((c: any) => [c.id, c.title]));
 
   // Get enrollments for those courses
   let enrollments: Array<{

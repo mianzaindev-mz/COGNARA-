@@ -19,8 +19,9 @@ export default function VerifyEmailPage() {
       setError("Supabase is not configured for this environment.");
       return;
     }
-    void supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
+    void supabase.auth.getUser().then((res: any) => {
+      const data = res.data;
+      if (!data?.user) {
         router.replace("/login");
         return;
       }

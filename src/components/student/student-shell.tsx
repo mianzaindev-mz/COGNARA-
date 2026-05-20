@@ -5,6 +5,7 @@ import { useTheme } from "@/components/theme/theme-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { useNotifications } from "@/hooks/use-notifications";
 
 const nav = [
   { href: "/dashboard", label: "Home", icon: "dashboard", activeFill: true },
@@ -31,6 +32,7 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
   
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const { notifications, unreadCount, markAllAsRead, loading } = useNotifications();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -177,35 +179,43 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
               </button>
               <div className="relative" ref={notifRef}>
                 <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
+                  onClick={() => {
+                    const next = !showNotifications;
+                    setShowNotifications(next);
+                    if (next && unreadCount > 0) markAllAsRead();
+                  }}
                   className="relative p-2 text-on-surface-variant interactive-element hover:bg-black/5 dark:hover:bg-white/10 rounded-full"
                 >
                   <span className="material-symbols-outlined">notifications_active</span>
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-surface-container-lowest">3</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
+                  )}
                 </button>
 
                 {showNotifications && (
                   <div className="absolute right-0 mt-2 w-80 bg-surface-container-high border border-black/10 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                     <div className="p-4 border-b border-black/10 dark:border-white/10 flex justify-between items-center">
                       <h4 className="font-bold text-on-surface">Notifications</h4>
-                      <span className="text-xs text-primary cursor-pointer hover:underline">Mark all as read</span>
+                      <span className="text-xs text-primary cursor-pointer hover:underline" onClick={markAllAsRead}>Mark all as read</span>
                     </div>
                     <div className="flex flex-col max-h-[300px] overflow-y-auto">
-                      <div className="p-4 border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors">
-                        <p className="text-sm text-on-surface font-semibold">Welcome to COGNARA!</p>
-                        <p className="text-xs text-on-surface-variant mt-1">Get started by browsing our course catalog.</p>
-                        <p className="text-[10px] text-primary mt-2">Just now</p>
-                      </div>
-                      <div className="p-4 border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors">
-                        <p className="text-sm text-on-surface font-semibold">Free credits refilled</p>
-                        <p className="text-xs text-on-surface-variant mt-1">Your 20 daily AI credits have been added.</p>
-                        <p className="text-[10px] text-primary mt-2">2h ago</p>
-                      </div>
-                      <div className="p-4 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors opacity-70">
-                        <p className="text-sm text-on-surface font-semibold">Account created</p>
-                        <p className="text-xs text-on-surface-variant mt-1">Your learning journey begins here.</p>
-                        <p className="text-[10px] text-on-surface-variant mt-2">1d ago</p>
-                      </div>
+                      {loading ? (
+                        <div className="p-8 text-center text-on-surface-variant text-sm animate-pulse">Loading...</div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-8 text-center text-on-surface-variant text-sm">
+                          No new notifications
+                        </div>
+                      ) : (
+                        notifications.map(notif => (
+                          <div key={notif.id} className="p-4 border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors">
+                            <p className={`text-sm ${!notif.is_read ? 'font-bold text-on-surface' : 'font-semibold text-on-surface-variant'}`}>{notif.title}</p>
+                            <p className="text-xs text-on-surface-variant mt-1">{notif.message}</p>
+                            <p className="text-[10px] text-primary mt-2">
+                              {new Date(notif.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        ))
+                      )}
                     </div>
                     <div className="p-3 border-t border-black/10 dark:border-white/10 text-center">
                       <Link href="/settings" onClick={() => setShowNotifications(false)} className="text-xs text-on-surface-variant hover:text-primary font-semibold transition-colors">

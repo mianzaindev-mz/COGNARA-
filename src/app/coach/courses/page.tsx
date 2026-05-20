@@ -22,7 +22,7 @@ export default async function CoachCoursesPage() {
     .order("created_at", { ascending: false });
 
   const list = courses ?? [];
-  const publishedCount = list.filter(c => c.is_published).length;
+  const publishedCount = list.filter((c: any) => c.is_published).length;
 
   return (
     <div className="flex flex-col gap-8">
@@ -63,7 +63,7 @@ export default async function CoachCoursesPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {list.map(course => {
+          {list.map((course: any) => {
             const price = Number(course.price_usd) || 0;
             const rating = Number(course.avg_rating) || 0;
             const enrolled = course.total_enrolled ?? 0;

@@ -98,9 +98,10 @@ export function CreateCourseButton() {
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:bg-indigo-700 hover:shadow-lg dark:bg-indigo-600 dark:hover:bg-indigo-700"
+        className="shimmer-btn bg-gradient-to-r from-primary to-purple-600 text-white px-7 py-3.5 rounded-xl font-black text-sm flex items-center gap-2.5 shadow-[0_10px_25px_-5px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-95 transition-all w-fit cursor-pointer"
       >
-        + Create Course
+        <span className="material-symbols-outlined text-xl">add_circle</span>
+        Create New Course
       </button>
 
       {open && (

@@ -45,7 +45,7 @@ export default async function AdminDashboardPage() {
     .from("courses")
     .select("price_usd, total_enrolled")
     .eq("is_published", true);
-  const grossRevenue = (courseRevData ?? []).reduce((s, c) => s + (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0), 0);
+  const grossRevenue = (courseRevData ?? []).reduce((s: number, c: any) => s + (Number(c.price_usd) || 0) * (c.total_enrolled ?? 0), 0);
 
   // Recent support tickets (query user_id and profiles instead of email directly on profiles)
   const { data: recentTickets } = await supabase
@@ -104,7 +104,7 @@ export default async function AdminDashboardPage() {
           <div className="space-y-3">
             {(pendingCoaches ?? []).length === 0 ? (
               <p className="text-sm text-cn-ink-muted py-4 text-center">No pending verifications</p>
-            ) : (pendingCoaches ?? []).map((coach) => {
+            ) : (pendingCoaches ?? []).map((coach: any) => {
               const coachEmail = emailMap.get(coach.id) || "No Email";
               const initials = (coach.full_name ?? coachEmail).split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
               const ago = Math.round((Date.now() - new Date(coach.created_at).getTime()) / 3600000);
@@ -161,7 +161,7 @@ export default async function AdminDashboardPage() {
             { label: "Payments", status: "operational" },
             { label: "Video (Mux)", status: "degraded" },
             { label: "Email", status: "operational" },
-          ].map(s => (
+          ].map((s: any) => (
             <div key={s.label} className="flex items-center gap-2 rounded-xl border border-cn-border bg-cn-canvas px-3 py-2.5">
               <span className={`h-2 w-2 rounded-full ${s.status === "operational" ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
               <span className="text-xs text-cn-ink-muted">{s.label}</span>

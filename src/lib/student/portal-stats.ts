@@ -78,7 +78,20 @@ async function loadStatsInner(
     created_at: row.created_at,
   }));
 
-  const earnedBadges = sessionsRes.data ? (badgesRes.data ?? []) : [];
+  const earnedBadges = (badgesRes.data ?? []).map((row: any) => {
+    const courseObj = Array.isArray(row.courses) ? row.courses[0] : row.courses;
+    return {
+      id: String(row.id),
+      badge_type: String(row.badge_type),
+      course_id: String(row.course_id),
+      chapter_id: row.chapter_id ? String(row.chapter_id) : null,
+      score: Number(row.score) || 0,
+      earned_at: String(row.earned_at),
+      courses: {
+        title: String(courseObj?.title ?? "Unknown Course")
+      }
+    };
+  });
 
   return {
     enrolledCourses,

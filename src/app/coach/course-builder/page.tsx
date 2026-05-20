@@ -134,7 +134,7 @@ export default function CourseBuilderPage() {
         .select("id, title, category, description, difficulty, price_usd, is_published, total_lessons, badge_criteria, badge_criteria_locked")
         .eq("coach_id", user.id);
 
-      const items: CourseItem[] = (dbCourses ?? []).map(c => ({
+      const items: CourseItem[] = (dbCourses ?? []).map((c: any) => ({
         id: c.id,
         title: c.title,
         category: c.category ?? "Computer Science",
@@ -238,7 +238,7 @@ export default function CourseBuilderPage() {
       if (chErr || lesErr) throw new Error("Failed to fetch chapters/lessons from DB");
 
       if (dbChapters && dbChapters.length > 0) {
-        setChapters(dbChapters.map(ch => ({
+        setChapters(dbChapters.map((ch: any) => ({
           id: ch.id,
           title: ch.title,
           x: Number(ch.x_pos) || 0,
@@ -248,7 +248,7 @@ export default function CourseBuilderPage() {
           wallType: (ch.wall_type as any) || "none"
         })));
         
-        setLessons((dbLessons || []).map(l => ({
+        setLessons((dbLessons || []).map((l: any) => ({
           id: l.id,
           chapterId: l.chapter_id || "",
           title: l.title,
@@ -730,7 +730,7 @@ export default function CourseBuilderPage() {
     };
 
     const newLessons: LessonNode[] = [
-      { id: `les-${nextId}-1`, chapterId: nextId, title: `Lesson ${chapters.length + 1}.1`, order_index: 1, locked: true }
+      { id: `les-${nextId}-1`, chapterId: nextId, title: `Lesson ${chapters.length + 1}.1`, order_index: 1, locked: true, type: "text", is_graded: false }
     ];
 
     const updatedChs = [...chapters, newCh];

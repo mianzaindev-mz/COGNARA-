@@ -21,7 +21,9 @@ export function applyThemeWithTransition(theme: Theme) {
   if (doc.startViewTransition) {
     try {
       const t = doc.startViewTransition(() => { run(); });
-      t.finished.catch(() => {/* transition aborted — safe to ignore */});
+      t.ready?.catch(() => {/* transition aborted — safe to ignore */});
+      t.updateCallbackDone?.catch(() => {/* transition aborted — safe to ignore */});
+      t.finished?.catch(() => {/* transition aborted — safe to ignore */});
     } catch {
       run();
     }
