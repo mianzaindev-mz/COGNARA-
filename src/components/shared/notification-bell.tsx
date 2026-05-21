@@ -115,7 +115,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 glass-card rounded-2xl shadow-2xl overflow-hidden border-cn-border dark:border-white/10 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute right-0 top-full mt-3 w-80 sm:w-96 glass-card rounded-2xl shadow-2xl overflow-hidden border-cn-border dark:border-white/10 origin-top-right animate-in fade-in zoom-in-95 duration-200">
           <div className="bg-cn-surface/90 dark:bg-black/60 px-5 py-4 border-b border-cn-border dark:border-white/5 flex justify-between items-center backdrop-blur-xl">
             <h3 className="font-bold text-cn-ink dark:text-white">Notifications</h3>
             {unreadCount > 0 && <span className="text-[10px] bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full font-black">{unreadCount} New</span>}

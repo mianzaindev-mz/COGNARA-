@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import type { OnMount } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
 import { LanguageSelector } from "./LanguageSelector";
 import { OutputPanel } from "./OutputPanel";
@@ -12,6 +13,44 @@ import {
   type ExecutionResult,
 } from "@/lib/compiler/judge0";
 
+/* ── Stdin auto-detection patterns per language ──────────── */
+const STDIN_PATTERNS: Partial<Record<LanguageKey, RegExp>> = {
+  python: /\binput\s*\(/,
+  javascript: /\breadline\b|process\.stdin/,
+  typescript: /\breadline\b|process\.stdin/,
+  java: /\bScanner\b|BufferedReader|System\.in/,
+  c: /\bscanf\b|\bgets\b|\bfgets\b|\bgetchar\b/,
+  cpp: /\bcin\b|\bgetline\b|\bscanf\b/,
+  csharp: /Console\.Read/,
+  go: /\bfmt\.Scan|bufio\.NewReader|os\.Stdin/,
+  rust: /\bstdin\b|read_line/,
+  ruby: /\bgets\b|\breadline\b|\$stdin/,
+  php: /\bfgets\b|\breadline\b|\$stdin/,
+  kotlin: /\breadLine\b|\breadln\b|Scanner/,
+  bash: /\bread\b/,
+  lua: /io\.read/,
+  r: /\breadLines\b|\bscan\b|\breadline\b/,
+  perl: /\b<STDIN>|chomp/,
+  swift: /\breadLine\b/,
+  haskell: /\bgetLine\b|\bgetContents\b/,
+  scala: /\bStdIn\b|scala\.io/,
+  pascal: /\bReadLn\b|\bRead\b/,
+  fortran: /\bREAD\b/i,
+};
+
+/** Default stdin so starter code with input() works out of the box */
+const DEFAULT_STDIN: Partial<Record<LanguageKey, string>> = {
+  python: "Demo Student",
+};
+
+function detectStdinUsage(lang: LanguageKey, code: string): boolean {
+  const p = STDIN_PATTERNS[lang];
+  return p ? p.test(code) : false;
+}
+
+/** Languages rendered client-side — no compiler needed */
+const CLIENT_RENDERED = new Set<LanguageKey>(["mermaid", "html", "css", "markdown"]);
+
 export function CodeEditorFull() {
   const [language, setLanguage] = useState<LanguageKey>("python");
   const [code, setCode] = useState(DEFAULT_CODE.python);
@@ -21,18 +60,21 @@ export function CodeEditorFull() {
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
+  const [stdinNeeded, setStdinNeeded] = useState(false);
 
-  // Ctrl+Enter to run
+  // Auto-detect stdin usage & pre-populate default inputs
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleRun();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  });
+    if (CLIENT_RENDERED.has(language)) {
+      setStdinNeeded(false);
+      return;
+    }
+    const needed = detectStdinUsage(language, code);
+    setStdinNeeded(needed);
+    if (needed && !stdin && DEFAULT_STDIN[language]) {
+      setStdin(DEFAULT_STDIN[language]!);
+      setShowStdin(true);
+    }
+  }, [code, language]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMount: OnMount = (editor) => {
     editorRef.current = editor;
@@ -74,6 +116,22 @@ export function CodeEditorFull() {
     }
   }, [language, code, stdin]);
 
+  // Stable ref so the keyboard shortcut always calls the latest handleRun
+  const handleRunRef = useRef(handleRun);
+  useEffect(() => { handleRunRef.current = handleRun; }, [handleRun]);
+
+  // Ctrl+Enter to run — registered once, never re-attached
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleRunRef.current();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   const handleReset = useCallback(() => {
     setCode(DEFAULT_CODE[language]);
     setResult(null);
@@ -89,17 +147,27 @@ export function CodeEditorFull() {
         <div className="flex flex-wrap items-center gap-3 border-b border-cn-border px-4 py-2.5">
           <LanguageSelector value={language} onChange={handleLanguageChange} />
 
-          <button
-            type="button"
-            onClick={() => setShowStdin(!showStdin)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              showStdin
-                ? "bg-cn-orange/10 text-cn-orange"
-                : "text-cn-ink-muted hover:bg-cn-border/50 hover:text-cn-ink"
-            }`}
-          >
-            stdin
-          </button>
+          {!CLIENT_RENDERED.has(language) && (
+            <button
+              type="button"
+              onClick={() => setShowStdin(!showStdin)}
+              className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                showStdin
+                  ? "bg-cn-orange/10 text-cn-orange"
+                  : stdinNeeded && !stdin.trim()
+                    ? "bg-red-500/10 text-red-400 animate-pulse"
+                    : "text-cn-ink-muted hover:bg-cn-border/50 hover:text-cn-ink"
+              }`}
+            >
+              {stdinNeeded && !stdin.trim() && (
+                <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                </span>
+              )}
+              stdin {stdinNeeded ? "⚠️" : ""}
+            </button>
+          )}
 
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -122,7 +190,7 @@ export function CodeEditorFull() {
         </div>
 
         {/* Stdin */}
-        {showStdin && (
+        {showStdin && !CLIENT_RENDERED.has(language) && (
           <div className="border-b border-cn-border px-4 py-2">
             <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-cn-ink-subtle">
               Standard Input
@@ -174,7 +242,7 @@ export function CodeEditorFull() {
 
       {/* Right: Output */}
       <div className="flex min-h-[200px] flex-col lg:w-[38%] lg:min-h-0">
-        <OutputPanel result={result} isRunning={isRunning} error={error} />
+        <OutputPanel result={result} isRunning={isRunning} error={error} language={language} />
       </div>
 
       {/* Keyboard shortcut hint */}

@@ -88,140 +88,148 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  let supabaseResponse = NextResponse.next({ request });
+  /* ── Supabase auth — wrapped in try-catch for resilience ── */
+  try {
+    let supabaseResponse = NextResponse.next({ request });
 
-  const supabaseUrl = getSupabasePublicUrl()!;
-  const supabaseAnon = getSupabasePublicAnonKey()!;
+    const supabaseUrl = getSupabasePublicUrl()!;
+    const supabaseAnon = getSupabasePublicAnonKey()!;
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnon,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options?: Record<string, unknown>;
-          }[],
-        ) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
+    const supabase = createServerClient(
+      supabaseUrl,
+      supabaseAnon,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(
+            cookiesToSet: {
+              name: string;
+              value: string;
+              options?: Record<string, unknown>;
+            }[],
+          ) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value),
+            );
+            supabaseResponse = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options),
+            );
+          },
         },
       },
-    },
-  );
+    );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const search = request.nextUrl.search;
+    const search = request.nextUrl.search;
 
-  if (pathname.startsWith("/api/auth/callback")) {
-    return supabaseResponse;
-  }
-
-  if (!user) {
-    if (requiresAuthentication(pathname)) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = "/login";
-      loginUrl.searchParams.set("redirectTo", pathname + search);
-      return NextResponse.redirect(loginUrl);
+    if (pathname.startsWith("/api/auth/callback")) {
+      return supabaseResponse;
     }
-    return supabaseResponse;
-  }
 
-  const emailConfirmed = Boolean(user.email_confirmed_at);
+    if (!user) {
+      if (requiresAuthentication(pathname)) {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = "/login";
+        loginUrl.searchParams.set("redirectTo", pathname + search);
+        return NextResponse.redirect(loginUrl);
+      }
+      return supabaseResponse;
+    }
 
-  if (!emailConfirmed && pathname !== VERIFY_EMAIL_ROUTE) {
-    const url = request.nextUrl.clone();
-    url.pathname = VERIFY_EMAIL_ROUTE;
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+    const emailConfirmed = Boolean(user.email_confirmed_at);
 
-  if (emailConfirmed && pathname === VERIFY_EMAIL_ROUTE) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  const profile = await fetchProfile(supabase, user.id);
-
-  if (profile?.is_banned && pathname !== "/banned") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/banned";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  if (!profile?.is_banned && pathname === "/banned") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  if (
-    emailConfirmed &&
-    profile &&
-    profile.role !== "admin" &&
-    profile.onboarding_complete !== true
-  ) {
-    const target =
-      profile.role === "coach"
-        ? "/onboarding/coach"
-        : "/onboarding/student";
-    if (!pathname.startsWith("/onboarding")) {
+    if (!emailConfirmed && pathname !== VERIFY_EMAIL_ROUTE) {
       const url = request.nextUrl.clone();
-      url.pathname = target;
+      url.pathname = VERIFY_EMAIL_ROUTE;
       url.search = "";
       return NextResponse.redirect(url);
     }
-  }
 
-  if (
-    emailConfirmed &&
-    profile?.onboarding_complete === true &&
-    pathname.startsWith("/onboarding")
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  if (user && emailConfirmed && isAuthRoute(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  if (pathname.startsWith("/admin")) {
-    if (profile?.role !== "admin") {
-      return new NextResponse(null, { status: 404 });
-    }
-  }
-
-  if (pathname.startsWith("/coach")) {
-    if (profile?.role !== "coach" && profile?.role !== "admin") {
+    if (emailConfirmed && pathname === VERIFY_EMAIL_ROUTE) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       url.search = "";
       return NextResponse.redirect(url);
     }
-  }
 
-  return supabaseResponse;
+    const profile = await fetchProfile(supabase, user.id);
+
+    if (profile?.is_banned && pathname !== "/banned") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/banned";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    if (!profile?.is_banned && pathname === "/banned") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    if (
+      emailConfirmed &&
+      profile &&
+      profile.role !== "admin" &&
+      profile.onboarding_complete !== true
+    ) {
+      const target =
+        profile.role === "coach"
+          ? "/onboarding/coach"
+          : "/onboarding/student";
+      if (!pathname.startsWith("/onboarding")) {
+        const url = request.nextUrl.clone();
+        url.pathname = target;
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+    }
+
+    if (
+      emailConfirmed &&
+      profile?.onboarding_complete === true &&
+      pathname.startsWith("/onboarding")
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    if (user && emailConfirmed && isAuthRoute(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    if (pathname.startsWith("/admin")) {
+      if (profile?.role !== "admin") {
+        return new NextResponse(null, { status: 404 });
+      }
+    }
+
+    if (pathname.startsWith("/coach")) {
+      if (profile?.role !== "coach" && profile?.role !== "admin") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+    }
+
+    return supabaseResponse;
+  } catch (err) {
+    // Supabase unreachable or auth error — allow the request through
+    // so the page can render its own auth check or show a login prompt
+    console.error("[Middleware] Supabase auth error, allowing request:", err);
+    return NextResponse.next({ request });
+  }
 }

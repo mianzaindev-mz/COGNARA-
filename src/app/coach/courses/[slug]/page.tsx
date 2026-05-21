@@ -102,6 +102,11 @@ export default function EditCoursePage() {
   const [lessonType, setLessonType] = useState("text");
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
 
+  // Student Preview state
+  const [previewActive, setPreviewActive] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+  const [previewTab, setPreviewTab] = useState<"Overview" | "Materials" | "Curriculum">("Overview");
+
   useEffect(() => {
     if (!slug) return;
     async function loadData() {
@@ -738,22 +743,272 @@ export default function EditCoursePage() {
 
       {/* Lesson Details Edit/Create Modal Overlay */}
       {lessonModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="w-full max-w-5xl rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-2 md:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm transition-opacity">
+          <div className="my-auto w-full max-w-5xl rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in fade-in zoom-in-95 duration-200 flex flex-col h-[92vh] max-h-[850px] min-h-[500px]">
             <div className="mb-4 flex items-center justify-between border-b border-cn-border pb-3 dark:border-[#2e2a2a]">
-              <h3 className="text-base font-bold text-cn-ink dark:text-white flex items-center gap-2">
-                <span>⚡</span>
-                <span>{lessonModalMode === "create" ? "Add Lesson (Modular Creator)" : "Edit Lesson (Modular Creator)"}</span>
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-base font-bold text-cn-ink dark:text-white flex items-center gap-2">
+                  <span>⚡</span>
+                  <span>{lessonModalMode === "create" ? "Add Lesson" : "Edit Lesson"}</span>
+                </h3>
+                {/* Segmented Edit / Preview Switcher */}
+                <div className="flex items-center bg-cn-canvas dark:bg-[#0f0e0e] rounded-xl border border-cn-border dark:border-[#2e2a2a] p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => { setPreviewActive(false); setPreviewTab("Overview"); }}
+                    className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                      !previewActive
+                        ? "bg-indigo-600 text-white shadow-sm"
+                        : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
+                    }`}
+                  >
+                    ✍️ Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPreviewActive(true); setPreviewTab("Overview"); }}
+                    className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                      previewActive
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
+                    }`}
+                  >
+                    👁️ Preview
+                  </button>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setLessonModalOpen(false)}
+                onClick={() => { setLessonModalOpen(false); setPreviewActive(false); }}
                 className="text-cn-ink-muted hover:text-cn-ink dark:hover:text-white font-bold"
               >
                 ✕
               </button>
             </div>
 
+            {/* ─── PREVIEW MODE ─── */}
+            {previewActive ? (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Device switcher bar */}
+                <div className="flex items-center justify-between shrink-0 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Live Preview</span>
+                    <span className="text-[10px] text-cn-ink-subtle">·</span>
+                    <span className="text-[10px] text-cn-ink-muted font-semibold truncate max-w-[200px]">{lessonTitle || "Untitled Lesson"}</span>
+                  </div>
+                  <div className="flex items-center bg-cn-canvas dark:bg-[#0f0e0e] rounded-lg border border-cn-border dark:border-[#2e2a2a] p-0.5">
+                    <button type="button" onClick={() => setPreviewDevice("desktop")} className={`px-2.5 py-1 text-[9px] font-bold rounded-md transition ${previewDevice === "desktop" ? "bg-cn-surface dark:bg-[#2e2a2a] text-cn-ink dark:text-white shadow-sm" : "text-cn-ink-muted hover:text-cn-ink"}`}>🖥 Desktop</button>
+                    <button type="button" onClick={() => setPreviewDevice("mobile")} className={`px-2.5 py-1 text-[9px] font-bold rounded-md transition ${previewDevice === "mobile" ? "bg-cn-surface dark:bg-[#2e2a2a] text-cn-ink dark:text-white shadow-sm" : "text-cn-ink-muted hover:text-cn-ink"}`}>📱 Mobile</button>
+                  </div>
+                </div>
+
+                {/* Preview Viewport */}
+                <div className="flex-1 flex items-center justify-center overflow-hidden bg-cn-canvas dark:bg-[#0a0909] rounded-xl border border-cn-border dark:border-[#2e2a2a] p-4">
+                  <div className={`h-full rounded-2xl border-2 border-cn-border dark:border-[#3a3535] bg-cn-surface dark:bg-[#1a1818] shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${previewDevice === "mobile" ? "w-[375px] max-w-[375px]" : "w-full max-w-full"}`}>
+                    {/* Simulated mobile notch */}
+                    {previewDevice === "mobile" && (
+                      <div className="h-7 bg-black flex items-center justify-center shrink-0">
+                        <div className="w-20 h-4 bg-[#1a1a1a] rounded-b-xl" />
+                      </div>
+                    )}
+
+                    {/* Breadcrumb */}
+                    <div className="px-4 py-2.5 border-b border-cn-border dark:border-[#2e2a2a] shrink-0 bg-cn-surface dark:bg-[#161414]">
+                      <nav className="text-[9px] text-cn-ink-muted flex items-center gap-1 mb-1">
+                        <span className="text-cn-ink-subtle">My courses</span><span>/</span>
+                        <span className="text-cn-ink-subtle">{course?.title || "Course"}</span><span>/</span>
+                        <span className="font-bold text-cn-ink dark:text-white truncate max-w-[120px]">{lessonTitle || "Untitled"}</span>
+                      </nav>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
+                          Lesson {(lessons.length || 0) + (lessonModalMode === "create" ? 1 : 0)}
+                        </span>
+                        <h1 className={`font-bold text-cn-ink dark:text-white truncate ${previewDevice === "mobile" ? "text-sm" : "text-base"}`}>
+                          {lessonTitle || "Untitled Lesson"}
+                        </h1>
+                      </div>
+                    </div>
+
+                    {/* Video player (if video block exists) */}
+                    {(() => {
+                      const videoBlock = blocks.find((b) => b.type === "video" && b.content && b.content.startsWith("http"));
+                      if (!videoBlock) return null;
+                      const url = videoBlock.content;
+                      const ytMatch = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+                      return (
+                        <div className={`relative bg-black shrink-0 ${previewDevice === "mobile" ? "aspect-video" : "aspect-video max-h-[200px]"}`}>
+                          {ytMatch ? (
+                            <iframe src={`https://www.youtube.com/embed/${ytMatch[1]}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full" />
+                          ) : (
+                            <video src={url} controls className="h-full w-full object-contain" />
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Tabs */}
+                    <div className="flex gap-1.5 px-4 pt-3 pb-1 shrink-0">
+                      {(["Overview", "Materials", "Curriculum"] as const).map((tab) => (
+                        <button key={tab} type="button" onClick={() => setPreviewTab(tab)} className={`rounded-full px-3.5 py-1.5 text-[10px] font-bold transition border ${previewTab === tab ? "bg-[#2c2826] text-white border-transparent dark:bg-[#2c2826]" : "border-cn-border bg-white text-cn-ink-muted hover:text-cn-ink dark:bg-[#1c1a18] dark:border-[#2e2a2a]"}`}>
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Tab content */}
+                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                      {previewTab === "Overview" ? (
+                        blocks.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-10 text-center">
+                            <p className="text-sm font-bold text-cn-ink-muted">No content blocks yet</p>
+                            <p className="text-[10px] text-cn-ink-subtle mt-1">Switch to Edit mode and add content blocks to see them here.</p>
+                          </div>
+                        ) : (
+                          blocks.map((block) => {
+                            switch (block.type) {
+                              case "heading": {
+                                const lvl = block.properties.level || 2;
+                                if (lvl === 1) return <h1 key={block.id} className="text-lg font-bold text-cn-ink dark:text-white border-b border-cn-border pb-1.5 mt-2">{block.content}</h1>;
+                                if (lvl === 3) return <h3 key={block.id} className="text-xs font-bold text-cn-ink dark:text-gray-200 mt-1">{block.content}</h3>;
+                                return <h2 key={block.id} className="text-sm font-bold text-cn-ink dark:text-white mt-1.5">{block.content}</h2>;
+                              }
+                              case "paragraph":
+                                return <p key={block.id} className="text-[11px] text-cn-ink-muted leading-relaxed">{block.content}</p>;
+                              case "code":
+                                return (
+                                  <div key={block.id} className="relative my-2">
+                                    <span className="absolute top-1.5 right-2 text-[7px] font-bold text-cn-ink-subtle uppercase tracking-wider">{block.properties.language || "code"}</span>
+                                    <pre className="bg-cn-canvas border border-cn-border p-3 rounded-lg text-[10px] font-mono text-emerald-600 dark:text-emerald-400 overflow-x-auto dark:bg-black dark:border-stone-800"><code>{block.content}</code></pre>
+                                  </div>
+                                );
+                              case "image":
+                                return block.content && block.content.startsWith("http") ? (
+                                  <div key={block.id} className="rounded-lg overflow-hidden border border-cn-border bg-cn-canvas/45 max-h-[180px] my-2 dark:border-stone-800">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={block.content} alt={block.properties.caption || "Lesson image"} className="max-h-[180px] object-contain w-full" />
+                                    {block.properties.caption && <p className="text-[9px] text-cn-ink-subtle text-center py-1">{block.properties.caption}</p>}
+                                  </div>
+                                ) : null;
+                              case "video":
+                                return null;
+                              case "embed":
+                                return block.content && block.content.startsWith("http") ? (
+                                  <iframe key={block.id} src={block.content} className="w-full h-40 rounded-lg border border-cn-border shadow-sm my-2 dark:border-stone-800" />
+                                ) : null;
+                              case "url":
+                                return block.content && block.content.startsWith("http") ? (
+                                  <div key={block.id} className="rounded-xl border border-cn-border bg-cn-surface p-3 my-2 dark:border-stone-800 dark:bg-stone-900/60">
+                                    <p className="text-[10px] font-semibold text-cn-ink dark:text-white mb-0.5">Link Reference</p>
+                                    <p className="text-[9px] text-cn-ink-muted truncate">{block.content}</p>
+                                  </div>
+                                ) : null;
+                              case "callout":
+                                return (
+                                  <div key={block.id} className="bg-amber-500/10 border-l-4 border-amber-500 p-3 rounded-r-lg flex gap-2 items-start my-2 dark:bg-yellow-500/5">
+                                    <span className="text-sm">💡</span>
+                                    <p className="text-[10px] text-cn-ink dark:text-gray-300 font-medium leading-relaxed">{block.content}</p>
+                                  </div>
+                                );
+                              case "quote":
+                                return (
+                                  <div key={block.id} className="rounded-xl border border-cn-border bg-cn-surface/70 p-3 my-2 dark:border-stone-800 dark:bg-stone-900/40">
+                                    <p className="text-xs italic text-cn-ink dark:text-white">&ldquo;{block.content}&rdquo;</p>
+                                    {block.properties.author && <p className="mt-1.5 text-[10px] font-semibold text-indigo-500">— {block.properties.author}</p>}
+                                  </div>
+                                );
+                              case "resource":
+                                return (
+                                  <div key={block.id} className="rounded-xl border border-cn-border bg-cn-surface p-3 my-2 dark:border-stone-800 dark:bg-stone-900/60">
+                                    <p className="text-[10px] font-semibold text-indigo-500 mb-0.5">{block.properties.title || "Resource"}</p>
+                                    <p className="text-[10px] text-cn-ink-muted leading-relaxed mb-2">{block.content}</p>
+                                    {block.properties.url && block.properties.url.startsWith("http") && (
+                                      <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-[9px] font-semibold text-indigo-500">📥 Download</span>
+                                    )}
+                                  </div>
+                                );
+                              case "activity":
+                                return (
+                                  <div key={block.id} className="rounded-xl border-2 border-dashed border-emerald-500/30 bg-emerald-500/5 p-3 my-2">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                      <span className="text-[9px] font-bold uppercase text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">⚙️ Activity</span>
+                                      {block.properties.duration && <span className="text-[9px] text-cn-ink-subtle">{block.properties.duration} min</span>}
+                                    </div>
+                                    <p className="text-[10px] text-cn-ink dark:text-gray-300 leading-relaxed">{block.content}</p>
+                                  </div>
+                                );
+                              case "divider":
+                                return <hr key={block.id} className="my-3 border-cn-border" />;
+                              default:
+                                return null;
+                            }
+                          })
+                        )
+                      ) : previewTab === "Materials" ? (
+                        <div>
+                          {blocks.filter((b) => b.type === "resource").length > 0 ? (
+                            <div className="space-y-2">
+                              {blocks.filter((b) => b.type === "resource").map((block) => (
+                                <div key={block.id} className="rounded-xl border border-cn-border bg-cn-surface p-3 dark:border-stone-800 dark:bg-stone-900/60">
+                                  <p className="text-[10px] font-semibold text-indigo-500 mb-0.5">{block.properties.title || "Resource"}</p>
+                                  <p className="text-[10px] text-cn-ink-muted leading-relaxed mb-2">{block.content}</p>
+                                  {block.properties.url && block.properties.url.startsWith("http") && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-[9px] font-semibold text-indigo-500">📥 Download resource</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-cn-ink-muted py-6 text-center">No downloadable resources attached to this lesson yet.</p>
+                          )}
+                        </div>
+                      ) : (
+                        /* Curriculum tab */
+                        <div className="space-y-1.5">
+                          {lessons.length === 0 && lessonModalMode === "create" ? (
+                            <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3">
+                              <p className="text-[10px] font-bold text-indigo-500">Lesson 1 · {lessonTitle || "Untitled"}</p>
+                              <p className="text-[9px] text-cn-ink-subtle mt-0.5">This lesson (currently being created)</p>
+                            </div>
+                          ) : (
+                            lessons.map((l, i) => (
+                              <div key={l.id} className={`rounded-xl border p-2.5 transition ${(lessonModalMode === "edit" && editingLessonId === l.id) ? "border-indigo-500/40 bg-indigo-500/10" : "border-cn-border dark:border-stone-800 hover:border-cn-border/60"}`}>
+                                <p className="text-[10px] font-bold text-cn-ink dark:text-white">
+                                  Lesson {i + 1} · {l.title}
+                                  {(lessonModalMode === "edit" && editingLessonId === l.id) && (
+                                    <span className="ml-2 text-[8px] text-indigo-400 font-bold uppercase">Editing</span>
+                                  )}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                          {lessonModalMode === "create" && lessons.length > 0 && (
+                            <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-2.5">
+                              <p className="text-[10px] font-bold text-indigo-500">Lesson {lessons.length + 1} · {lessonTitle || "Untitled"}</p>
+                              <p className="text-[9px] text-cn-ink-subtle mt-0.5">This lesson (currently being created)</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom nav simulation */}
+                    <div className="flex items-center justify-between px-4 py-2.5 border-t border-cn-border dark:border-[#2e2a2a] shrink-0 bg-cn-surface dark:bg-[#161414]">
+                      <span className="rounded-full border border-cn-border px-3 py-1.5 text-[9px] font-semibold text-cn-ink-muted dark:border-stone-800">← Previous</span>
+                      <span className="rounded-full bg-[#2c2826] px-3.5 py-1.5 text-[9px] font-bold text-white">Next lesson →</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview footer */}
+                <div className="flex items-center justify-between pt-3 border-t border-cn-border dark:border-[#2e2a2a] shrink-0 mt-3">
+                  <p className="text-[9px] text-cn-ink-subtle">Simulated preview. Actual student view may vary based on enrollment state.</p>
+                  <button type="button" onClick={() => setPreviewActive(false)} className="rounded-xl border border-cn-border px-4 py-2 text-xs font-bold text-cn-ink hover:bg-cn-canvas dark:border-[#2e2a2a] dark:text-white">
+                    ← Back to Editor
+                  </button>
+                </div>
+              </div>
+            ) : (
+            <>
             {lessonError && (
               <div className="mb-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 text-xs font-semibold text-rose-500">
                 {lessonError}
@@ -1095,6 +1350,8 @@ export default function EditCoursePage() {
                 </button>
               </div>
             </form>
+            </>
+            )}
           </div>
         </div>
       )}

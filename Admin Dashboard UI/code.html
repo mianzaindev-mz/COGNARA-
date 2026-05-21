@@ -1,0 +1,503 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>COGNARA | Platform Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#dc143c",
+                      "on-secondary-container": "#006c71",
+                      "on-primary-fixed": "#40000a",
+                      "surface-variant": "#353436",
+                      "on-primary-fixed-variant": "#920022",
+                      "secondary-container": "#00f4fe",
+                      "tertiary": "#fbbc00",
+                      "on-surface-variant": "#e6bdbc",
+                      "on-secondary": "#003739",
+                      "surface-container-highest": "#353436",
+                      "surface-dim": "#131314",
+                      "on-error-container": "#ffdad6",
+                      "secondary": "#e6feff",
+                      "on-tertiary": "#402d00",
+                      "surface-container": "#201f20",
+                      "on-primary-container": "#fff1f0",
+                      "on-tertiary-fixed-variant": "#5c4300",
+                      "on-tertiary-fixed": "#261a00",
+                      "outline-variant": "#5c3f3f",
+                      "on-background": "#e5e2e3",
+                      "surface-container-low": "#1c1b1c",
+                      "error-container": "#93000a",
+                      "on-tertiary-container": "#fff3e3",
+                      "tertiary-fixed": "#ffdfa0",
+                      "inverse-on-surface": "#313031",
+                      "inverse-surface": "#e5e2e3",
+                      "error": "#ffb4ab",
+                      "primary-fixed-dim": "#ffb3b3",
+                      "outline": "#ac8888",
+                      "surface-container-high": "#2a2a2b",
+                      "primary-fixed": "#ffdad9",
+                      "tertiary-fixed-dim": "#fbbc00",
+                      "on-error": "#690005",
+                      "secondary-fixed": "#63f7ff",
+                      "inverse-primary": "#bf0030",
+                      "secondary-fixed-dim": "#00dce5",
+                      "surface": "#131314",
+                      "surface-container-lowest": "#0e0e0f",
+                      "surface-tint": "#ffb3b3",
+                      "on-secondary-fixed-variant": "#004f53",
+                      "primary": "#ffb3b3",
+                      "on-surface": "#e5e2e3",
+                      "on-secondary-fixed": "#002021",
+                      "on-primary": "#680015",
+                      "surface-bright": "#3a393a",
+                      "tertiary-container": "#8f6a00",
+                      "background": "#050505"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack_gap_sm": "12px",
+                      "gutter": "32px",
+                      "stack_gap_lg": "32px",
+                      "container_max_width": "1600px",
+                      "margin_desktop": "48px",
+                      "stack_gap_md": "20px",
+                      "sidebar_width_expanded": "260px",
+                      "sidebar_width_collapsed": "80px",
+                      "margin_mobile": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "label-caps": ["Geist"],
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "headline-sm": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "data-mono": ["Geist"],
+                      "headline-lg-mobile": ["Plus Jakarta Sans"],
+                      "body-md": ["Plus Jakarta Sans"],
+                      "body-lg": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "1.25", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "data-mono": ["14px", {"lineHeight": "1.5", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            color: #e5e2e3;
+            overflow-x: hidden;
+            perspective: 2500px;
+            line-height: 1.6;
+        }
+
+        * {
+            transition: all 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .glass-card {
+            background: rgba(20, 20, 22, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+            transform-style: preserve-3d;
+            will-change: transform, box-shadow, border-color;
+            position: relative;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 1px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%, transparent 60%, rgba(255, 255, 255, 0.02) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px) translateZ(30px);
+            box-shadow: 
+                0 35px 70px -15px rgba(0, 0, 0, 0.8), 
+                0 0 30px rgba(220, 20, 60, 0.1);
+            border-color: rgba(220, 20, 60, 0.25);
+            z-index: 10;
+        }
+
+        #sidebar {
+            width: 80px;
+            overflow: hidden;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar:hover {
+            width: 260px;
+        }
+
+        .sidebar-content {
+            width: 180px;
+            opacity: 0;
+            transform: translateX(-10px);
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #sidebar:hover .sidebar-content {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .sidebar-active-pill {
+            box-shadow: 4px 0 20px -5px rgba(220, 20, 60, 0.4);
+            border-left: 3px solid #dc143c;
+        }
+
+        .pulse-teal { animation: pulse-dot 2s infinite; background-color: #00dce5; }
+        .pulse-amber { animation: pulse-dot 2s infinite; background-color: #fbbc00; }
+        
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(0, 220, 229, 0.4); }
+            50% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 10px 2px rgba(0, 220, 229, 0.2); }
+        }
+
+        .animate-float-up {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: floatUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes floatUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.15s; }
+        .stagger-3 { animation-delay: 0.2s; }
+        .stagger-4 { animation-delay: 0.25s; }
+        .stagger-5 { animation-delay: 0.3s; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(220, 20, 60, 0.2); border-radius: 10px; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .baseline-align { display: flex; align-items: baseline; }
+    </style>
+</head>
+<body class="font-body-md">
+<!-- Side Navigation -->
+<aside class="fixed left-0 top-0 h-full z-50 bg-[#0a0a0b]/98 backdrop-blur-3xl border-r border-white/5 flex flex-col shadow-[15px_0_45px_rgba(0,0,0,0.5)] transition-all duration-400 group/sidebar" id="sidebar">
+<!-- Header Section -->
+<div class="h-20 flex items-center px-6 gap-5">
+<div class="w-10 h-10 min-w-[40px] bg-primary-container rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(220,20,60,0.4)]">
+<span class="material-symbols-outlined text-white text-2xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<span class="sidebar-content text-headline-sm font-bold text-on-surface whitespace-nowrap tracking-tight">COGNARA</span>
+</div>
+<!-- Navigation Items -->
+<nav class="flex-1 flex flex-col mt-6 gap-2 px-2">
+<a class="flex items-center h-12 px-4 gap-4 text-white rounded-xl sidebar-active-pill bg-primary-container/10 border border-primary-container/20 transition-all hover:bg-primary-container/20 group" href="#">
+<span class="material-symbols-outlined text-primary-container text-xl" data-icon="dashboard">dashboard</span>
+<span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Dashboard</span>
+</a>
+<a class="flex items-center h-12 px-4 gap-4 text-on-surface-variant/50 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="group">group</span>
+<span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Users</span>
+</a>
+<a class="flex items-center h-12 px-4 gap-4 text-on-surface-variant/50 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="verified_user">verified_user</span>
+<span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Coaches</span>
+</a>
+<a class="flex items-center h-12 px-4 gap-4 text-on-surface-variant/50 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="menu_book">menu_book</span>
+<span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Courses</span>
+</a>
+<a class="flex items-center h-12 px-4 gap-4 text-on-surface-variant/50 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="bar_chart">bar_chart</span>
+<span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Reports</span>
+</a>
+</nav>
+<!-- Bottom Actions -->
+<div class="p-2 mb-6">
+<button class="flex items-center h-12 w-full px-4 gap-4 text-on-surface-variant/50 hover:text-primary-container hover:bg-primary-container/10 rounded-xl transition-all mb-1">
+  <span class="material-symbols-outlined text-xl">settings</span>
+  <span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Settings</span>
+</button><button class="flex items-center h-12 w-full px-4 gap-4 text-on-surface-variant/50 hover:text-primary-container hover:bg-primary-container/10 rounded-xl transition-all">
+<span class="material-symbols-outlined text-xl" data-icon="logout">logout</span>
+<span class="sidebar-content font-label-caps text-[11px] tracking-[0.15em] uppercase">Sign out</span>
+</button>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-[80px] group-hover/sidebar:left-[260px] h-20 flex justify-between items-center px-10 z-40 bg-background/60 backdrop-blur-xl border-b border-white/5 transition-all duration-400">
+<div class="flex items-center gap-8">
+<h1 class="font-label-caps text-[11px] font-black tracking-[0.25em] text-primary-container uppercase">Platform Control</h1>
+<div class="flex items-center gap-3 bg-secondary-container/5 px-4 py-1.5 rounded-full border border-secondary-container/10">
+<div class="w-2 h-2 rounded-full pulse-teal"></div>
+<span class="text-[10px] font-bold text-secondary-fixed/80 tracking-widest uppercase">System Online</span>
+</div>
+</div>
+<div class="flex items-center gap-10">
+<div class="relative group/search">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/30 group-hover/search:text-primary-container text-lg transition-colors" data-icon="search">search</span>
+<input class="bg-white/5 border border-white/5 rounded-full pl-11 pr-6 py-2 text-sm w-56 focus:w-72 focus:border-primary-container/30 focus:bg-white/10 transition-all outline-none" placeholder="Search systems..." type="text">
+</div>
+<div class="flex items-center gap-6">
+<button class="p-2 text-on-surface-variant/60 hover:text-primary-container transition-colors">
+  <span class="material-symbols-outlined">light_mode</span>
+</button><button class="p-2 text-on-surface-variant/60 hover:text-primary-container transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+</button>
+<div class="w-[1px] h-6 bg-white/10"></div>
+<div class="flex items-center gap-4 cursor-pointer group">
+<div class="flex flex-col items-end">
+<span class="text-xs font-bold text-on-surface">Demo Admin</span>
+<span class="text-[9px] text-on-surface-variant/40 font-bold tracking-widest uppercase">Superuser</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-on-primary-fixed-variant flex items-center justify-center text-white font-bold ring-1 ring-white/10 group-hover:shadow-[0_0_20px_rgba(220,20,60,0.3)] transition-all">
+                    DA
+                </div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pl-[80px] group-hover/sidebar:pl-[260px] pt-20 pb-24 min-h-screen transition-all duration-400">
+<div class="max-w-[1600px] mx-auto p-12 space-y-12">
+<!-- Page Header -->
+<div class="flex flex-col gap-3 animate-float-up">
+<div class="flex items-center gap-4">
+<div class="h-[1px] w-12 bg-primary-container/60"></div>
+<span class="text-primary-container font-label-caps text-[10px] tracking-[0.4em] uppercase font-bold">Operational Overview</span>
+</div>
+<h2 class="font-headline-lg text-5xl text-on-surface tracking-tight">Control Center</h2>
+<p class="text-on-surface-variant/50 font-body-lg max-w-2xl">Real-time telemetry and architectural monitoring for the core ecosystem.</p>
+</div>
+<!-- Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+<!-- Metric Card -->
+<div class="glass-card rounded-3xl p-8 animate-float-up stagger-1" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-start mb-10">
+<span class="font-label-caps text-[10px] text-on-surface-variant/40 tracking-[0.2em] uppercase font-bold">Total Users</span>
+<span class="material-symbols-outlined text-indigo-400/50" data-icon="group">group</span>
+</div>
+<div class="baseline-align gap-2">
+<div class="font-display-lg text-4xl text-on-surface">2.8k</div>
+<div class="text-[10px] text-secondary-fixed font-bold tracking-wider">+12%</div>
+</div>
+</div>
+<div class="glass-card rounded-3xl p-8 animate-float-up stagger-2" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-start mb-10">
+<span class="font-label-caps text-[10px] text-on-surface-variant/40 tracking-[0.2em] uppercase font-bold">Enrollments</span>
+<span class="material-symbols-outlined text-teal-400/50" data-icon="school">school</span>
+</div>
+<div class="baseline-align gap-2">
+<div class="font-display-lg text-4xl text-on-surface">842</div>
+<div class="text-[10px] text-secondary-fixed font-bold tracking-wider">NEW</div>
+</div>
+</div>
+<div class="glass-card rounded-3xl p-8 animate-float-up stagger-3 bg-primary-container/[0.03] border-primary-container/10" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-start mb-10">
+<span class="font-label-caps text-[10px] text-primary-container/60 tracking-[0.2em] uppercase font-bold">Revenue</span>
+<span class="material-symbols-outlined text-primary-container/60" data-icon="payments">payments</span>
+</div>
+<div class="baseline-align gap-2">
+<div class="font-display-lg text-4xl text-on-surface">$7.7k</div>
+<div class="text-[10px] text-primary-container font-bold tracking-wider">LIVE</div>
+</div>
+</div>
+<div class="glass-card rounded-3xl p-8 animate-float-up stagger-4" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-start mb-10">
+<span class="font-label-caps text-[10px] text-on-surface-variant/40 tracking-[0.2em] uppercase font-bold">Tickets</span>
+<span class="material-symbols-outlined text-amber-400/50" data-icon="support_agent">support_agent</span>
+</div>
+<div class="baseline-align gap-2">
+<div class="font-display-lg text-4xl text-on-surface">14</div>
+<div class="text-[10px] text-amber-500 font-bold tracking-wider">URGENT</div>
+</div>
+</div>
+<div class="glass-card rounded-3xl p-8 animate-float-up stagger-5" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-start mb-10">
+<span class="font-label-caps text-[10px] text-on-surface-variant/40 tracking-[0.2em] uppercase font-bold">Courses</span>
+<span class="material-symbols-outlined text-fuchsia-400/50" data-icon="auto_stories">auto_stories</span>
+</div>
+<div class="baseline-align gap-2">
+<div class="font-display-lg text-4xl text-on-surface">126</div>
+<div class="text-[10px] text-on-surface-variant/40 font-bold tracking-wider">STABLE</div>
+</div>
+</div>
+</div>
+<!-- Secondary Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+<!-- Large Chart Card -->
+<div class="lg:col-span-2 glass-card rounded-[2.5rem] p-10 flex flex-col h-[520px] animate-float-up stagger-2" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-center mb-12">
+<div>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">Revenue Growth</h3>
+<p class="text-sm text-on-surface-variant/40 mt-1">Operational performance metrics</p>
+</div>
+<div class="flex bg-white/5 p-1 rounded-full border border-white/5">
+<button class="px-6 py-2 rounded-full text-[10px] font-bold tracking-widest text-on-surface-variant/60 hover:text-white transition-colors">WEEKLY</button>
+<button class="px-6 py-2 rounded-full text-[10px] font-bold tracking-widest bg-primary-container text-white shadow-lg">MONTHLY</button>
+</div>
+</div>
+<div class="flex-1 border-b border-l border-white/10 relative flex items-center justify-center">
+<div class="flex flex-col items-center opacity-20">
+<span class="material-symbols-outlined text-6xl text-primary-container mb-4" data-icon="query_stats">query_stats</span>
+<span class="font-data-mono text-[10px] tracking-[0.4em] uppercase font-bold">Syncing Data...</span>
+</div>
+</div>
+<div class="flex justify-between mt-8">
+<span class="text-[10px] text-on-surface-variant/30 font-data-mono tracking-widest uppercase">Day 01</span>
+<span class="text-[10px] text-on-surface-variant/30 font-data-mono tracking-widest uppercase">Day 15</span>
+<span class="text-[10px] text-on-surface-variant/30 font-data-mono tracking-widest uppercase">Day 30</span>
+</div>
+</div>
+<!-- Side Queue Card -->
+<div class="glass-card rounded-[2.5rem] p-10 flex flex-col h-[520px] animate-float-up stagger-3 border-amber-500/5" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-center mb-12">
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">Compliance</h3>
+<div class="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/10 tracking-widest uppercase">4 Pending</div>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto pr-2 no-scrollbar">
+<div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-amber-500/20 hover:bg-white/[0.05] transition-all cursor-pointer flex items-center gap-5 group/item">
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center group-hover/item:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant/40 group-hover/item:text-amber-500" data-icon="person">person</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-bold text-on-surface">Marcus Thorne</div>
+<div class="text-[10px] text-on-surface-variant/40 tracking-wider font-bold uppercase mt-1">Coach Verification</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/20 text-sm group-hover/item:translate-x-1" data-icon="arrow_forward_ios">arrow_forward_ios</span>
+</div>
+<div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-amber-500/20 hover:bg-white/[0.05] transition-all cursor-pointer flex items-center gap-5 group/item">
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center group-hover/item:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant/40 group-hover/item:text-amber-500" data-icon="description">description</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-bold text-on-surface">Advanced Physics</div>
+<div class="text-[10px] text-on-surface-variant/40 tracking-wider font-bold uppercase mt-1">Content Review</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/20 text-sm group-hover/item:translate-x-1" data-icon="arrow_forward_ios">arrow_forward_ios</span>
+</div>
+</div>
+<button class="mt-10 w-full py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-[10px] font-black tracking-[0.25em] transition-all border border-white/5 uppercase">Access Compliance Hub</button>
+</div>
+</div>
+<!-- Ticket Section -->
+<section class="glass-card rounded-[2.5rem] p-10 animate-float-up stagger-4" style="transform: translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg); background: rgba(20, 20, 22, 0.4);">
+<div class="flex justify-between items-center mb-12">
+<div class="flex items-center gap-6">
+<div class="p-3 bg-primary-container/10 rounded-xl border border-primary-container/20">
+<span class="material-symbols-outlined text-primary-container" data-icon="forum">forum</span>
+</div>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">System Tickets</h3>
+</div>
+<a class="text-[10px] font-black tracking-[0.25em] text-primary-container hover:brightness-125 transition-all flex items-center gap-3 group uppercase" href="#">
+                    Command Center
+                    <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform" data-icon="arrow_right_alt">arrow_right_alt</span>
+</a>
+</div>
+<div class="h-48 border border-dashed border-white/10 rounded-3xl bg-white/[0.02] flex items-center justify-center">
+<div class="flex flex-col items-center gap-4 opacity-25 grayscale group hover:grayscale-0 hover:opacity-100 transition-all">
+<span class="material-symbols-outlined text-4xl" data-icon="task_alt">task_alt</span>
+<p class="text-[11px] font-bold tracking-[0.3em] uppercase">All Systems Nominal</p>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Premium Status Footer -->
+<footer class="fixed bottom-0 right-0 left-[80px] group-hover/sidebar:left-[260px] h-12 flex items-center px-10 z-40 bg-[#080809]/90 backdrop-blur-2xl border-t border-white/5 shadow-[0_-10px_30px_rgba(0,0,0,0.4)] transition-all duration-400">
+<div class="flex items-center gap-10">
+<div class="flex items-center gap-3">
+<span class="font-data-mono text-[9px] text-on-surface-variant/40 font-bold tracking-[0.2em] uppercase">Net Status</span>
+<div class="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-3/4 animate-pulse"></div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1 bg-white/[0.02] rounded-full border border-white/5">
+<div class="w-1.5 h-1.5 rounded-full pulse-teal"></div>
+<span class="font-data-mono text-[9px] font-bold text-on-surface-variant/60 tracking-wider">Core DB</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-white/[0.02] rounded-full border border-white/5">
+<div class="w-1.5 h-1.5 rounded-full pulse-teal"></div>
+<span class="font-data-mono text-[9px] font-bold text-on-surface-variant/60 tracking-wider">AI Engine</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-white/[0.02] rounded-full border border-white/5">
+<div class="w-1.5 h-1.5 rounded-full pulse-teal"></div>
+<span class="font-data-mono text-[9px] font-bold text-on-surface-variant/60 tracking-wider">Gateway</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-white/[0.02] rounded-full border border-white/5">
+<div class="w-1.5 h-1.5 rounded-full pulse-amber"></div>
+<span class="font-data-mono text-[9px] font-bold text-on-surface-variant/60 tracking-wider">Media Stream</span>
+</div>
+</div>
+</div>
+<div class="ml-auto flex items-center gap-10">
+<div class="flex items-center gap-3">
+<span class="font-data-mono text-[9px] text-on-surface-variant/40 font-bold tracking-widest uppercase">Latency</span>
+<span class="font-data-mono text-[10px] text-secondary-fixed font-black">14MS</span>
+</div>
+<div class="w-[1px] h-4 bg-white/10"></div>
+<span class="font-data-mono text-[9px] text-on-surface-variant/30 font-bold tracking-[0.2em]">v1.9.0-BETA</span>
+</div>
+</footer>
+<script>
+    // System Lifecycle
+    window.addEventListener('load', () => {
+        setTimeout(() => document.body.classList.remove('preload'), 150);
+    });
+
+    // Refined 3D Interaction
+    document.querySelectorAll('.glass-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const rotateX = ((rect.height / 2) - y) / 25; 
+            const rotateY = (x - (rect.width / 2)) / 25;
+            
+            card.style.transform = `translateY(-8px) translateZ(40px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            
+            const glowX = (x / rect.width) * 100;
+            const glowY = (y / rect.height) * 100;
+            card.style.background = `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(220, 20, 60, 0.08) 0%, rgba(20, 20, 22, 0.4) 70%)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = `translateY(0) translateZ(0) rotateX(0) rotateY(0)`;
+            card.style.background = `rgba(20, 20, 22, 0.4)`;
+        });
+    });
+</script>
+
+
+</body></html>

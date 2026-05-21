@@ -1,7 +1,15 @@
 export function createMockQueryBuilder(tableName: string, demoUser: any) {
   const builder: any = {
-    select: () => builder,
-    eq: () => builder,
+    _single: false,
+    _filters: [] as { field: string; value: any }[],
+    _operation: "select" as "select" | "insert" | "update" | "delete" | "upsert",
+    _payload: null as any,
+
+    select: () => { if (builder._operation !== "insert" && builder._operation !== "update" && builder._operation !== "upsert") { builder._operation = "select"; } return builder; },
+    eq: (field: string, value: any) => {
+      builder._filters.push({ field, value });
+      return builder;
+    },
     neq: () => builder,
     gt: () => builder,
     lt: () => builder,
@@ -15,12 +23,27 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
     order: () => builder,
     limit: () => builder,
     range: () => builder,
-    single: () => builder,
-    maybeSingle: () => builder,
-    insert: () => builder,
-    update: () => builder,
-    upsert: () => builder,
-    delete: () => builder,
+    single: () => { builder._single = true; return builder; },
+    maybeSingle: () => { builder._single = true; return builder; },
+    insert: (payload: any) => {
+      builder._operation = "insert";
+      builder._payload = payload;
+      return builder;
+    },
+    update: (payload: any) => {
+      builder._operation = "update";
+      builder._payload = payload;
+      return builder;
+    },
+    upsert: (payload: any) => {
+      builder._operation = "upsert";
+      builder._payload = payload;
+      return builder;
+    },
+    delete: () => {
+      builder._operation = "delete";
+      return builder;
+    },
 
     then: (onfulfilled: any) => {
       let data: any = null;
@@ -119,8 +142,230 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
             created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
           }
         ];
+      } else if (tableName === "notebooks") {
+        const key = `cognara_mock_notebooks_${demoUser.id}`;
+        let list: any[] = [];
+        try {
+          const stored = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+          if (stored) {
+            list = JSON.parse(stored);
+          } else {
+            list = [
+              {
+                id: "n-default",
+                student_id: demoUser.id,
+                title: "Default Notebook",
+                course_id: "c1",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+            ];
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          }
+        } catch {
+          // storage error — silently ignore
+        }
+
+        if (builder._operation === "select") {
+          data = list.filter(item => {
+            return builder._filters.every((f: any) => {
+              const fKey = f.field === "user_id" ? "student_id" : f.field;
+              const itemVal = fKey === "user_id" ? item.student_id : item[fKey];
+              return itemVal === f.value;
+            });
+          });
+          data.sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        } else if (builder._operation === "insert") {
+          const payloads = Array.isArray(builder._payload) ? builder._payload : [builder._payload];
+          const newRecords = payloads.map((p: any) => {
+            return {
+              id: p.id || `n-${Math.random().toString(36).substring(2, 9)}`,
+              student_id: p.student_id || p.user_id || demoUser.id,
+              course_id: p.course_id || null,
+              title: p.title || "Untitled Notebook",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+          });
+          list = [...newRecords, ...list];
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = Array.isArray(builder._payload) ? newRecords : newRecords[0];
+        } else if (builder._operation === "update") {
+          list = list.map(item => {
+            const matches = builder._filters.every((f: any) => {
+              const fKey = f.field === "user_id" ? "student_id" : f.field;
+              const itemVal = fKey === "user_id" ? item.student_id : item[fKey];
+              return itemVal === f.value;
+            });
+            if (matches) {
+              const updated = {
+                ...item,
+                ...builder._payload,
+                updated_at: new Date().toISOString()
+              };
+              data = updated;
+              return updated;
+            }
+            return item;
+          });
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          if (!Array.isArray(data)) {
+            data = data ? [data] : [];
+          }
+        } else if (builder._operation === "delete") {
+          const deleted: any[] = [];
+          list = list.filter(item => {
+            const matches = builder._filters.every((f: any) => {
+              const fKey = f.field === "user_id" ? "student_id" : f.field;
+              const itemVal = fKey === "user_id" ? item.student_id : item[fKey];
+              return itemVal === f.value;
+            });
+            if (matches) {
+              deleted.push(item);
+              return false;
+            }
+            return true;
+          });
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = deleted;
+        }
+      } else if (tableName === "notebook_pages") {
+        const key = `cognara_mock_notebook_pages_${demoUser.id}`;
+        let list: any[] = [];
+        try {
+          const stored = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+          if (stored) {
+            list = JSON.parse(stored);
+          } else {
+            list = [
+              {
+                id: "np-default",
+                notebook_id: "n-default",
+                title: "Page 1",
+                content_text: "Welcome to your upgraded Student Notebook! Type / to add blocks or toggle freehand mode to sketch.",
+                content_canvas: {
+                  mode: "modular",
+                  modular_blocks: [
+                    {
+                      id: "b1",
+                      type: "heading",
+                      content: "Welcome to your Advanced Notes",
+                      properties: { level: 2 },
+                      createdAt: new Date().toISOString(),
+                      lastEditedAt: new Date().toISOString(),
+                    },
+                    {
+                      id: "b2",
+                      type: "text",
+                      content: "This is a modular note block. You can drag and drop to reorder blocks, use inline styling, or insert code blocks.",
+                      createdAt: new Date().toISOString(),
+                      lastEditedAt: new Date().toISOString(),
+                    }
+                  ]
+                },
+                order_index: 0,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+            ];
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          }
+        } catch {}
+
+        if (builder._operation === "select") {
+          data = list.filter(item => {
+            return builder._filters.every((f: any) => {
+              return item[f.field] === f.value;
+            });
+          });
+          data.sort((a: any, b: any) => a.order_index - b.order_index);
+        } else if (builder._operation === "insert") {
+          const payloads = Array.isArray(builder._payload) ? builder._payload : [builder._payload];
+          const newRecords = payloads.map((p: any) => {
+            return {
+              id: p.id || `np-${Math.random().toString(36).substring(2, 9)}`,
+              notebook_id: p.notebook_id,
+              title: p.title || "Untitled Page",
+              content_text: p.content_text || "",
+              content_canvas: p.content_canvas || { mode: "modular", modular_blocks: [] },
+              order_index: p.order_index || 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+          });
+          list = [...list, ...newRecords];
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = Array.isArray(builder._payload) ? newRecords : newRecords[0];
+        } else if (builder._operation === "update") {
+          let updatedRecord: any = null;
+          list = list.map(item => {
+            const matches = builder._filters.every((f: any) => {
+              return item[f.field] === f.value;
+            });
+            if (matches) {
+              const updated = {
+                ...item,
+                ...builder._payload,
+                updated_at: new Date().toISOString()
+              };
+              updatedRecord = updated;
+              return updated;
+            }
+            return item;
+          });
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = updatedRecord ? [updatedRecord] : [];
+        } else if (builder._operation === "delete") {
+          const deleted: any[] = [];
+          list = list.filter(item => {
+            const matches = builder._filters.every((f: any) => {
+              return item[f.field] === f.value;
+            });
+            if (matches) {
+              deleted.push(item);
+              return false;
+            }
+            return true;
+          });
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = deleted;
+        }
+      } else if (tableName === "notebook_page_versions") {
+        data = [];
       } else {
         data = [];
+      }
+
+      if (builder._single && Array.isArray(data)) {
+        data = data[0] || null;
       }
 
       return Promise.resolve(onfulfilled({ data, error }));

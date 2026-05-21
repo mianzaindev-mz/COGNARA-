@@ -45,7 +45,9 @@ export async function getUsersWithEmails() {
     console.error("Failed to list auth users in server action:", err);
   }
 
-  return (profiles ?? []).map((p: any) => ({
+  const profilesArray = Array.isArray(profiles) ? profiles : [];
+
+  return profilesArray.map((p: any) => ({
     id: p.id,
     name: p.full_name || emailMap.get(p.id)?.split("@")[0] || "User",
     email: emailMap.get(p.id) || "",

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useNotifications } from "@/hooks/use-notifications";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 const nav = [
   { href: "/coach/dashboard", label: "Dashboard", icon: "grid_view" },
@@ -57,12 +58,15 @@ export function CoachShell({ displayName, email, isVerified, monthlyEarnings, ch
         onMouseLeave={() => setIsSidebarHovered(false)}
       >
         {/* Branding */}
-        <div className="mb-10 w-full flex items-center group cursor-pointer px-4 overflow-hidden">
-          <div className="coach-logo w-12 h-12 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center logo-glow relative transition-all duration-700 hover:rotate-3 hover:scale-105 shadow-lg shrink-0 mx-auto">
-            <span className="material-symbols-outlined text-white text-2xl font-bold">insights</span>
+        <div className="mb-10 w-full flex items-center px-4 overflow-hidden h-12 animate-in fade-in duration-300">
+          <div className="shrink-0 flex items-center justify-center w-12 h-12 filter drop-shadow-[0_0_8px_rgba(139,92,246,0.25)]">
+            <CognaraLogo variant="icon" size={32} />
           </div>
           <div className={`coach-brand-text ml-4 flex flex-col justify-center transition-all duration-300 ${isSidebarHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
-            <span className="text-cn-ink dark:text-white font-black text-lg tracking-tight whitespace-nowrap">COACH</span>
+            <span className="text-cn-ink dark:text-white font-extrabold text-base tracking-tight whitespace-nowrap flex items-center">
+              COGNARA<span className="text-[8px] opacity-40 font-bold ml-0.5">TM</span>
+              <span className="text-[9px] font-black tracking-widest text-primary ml-2 uppercase">COACH</span>
+            </span>
           </div>
         </div>
 

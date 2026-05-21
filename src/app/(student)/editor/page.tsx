@@ -3,7 +3,7 @@ import { CodeEditorFull } from "@/components/editor/CodeEditor";
 
 export const metadata: Metadata = {
   title: "Code Lab — COGNARA™",
-  description: "Write, run, and debug code in 18+ languages with AI assistance.",
+  description: "Write, run, and debug code in 27 languages with AI assistance.",
 };
 
 export default function EditorPage() {
@@ -15,7 +15,7 @@ export default function EditorPage() {
             Code Lab
           </h1>
           <p className="mt-0.5 text-sm text-cn-ink-muted">
-            Write, run &amp; debug in 18+ languages — powered by Judge0 sandboxed execution.
+            Write, run &amp; debug in 27 languages — powered by Judge0 sandboxed execution.
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">

@@ -28,6 +28,19 @@ export const PISTON_LANGUAGES = {
   r: { label: "R", ext: "r", monaco: "r", wandbox: null, judge0Id: 80, jdoodle: "r", jdoodleIdx: "4" },
   sql: { label: "SQL", ext: "sql", monaco: "sql", wandbox: null, judge0Id: 82, jdoodle: "sql", jdoodleIdx: "3" },
   dart: { label: "Dart", ext: "dart", monaco: "dart", wandbox: null, judge0Id: 90, jdoodle: "dart", jdoodleIdx: "4" },
+  perl: { label: "Perl", ext: "pl", monaco: "perl", wandbox: "perl-5.34.0", judge0Id: 85, jdoodle: "perl", jdoodleIdx: "4" },
+  scala: { label: "Scala", ext: "scala", monaco: "scala", wandbox: null, judge0Id: 81, jdoodle: "scala", jdoodleIdx: "4" },
+  haskell: { label: "Haskell", ext: "hs", monaco: "plaintext", wandbox: null, judge0Id: 61, jdoodle: "haskell", jdoodleIdx: "4" },
+  elixir: { label: "Elixir", ext: "ex", monaco: "elixir", wandbox: null, judge0Id: 57, jdoodle: "elixir", jdoodleIdx: "4" },
+  clojure: { label: "Clojure", ext: "clj", monaco: "clojure", wandbox: null, judge0Id: 86, jdoodle: "clojure", jdoodleIdx: "4" },
+  pascal: { label: "Pascal", ext: "pas", monaco: "pascal", wandbox: null, judge0Id: 67, jdoodle: "pascal", jdoodleIdx: "3" },
+  fsharp: { label: "F#", ext: "fs", monaco: "fsharp", wandbox: null, judge0Id: 87, jdoodle: "fsharp", jdoodleIdx: "4" },
+  objectivec: { label: "Objective-C", ext: "m", monaco: "objective-c", wandbox: null, judge0Id: 79, jdoodle: "objc", jdoodleIdx: "4" },
+  fortran: { label: "Fortran", ext: "f90", monaco: "plaintext", wandbox: null, judge0Id: 59, jdoodle: "fortran", jdoodleIdx: "4" },
+  mermaid: { label: "Mermaid Diagram", ext: "mermaid", monaco: "markdown", wandbox: null, judge0Id: null, jdoodle: null, jdoodleIdx: null },
+  html: { label: "HTML", ext: "html", monaco: "html", wandbox: null, judge0Id: null, jdoodle: null, jdoodleIdx: null },
+  css: { label: "CSS", ext: "css", monaco: "css", wandbox: null, judge0Id: null, jdoodle: null, jdoodleIdx: null },
+  markdown: { label: "Markdown", ext: "md", monaco: "markdown", wandbox: null, judge0Id: null, jdoodle: null, jdoodleIdx: null },
 } as const;
 
 export type LanguageKey = keyof typeof PISTON_LANGUAGES;
@@ -61,6 +74,19 @@ export const DEFAULT_CODE: Record<LanguageKey, string> = {
   r: `cat("Hello, COGNARA! 🚀\\n")\nnums <- c(5, 3, 8, 1, 9)\ncat("Mean:", mean(nums), "\\n")\n`,
   sql: `CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, score INTEGER);\nINSERT INTO students VALUES (1, 'Ali', 95);\nINSERT INTO students VALUES (2, 'Sara', 88);\nSELECT name, score FROM students ORDER BY score DESC;\n`,
   dart: `void main() {\n  print('Hello, COGNARA! 🚀');\n  var nums = [5, 3, 8, 1, 9];\n  nums.sort();\n  print('Sorted: \$nums');\n}\n`,
+  perl: `#!/usr/bin/perl\nuse strict;\nuse warnings;\n\nprint "Hello, COGNARA! 🚀\\n";\nmy @nums = (5, 3, 8, 1, 9);\nmy @sorted = sort { $a <=> $b } @nums;\nprint "Sorted: @sorted\\n";\n`,
+  scala: `object Main extends App {\n  println("Hello, COGNARA! 🚀")\n  val nums = List(5, 3, 8, 1, 9)\n  println(s"Sorted: \${nums.sorted}")\n  println(s"Sum: \${nums.sum}")\n}\n`,
+  haskell: `main :: IO ()\nmain = do\n  putStrLn "Hello, COGNARA! 🚀"\n  let nums = [5, 3, 8, 1, 9]\n  putStrLn $ "Sum: " ++ show (sum nums)\n  putStrLn $ "Sorted: " ++ show (quickSort nums)\n\nquickSort :: Ord a => [a] -> [a]\nquickSort [] = []\nquickSort (x:xs) = quickSort smaller ++ [x] ++ quickSort larger\n  where smaller = filter (<= x) xs\n        larger  = filter (> x) xs\n`,
+  elixir: `IO.puts("Hello, COGNARA! 🚀")\nnums = [5, 3, 8, 1, 9]\nIO.inspect(Enum.sort(nums), label: "Sorted")\nIO.puts("Sum: #\{Enum.sum(nums)}")\n`,
+  clojure: `(println "Hello, COGNARA! 🚀")\n(def nums [5 3 8 1 9])\n(println "Sorted:" (sort nums))\n(println "Sum:" (reduce + nums))\n`,
+  pascal: `program Hello;\nvar\n  i: Integer;\nbegin\n  WriteLn('Hello, COGNARA! 🚀');\n  for i := 1 to 5 do\n    WriteLn('Step ', i, ': ', i * i);\nend.\n`,
+  fsharp: `printfn "Hello, COGNARA! 🚀"\nlet nums = [5; 3; 8; 1; 9]\nprintfn "Sorted: %A" (List.sort nums)\nprintfn "Sum: %d" (List.sum nums)\n`,
+  objectivec: `#import <Foundation/Foundation.h>\n\nint main() {\n  @autoreleasepool {\n    NSLog(@"Hello, COGNARA! 🚀");\n    NSArray *nums = @[@5, @3, @8, @1, @9];\n    NSArray *sorted = [nums sortedArrayUsingSelector:@selector(compare:)];\n    NSLog(@"Sorted: %@", sorted);\n  }\n  return 0;\n}\n`,
+  fortran: `program hello\n  implicit none\n  integer :: i\n  print *, "Hello, COGNARA! 🚀"\n  do i = 1, 5\n    print *, "Step", i, ":", i*i\n  end do\nend program hello\n`,
+  mermaid: `%% COGNARA Code Lab — Mermaid Diagram\n\ngraph TD\n    A[Start] --> B{Is it premium?}\n    B -- Yes --> C[Wow the User! 🚀]\n    B -- No --> D[Redesign with Antigravity!]\n    C --> E[Cognara Success! 🎉]\n    D --> B\n`,
+  html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: 'Segoe UI', system-ui, sans-serif;\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: #fff;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      min-height: 100vh;\n    }\n    .card {\n      background: rgba(255,255,255,0.15);\n      backdrop-filter: blur(12px);\n      border-radius: 24px;\n      padding: 48px;\n      text-align: center;\n      box-shadow: 0 8px 32px rgba(0,0,0,0.25);\n      border: 1px solid rgba(255,255,255,0.18);\n    }\n    h1 { font-size: 2.2em; margin-bottom: 8px; }\n    p { opacity: 0.85; font-size: 1.1em; }\n    .badge {\n      display: inline-block;\n      margin-top: 20px;\n      padding: 8px 24px;\n      background: rgba(255,255,255,0.2);\n      border-radius: 999px;\n      font-size: 0.9em;\n    }\n  </style>\n</head>\n<body>\n  <div class="card">\n    <h1>Hello, COGNARA! 🚀</h1>\n    <p>Welcome to the HTML Playground</p>\n    <span class="badge">Built with ❤️</span>\n  </div>\n</body>\n</html>\n`,
+  css: `/* COGNARA Code Lab — CSS Preview */\n\n.preview-container {\n  font-family: 'Segoe UI', system-ui, sans-serif;\n  min-height: 100%;\n  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 40px;\n  color: #fff;\n}\n\n.preview-container h1 {\n  font-size: 2.4em;\n  text-shadow: 0 2px 12px rgba(0,0,0,0.2);\n  margin-bottom: 12px;\n}\n\n.preview-container p {\n  font-size: 1.1em;\n  opacity: 0.85;\n}\n\n.preview-container .card {\n  margin-top: 24px;\n  background: rgba(255,255,255,0.18);\n  backdrop-filter: blur(10px);\n  border-radius: 16px;\n  padding: 24px 32px;\n  border: 1px solid rgba(255,255,255,0.25);\n  box-shadow: 0 4px 24px rgba(0,0,0,0.15);\n}\n\n.preview-container .badge {\n  display: inline-block;\n  padding: 6px 18px;\n  background: rgba(255,255,255,0.25);\n  border-radius: 999px;\n  font-size: 0.85em;\n  margin-top: 16px;\n}\n`,
+  markdown: `# Hello, COGNARA! 🚀\n\nWelcome to the **Markdown** previewer in Code Lab.\n\n## Features\n\n- **Bold text** and *italic text*\n- Inline \`code\` blocks\n- Ordered and unordered lists\n- Headings, blockquotes, and more\n\n### Code Example\n\n\`\`\`python\nprint("Hello from COGNARA!")\n\`\`\`\n\n> "Learning is a journey, not a destination."\n\n---\n\n| Language | Difficulty | Fun Factor |\n|----------|-----------|------------|\n| Python   | Easy      | ⭐⭐⭐⭐⭐  |\n| JavaScript | Medium | ⭐⭐⭐⭐   |\n| Rust     | Hard      | ⭐⭐⭐⭐⭐  |\n\nMade with ❤️ by **COGNARA**\n`,
 };
 
 /* ── Main execution function ─────────────────────────────── */
@@ -70,6 +96,19 @@ export async function executeCode(
   code: string,
   stdin?: string,
 ): Promise<ExecutionResult> {
+  // Client-side rendered languages — return code as-is for browser rendering
+  const CLIENT_RENDERED: LanguageKey[] = ["mermaid", "html", "css", "markdown"];
+  if (CLIENT_RENDERED.includes(language)) {
+    return {
+      stdout: code,
+      stderr: null,
+      compile_output: null,
+      status: { id: 3, description: "Rendered" },
+      time: "0.010",
+      memory: null,
+    };
+  }
+
   const langInfo = PISTON_LANGUAGES[language];
   if (!langInfo) throw new Error(`Unsupported language: ${language}`);
 
@@ -86,7 +125,7 @@ export async function executeCode(
 
   // 2. Try Judge0 CE if API key is configured
   const judge0Key = process.env.JUDGE0_API_KEY;
-  if (judge0Key) {
+  if (judge0Key && langInfo.judge0Id) {
     try {
       return await executeViaJudge0(langInfo.judge0Id, code, stdin, judge0Key);
     } catch (err) {

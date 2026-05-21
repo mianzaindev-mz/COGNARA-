@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { useNotifications } from "@/hooks/use-notifications";
+import { CognaraLogo } from "@/components/shared/cognara-logo";
 
 const nav = [
   { href: "/dashboard", label: "Home", icon: "dashboard", activeFill: true },
@@ -80,12 +81,11 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
       <aside className="fixed left-0 top-0 h-full bg-surface-container-lowest/20 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 shadow-[25px_0_50px_rgba(0,0,0,0.05)] dark:shadow-[25px_0_50px_rgba(0,0,0,0.4)] flex flex-col py-8 z-[60] overflow-hidden group/sidebar" id="main-sidebar">
         {/* Brand */}
         <Link href="/" className="mb-10 px-5 flex items-center gap-4 shrink-0 h-10">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-xl shadow-primary/30 interactive-element">
-            <span className="material-symbols-outlined text-white text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span>
-          </div>
-          <div className="brand-text">
-            <h1 className="font-headline-md text-xl font-bold text-on-surface flex items-center gap-1 tracking-tight">COGNARA<span className="text-[10px] self-start mt-1 opacity-50 font-medium">TM</span></h1>
-          </div>
+          <CognaraLogo 
+            variant="full" 
+            size={32} 
+            className="[&>span.flex-col]:opacity-0 [&>span.flex-col]:-translate-x-2.5 [&>span.flex-col]:transition-all [&>span.flex-col]:duration-500 [&>span.flex-col]:pointer-events-none group-hover/sidebar:[&>span.flex-col]:opacity-100 group-hover/sidebar:[&>span.flex-col]:translate-x-0 group-hover/sidebar:[&>span.flex-col]:pointer-events-auto" 
+          />
         </Link>
 
         {/* Navigation Group */}
