@@ -329,4 +329,50 @@ Instead of refactoring dozens of page and layout files calling Supabase directly
 - `[MODIFY] src/app/api/demo-login/route.ts` — Dual-cookie setting and DELETE API handler.
 - `[MODIFY] src/components/auth/sign-out-button.tsx` — Dual-cookie deletion trigger.
 - `[MODIFY] handover.md` — Appended Session 21 release notes.
+- `[MODIFY] handover.md` — Appended Session 22 release notes.
 
+---
+
+## Session 22 — AI Agent Quality, Voice, Reports & Background Jobs
+
+**Date:** 2026-05-22  
+**Build:** Type-check and production build verified in this session.
+
+### Overview
+Upgraded the COGNARA AI Agent with improved response rendering, better voice behavior, Urdu/Roman Urdu handling, admin report review, and durable background job support.
+
+### Agent Quality Improvements
+- Improved the shared agent prompt contract so the agent matches Urdu/English input, thinks in role-aware steps, avoids fake tool claims, and treats misconduct/plagiarism/complaints as evidence-driven reviews requiring admin approval.
+- Strengthened student, coach, support, code, path, and admin agent instructions for clearer reasoning, safer boundaries, better next actions, and polished formatted output.
+- Improved the message renderer normalization so headings, tables, lists, and code render as UI even when model output is slightly malformed.
+
+### Voice & Urdu Fixes
+- Fixed the voice-mode bug where spoken responses were forced to `en-US`.
+- Added Urdu/Roman Urdu detection for transcripts and generated speech.
+- Passed selected/detected voice language into agent context so Urdu input prompts Urdu/Roman Urdu output.
+- Improved browser voice selection with Urdu/Hindi/English-India fallbacks and better English voice preference.
+
+### Support & Report Review
+- Added AI-assisted support/report review fields to `support_tickets`, including risk score, recommendation, evidence JSON, related live session, reported user, review status, and admin decision reason.
+- Added Admin Support actions to run an AI review on a ticket, store the review, append an AI ticket message, and require admin approval/rejection before final action.
+- Added Admin Support UI controls for AI review, risk score, recommendation preview, detail expansion, and approve/reject decisions.
+
+### Background Agent Jobs
+- Added `agent_jobs` table with queued/running/completed/failed lifecycle, user/audience/skill context, priority, result, and run-after scheduling.
+- Added `/api/agent/jobs` to queue authenticated background jobs from the Agent UI.
+- Added `/api/agent/jobs/process` for a protected cron/worker to process queued jobs after the user logs out or closes the browser.
+- Added a compact queue button in the Agent input bar so long requests can be saved as durable background work.
+
+### Files Created/Modified
+- `[NEW] supabase/migrations/20260522000001_agent_jobs_and_ai_reviews.sql` — Support AI review fields and durable agent job queue.
+- `[NEW] src/app/api/agent/jobs/route.ts` — Authenticated background job enqueue endpoint.
+- `[NEW] src/app/api/agent/jobs/process/route.ts` — Worker/cron endpoint for processing queued agent jobs.
+- `[MODIFY] src/components/agent/AgentPanel.tsx` — Voice language context and background queue action.
+- `[MODIFY] src/components/agent/AgentMessage.tsx` — Renderer normalization and improved TTS voice selection.
+- `[MODIFY] src/components/agent/VoiceButton.tsx` — Urdu detection, language propagation, and voice selection fix.
+- `[MODIFY] src/lib/ai/memory.ts` — Agent quality, language, and safety contract.
+- `[MODIFY] src/lib/ai/master-agent.ts` — Internal/coach/admin free routing and coach quiz handling.
+- `[MODIFY] src/lib/ai/agents/*` — Stronger code/path/support/admin prompt behavior.
+- `[MODIFY] src/app/admin/support/actions.ts` — AI review, risk scoring, and admin review decisions.
+- `[MODIFY] src/app/admin/support/page.tsx` — AI review and approval controls.
+- `[MODIFY] src/app/coach/support/page.tsx` — Corrected support ticket category to match DB constraints.

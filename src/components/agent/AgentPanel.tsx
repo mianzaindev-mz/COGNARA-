@@ -102,6 +102,7 @@ export function AgentPanel({ studentId, initialCredits, audience = "student" }: 
   const copy = AUDIENCE_COPY[audience];
   const [skill, setSkill] = useState<AgentSkill>(skills[0]?.key ?? "teach");
   const [isLoading, setIsLoading] = useState(false);
+  const [isQueueing, setIsQueueing] = useState(false);
   const [credits, setCredits] = useState<number | null>(initialCredits);
   const [lastResponse, setLastResponse] = useState<string | null>(null);
   const [showSkillMenu, setShowSkillMenu] = useState(false);
@@ -195,6 +196,54 @@ export function AgentPanel({ studentId, initialCredits, audience = "student" }: 
       sendMessage();
     }
   };
+
+  const queueBackgroundJob = useCallback(async () => {
+    const trimmed = input.trim();
+    if (!trimmed || isQueueing) return;
+
+    setIsQueueing(true);
+    try {
+      const res = await fetch("/api/agent/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          skill,
+          prompt: trimmed,
+          audience,
+          priority: audience === "admin" ? "high" : "normal",
+          context: { current_page: `${audience}_agent`, audience, voice_language: voiceLang },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not queue background job");
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `## Background Job Queued\n\nYour request has been saved as job \`${data.job.id}\`. A server worker can finish it even if you close the browser, then store the result for review.`,
+          skill: "background",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+      setInput("");
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `## Queue Failed\n\n${err instanceof Error ? err.message : "The background job could not be created."}`,
+          skill: "error",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    } finally {
+      setIsQueueing(false);
+    }
+  }, [audience, input, isQueueing, skill, voiceLang]);
 
   const activeSkill = skills.find((s) => s.key === skill) ?? skills[0] ?? STUDENT_SKILLS[0];
   const lastAssistantMsg = [...messages].reverse().find(m => m.role === "assistant" && m.skill !== "error");
@@ -393,6 +442,15 @@ export function AgentPanel({ studentId, initialCredits, audience = "student" }: 
             >
               <SendIcon className="h-4 w-4" />
             </button>
+            <button
+              type="button"
+              onClick={queueBackgroundJob}
+              disabled={!input.trim() || isLoading || isQueueing}
+              className="cn-btn flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cn-border bg-cn-canvas text-cn-ink-muted transition hover:border-cn-orange/40 hover:text-cn-orange disabled:opacity-40"
+              title="Queue as background job"
+            >
+              {isQueueing ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-cn-orange/30 border-t-cn-orange" /> : <QueueIcon className="h-4 w-4" />}
+            </button>
           </div>
           <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-cn-ink-subtle">
             <activeSkill.Icon className="h-3 w-3 opacity-50" />
@@ -436,6 +494,15 @@ function BoardIcon({ className }: { className?: string }) {
     <svg className={className} fill="none" viewBox="0 0 16 16" strokeWidth={1.5} stroke="currentColor">
       <rect x="1.5" y="2" width="13" height="9" rx="1.5" />
       <path strokeLinecap="round" d="M5 14h6M8 11v3M4 5.5h3M4 7.5h5" />
+    </svg>
+  );
+}
+
+function QueueIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" strokeWidth={1.6} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h10M3 8h7M3 12h5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.5l1.5 1.5L12 12.5M10 11h3.5" />
     </svg>
   );
 }
