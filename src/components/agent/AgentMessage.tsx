@@ -75,7 +75,7 @@ export function AgentMessage({ role, content, skill, creditsUsed, timestamp }: P
 /* ─────────────── Rich Markdown Renderer ─────────────── */
 
 function RichMarkdown({ content }: { content: string }) {
-  const blocks = parseBlocks(content);
+  const blocks = parseBlocks(normalizeAgentContent(content));
 
   return (
     <div className="space-y-2">
@@ -84,6 +84,15 @@ function RichMarkdown({ content }: { content: string }) {
       ))}
     </div>
   );
+}
+
+function normalizeAgentContent(content: string) {
+  return content
+    .replace(/\r\n/g, "\n")
+    .replace(/^(#{1,4})([^\s#])/gm, "$1 $2")
+    .replace(/^\s*#{1,4}\s*$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 type Block =
@@ -118,7 +127,7 @@ function parseBlocks(text: string): Block[] {
     }
 
     // Heading
-    const headingMatch = line.match(/^(#{1,4})\s+(.+)/);
+    const headingMatch = line.match(/^\s*(#{1,4})\s+(.+)/);
     if (headingMatch) {
       blocks.push({ type: "heading", level: headingMatch[1].length, text: headingMatch[2] });
       i++;
@@ -187,7 +196,7 @@ function parseBlocks(text: string): Block[] {
 
     // Paragraph — collect consecutive non-special lines
     const paraLines: string[] = [];
-    while (i < lines.length && lines[i].trim() && !lines[i].startsWith("```") && !lines[i].startsWith("#") && !lines[i].startsWith("> ") && !/^[-*+]\s/.test(lines[i]) && !/^\d+\.\s/.test(lines[i]) && !/^[-*_]{3,}/.test(lines[i])) {
+    while (i < lines.length && lines[i].trim() && !lines[i].startsWith("```") && !/^\s*#/.test(lines[i]) && !lines[i].startsWith("> ") && !/^[-*+]\s/.test(lines[i]) && !/^\d+\.\s/.test(lines[i]) && !/^[-*_]{3,}/.test(lines[i]) && !(lines[i].includes("|") && i + 1 < lines.length && /^\|?[\s-:|]+\|/.test(lines[i + 1]))) {
       paraLines.push(lines[i]);
       i++;
     }
@@ -391,24 +400,14 @@ function ExplainButton({ text }: { text: string }) {
       .trim()
       .slice(0, 1200);
 
+    const spokenLang = lang === "ur" || looksLikeUrdu(clean) ? "ur" : "en";
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = lang === "ur" ? "ur-PK" : "en-US";
-    utterance.rate = 0.92;
-    utterance.pitch = 0.95;
+    utterance.lang = spokenLang === "ur" ? "ur-PK" : "en-US";
+    utterance.rate = spokenLang === "ur" ? 0.86 : 0.9;
+    utterance.pitch = spokenLang === "ur" ? 1.02 : 0.96;
 
     const voices = window.speechSynthesis.getVoices();
-    const v = lang === "ur"
-      ? (voices.find(v => v.lang.startsWith("ur") || v.name.toLowerCase().includes("urdu")) ||
-         voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
-         voices.find(v => v.lang === "en-US"))
-      : (voices.find(v => v.name.includes("Microsoft David")) ||
-         voices.find(v => v.name.includes("Microsoft Mark")) ||
-         voices.find(v => v.name.includes("Microsoft Guy")) ||
-         voices.find(v => v.name.includes("Google UK English Male")) ||
-         voices.find(v => v.name.includes("Alex")) ||
-         voices.find(v => v.name.includes("Daniel")) ||
-         voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
-         voices.find(v => v.lang === "en-US"));
+    const v = pickBestVoice(voices, spokenLang);
     if (v) utterance.voice = v;
 
     utterance.onstart = () => setSpeaking(true);
@@ -451,6 +450,34 @@ function ExplainButton({ text }: { text: string }) {
         )}
       </button>
     </div>
+  );
+}
+
+function looksLikeUrdu(text: string) {
+  const lower = text.toLowerCase();
+  return /[\u0600-\u06FF]/.test(text) || /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna)\b/.test(lower);
+}
+
+function pickBestVoice(voices: SpeechSynthesisVoice[], lang: "en" | "ur") {
+  if (lang === "ur") {
+    return (
+      voices.find(v => v.lang.toLowerCase().startsWith("ur")) ||
+      voices.find(v => v.name.toLowerCase().includes("urdu")) ||
+      voices.find(v => v.lang.toLowerCase().includes("hi")) ||
+      voices.find(v => v.lang.toLowerCase().startsWith("en-in")) ||
+      voices.find(v => v.lang === "en-US")
+    );
+  }
+
+  return (
+    voices.find(v => v.name.includes("Microsoft Guy")) ||
+    voices.find(v => v.name.includes("Microsoft Mark")) ||
+    voices.find(v => v.name.includes("Google US English")) ||
+    voices.find(v => v.name.includes("Google UK English Male")) ||
+    voices.find(v => v.name.includes("Alex")) ||
+    voices.find(v => v.name.includes("Daniel")) ||
+    voices.find(v => v.lang === "en-US") ||
+    voices.find(v => v.lang.startsWith("en"))
   );
 }
 

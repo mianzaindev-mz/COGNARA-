@@ -10,6 +10,14 @@ export interface SupportAgentInput {
   category?: string;
 }
 
+const SUPPORT_REVIEW_RULES = `
+For abuse reports, misconduct, plagiarism, harassment, or cheating:
+- Do not accuse anyone.
+- Summarize the report, evidence needed, involved parties, urgency, and recommended admin action.
+- Recommend admin approval before penalties or account/course action.
+- If video/live-class evidence is mentioned, ask for timestamp ranges, recording links, chat logs, or attendee names.
+- Format answers as polished COGNARA support notes with clear sections and next actions. Do not mention Markdown syntax.`;
+
 export async function runSupportAgent(input: SupportAgentInput): Promise<AgentResponse> {
   const groqKey = process.env.GROQ_API_KEY;
 
@@ -36,6 +44,7 @@ RULES:
    - Payment issues: Direct to billing page
    - Verification: Explain the process (upload docs → AI review → admin approval)`,
         },
+        { role: "system", content: SUPPORT_REVIEW_RULES },
         { role: "user", content: input.message },
       ],
       temperature: 0.5,

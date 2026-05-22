@@ -51,8 +51,6 @@ export default async function CoachLayout({
   return (
     <CoachShell
       displayName={displayName}
-      email={user.email ?? undefined}
-      isVerified={profile?.is_verified ?? false}
       monthlyEarnings={monthlyEarnings}
     >
       {children}

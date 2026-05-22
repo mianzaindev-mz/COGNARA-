@@ -6,7 +6,7 @@ import { sanitizeMessage, sanitizeCode, SECURITY_HEADERS } from "@/lib/security/
 import { createClient } from "@/lib/supabase/server";
 
 const agentSchema = z.object({
-  skill: z.enum(["teach", "debug", "quiz", "voice", "path", "support", "verify", "coach"]),
+  skill: z.enum(["teach", "debug", "quiz", "voice", "path", "support", "verify", "coach", "admin"]),
   message: z.string().min(1, "Message cannot be empty").max(5000, "Message too long"),
   studentId: z.string().min(1),
   context: z
@@ -14,6 +14,8 @@ const agentSchema = z.object({
       current_page: z.string().optional(),
       current_lesson_title: z.string().optional(),
       current_course_title: z.string().optional(),
+      audience: z.enum(["student", "coach", "admin"]).optional(),
+      voice_language: z.enum(["en", "ur"]).optional(),
     })
     .optional(),
   code: z.string().max(50_000).optional(),

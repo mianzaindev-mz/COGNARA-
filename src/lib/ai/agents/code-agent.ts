@@ -15,6 +15,15 @@ export interface CodeAgentInput {
   context: AgentContext;
 }
 
+const CODE_QUALITY_ADDENDUM = `
+
+QUALITY RULES:
+- Start with the exact diagnosis in one short section.
+- Show corrected code only when it helps.
+- Explain why the fix works.
+- End with one prevention tip or a tiny test case.
+- Keep it polished for the COGNARA renderer; do not mention Markdown or formatting syntax.`;
+
 const CODE_SYSTEM_ADDENDUM = `
 
 ADDITIONAL ROLE: Code Debugger
@@ -36,7 +45,7 @@ Format your response as:
 
 export async function runCodeAgent(input: CodeAgentInput): Promise<AgentResponse> {
   const basePrompt = buildSystemPrompt(input.memory, input.context);
-  const systemPrompt = basePrompt + CODE_SYSTEM_ADDENDUM;
+  const systemPrompt = basePrompt + CODE_SYSTEM_ADDENDUM + CODE_QUALITY_ADDENDUM;
   const groqKey = process.env.GROQ_API_KEY;
 
   // Build the user message with code context

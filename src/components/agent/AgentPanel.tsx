@@ -21,7 +21,10 @@ type Message = {
   timestamp: string;
 };
 
-const SKILLS: { key: AgentSkill; Icon: React.FC<{ className?: string }>; label: string; desc: string; cost: string }[] = [
+type SkillOption = { key: AgentSkill; Icon: React.FC<{ className?: string }>; label: string; desc: string; cost: string };
+type AgentAudience = "student" | "coach" | "admin";
+
+const STUDENT_SKILLS: SkillOption[] = [
   { key: "teach", Icon: IconBrain, label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr" },
   { key: "debug", Icon: IconBug, label: "Debug", desc: "Fix your code issues", cost: "2 cr" },
   { key: "quiz", Icon: IconClipboard, label: "Quiz", desc: "Generate practice problems", cost: "3 cr" },
@@ -30,21 +33,80 @@ const SKILLS: { key: AgentSkill; Icon: React.FC<{ className?: string }>; label: 
   { key: "support", Icon: IconTicket, label: "Support", desc: "Get help with the platform", cost: "1 cr" },
 ];
 
+const COACH_SKILLS: SkillOption[] = [
+  { key: "coach", Icon: IconBrain, label: "Coach Agent", desc: "Courses, lessons, rubrics", cost: "Free" },
+  { key: "quiz", Icon: IconClipboard, label: "Quiz Studio", desc: "Generate assessments", cost: "Free" },
+  { key: "debug", Icon: IconBug, label: "Code Help", desc: "Review examples and fixes", cost: "Free" },
+  { key: "support", Icon: IconTicket, label: "Support", desc: "Platform and student issues", cost: "Free" },
+];
+
+const ADMIN_SKILLS: SkillOption[] = [
+  { key: "admin", Icon: IconBrain, label: "Admin Agent", desc: "Operations and risk review", cost: "Free" },
+  { key: "verify", Icon: IconTarget, label: "Verify", desc: "Coach and content checks", cost: "Free" },
+  { key: "support", Icon: IconTicket, label: "Support Ops", desc: "Ticket triage", cost: "Free" },
+  { key: "coach", Icon: IconClipboard, label: "Content Audit", desc: "Course quality review", cost: "Free" },
+];
+
+const AUDIENCE_COPY: Record<AgentAudience, { title: string; status: string; emptyTitle: string; emptyBody: string; suggestions: string[] }> = {
+  student: {
+    title: "COGNARA AI",
+    status: "Online - ready to teach",
+    emptyTitle: "What would you like to learn?",
+    emptyBody:
+      "I'm COGNARA AI, your personal tutor. I explain concepts, debug code, generate quizzes, and build learning paths tailored to you.",
+    suggestions: [
+      "Explain recursion step by step",
+      "What are closures in JavaScript?",
+      "Help me understand Big O notation",
+      "Debug my Python code",
+    ],
+  },
+  coach: {
+    title: "COGNARA AI Coach",
+    status: "Online - ready to build",
+    emptyTitle: "What should we create for your learners?",
+    emptyBody:
+      "I help coaches turn lessons, PDFs, videos, and rubrics into courses, quizzes, grading guidance, student interventions, and plagiarism review plans.",
+    suggestions: [
+      "Create a quiz for my lesson on recursion",
+      "Build a rubric for a final project",
+      "Summarize a lecture transcript into lessons",
+      "Find likely plagiarism signals in submissions",
+    ],
+  },
+  admin: {
+    title: "COGNARA AI Admin",
+    status: "Online - monitoring systems",
+    emptyTitle: "What platform issue should we inspect?",
+    emptyBody:
+      "I help admins review verification, support, content quality, abuse signals, policy risks, AI usage, and operational next steps across COGNARA.",
+    suggestions: [
+      "Draft a coach verification checklist",
+      "Triage open support tickets by severity",
+      "Audit a suspicious course report",
+      "Create a platform health summary",
+    ],
+  },
+};
+
 type Props = {
   studentId: string;
   initialCredits: number | null;
+  audience?: AgentAudience;
 };
 
-export function AgentPanel({ studentId, initialCredits }: Props) {
+export function AgentPanel({ studentId, initialCredits, audience = "student" }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [skill, setSkill] = useState<AgentSkill>("teach");
+  const skills = audience === "coach" ? COACH_SKILLS : audience === "admin" ? ADMIN_SKILLS : STUDENT_SKILLS;
+  const copy = AUDIENCE_COPY[audience];
+  const [skill, setSkill] = useState<AgentSkill>(skills[0]?.key ?? "teach");
   const [isLoading, setIsLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(initialCredits);
   const [lastResponse, setLastResponse] = useState<string | null>(null);
   const [showSkillMenu, setShowSkillMenu] = useState(false);
   const [studyBoardContent, setStudyBoardContent] = useState<string | null>(null);
-  const [voiceLang] = useState<"en" | "ur">("en");
+  const [voiceLang, setVoiceLang] = useState<"en" | "ur">("en");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const skillMenuRef = useRef<HTMLDivElement>(null);
@@ -86,7 +148,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
           studentId,
           skill,
           message: trimmed,
-          context: { current_page: "agent" },
+          context: { current_page: `${audience}_agent`, audience, voice_language: voiceLang },
         }),
       });
 
@@ -125,7 +187,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
       setIsLoading(false);
       inputRef.current?.focus();
     }
-  }, [input, isLoading, skill, studentId]);
+  }, [audience, input, isLoading, skill, studentId, voiceLang]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -134,7 +196,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
     }
   };
 
-  const activeSkill = SKILLS.find((s) => s.key === skill) ?? SKILLS[0];
+  const activeSkill = skills.find((s) => s.key === skill) ?? skills[0] ?? STUDENT_SKILLS[0];
   const lastAssistantMsg = [...messages].reverse().find(m => m.role === "assistant" && m.skill !== "error");
 
   return (
@@ -155,9 +217,9 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
                 </span>
               </div>
               <div>
-                <h2 className="text-sm font-bold tracking-tight text-cn-ink">COGNARA AI</h2>
+                <h2 className="text-sm font-bold tracking-tight text-cn-ink">{copy.title}</h2>
                 <p className="text-[11px] text-cn-ink-subtle">
-                  {isLoading ? "Thinking\u2026" : "Online \u2014 ready to teach"}
+                  {isLoading ? "Thinking..." : copy.status}
                 </p>
               </div>
             </div>
@@ -189,19 +251,13 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
                 </div>
               </div>
               <h3 className="text-xl font-bold tracking-tight text-cn-ink">
-                What would you like to learn?
+                {copy.emptyTitle}
               </h3>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-cn-ink-muted">
-                I&apos;m COGNARA AI &mdash; your personal tutor. I explain concepts, debug code,
-                generate quizzes, and build learning paths tailored to you.
+                {copy.emptyBody}
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-2">
-                {[
-                  "Explain recursion step by step",
-                  "What are closures in JavaScript?",
-                  "Help me understand Big O notation",
-                  "Debug my Python code",
-                ].map((suggestion) => (
+                {copy.suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
@@ -274,7 +330,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
                   <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cn-ink-subtle">
                     Select Skill
                   </p>
-                  {SKILLS.map((s) => (
+                  {skills.map((s) => (
                     <button
                       key={s.key}
                       type="button"
@@ -316,6 +372,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
 
             <VoiceButton
               onTranscript={(text) => {
+                if (looksLikeUrdu(text)) setVoiceLang("ur");
                 setInput(text);
                 setTimeout(() => {
                   const sendBtn = document.getElementById("agent-send-btn");
@@ -324,6 +381,7 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
               }}
               speakText={skill === "voice" ? lastResponse : null}
               disabled={isLoading}
+              onLanguageChange={setVoiceLang}
             />
 
             <button
@@ -356,6 +414,11 @@ export function AgentPanel({ studentId, initialCredits }: Props) {
       )}
     </>
   );
+}
+
+function looksLikeUrdu(text: string) {
+  const lower = text.toLowerCase();
+  return /[\u0600-\u06FF]/.test(text) || /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna)\b/.test(lower);
 }
 
 /* ─── Icons ─── */

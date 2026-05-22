@@ -3,13 +3,20 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { IconTicket } from "@/components/ui/icons";
-import { getTickets, updateTicketStatus } from "./actions";
+import { decideTicketAiReview, getTickets, reviewTicketWithAgent, updateTicketStatus } from "./actions";
 
 type TicketItem = {
   id: string;
   subject: string;
   category: string;
   status: string;
+  priority: string;
+  message: string;
+  aiReview: { summary?: string } | Record<string, unknown>;
+  aiRiskScore: number | null;
+  aiRecommendation: string | null;
+  aiReviewStatus: string;
+  aiReviewedAt: string | null;
   createdAt: string;
   userName: string;
   userEmail: string;
@@ -39,6 +46,7 @@ export default function AdminSupportPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
 
   const fetchTickets = async () => {
     try {
@@ -66,6 +74,30 @@ export default function AdminSupportPage() {
       alert(err.message || "Failed to update ticket status.");
     } finally {
       setActioningId(null);
+    }
+  };
+
+  const handleAiReview = async (ticketId: string) => {
+    if (reviewingId) return;
+    setReviewingId(ticketId);
+    try {
+      const review = await reviewTicketWithAgent(ticketId);
+      setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, ...review } : t));
+    } catch (err: any) {
+      alert(err.message || "AI review failed.");
+    } finally {
+      setReviewingId(null);
+    }
+  };
+
+  const handleAiDecision = async (ticketId: string, decision: "approved" | "rejected") => {
+    const reason = window.prompt(decision === "approved" ? "Approval reason for audit log:" : "Rejection reason for audit log:") ?? "";
+    if (!reason.trim()) return;
+    try {
+      await decideTicketAiReview(ticketId, decision, reason);
+      setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, aiReviewStatus: decision } : t));
+    } catch (err: any) {
+      alert(err.message || "Failed to save AI review decision.");
     }
   };
 
@@ -160,7 +192,8 @@ export default function AdminSupportPage() {
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-cn-ink-subtle">Category</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-cn-ink-subtle">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-cn-ink-subtle">Created</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-cn-ink-subtle">Manage Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-cn-ink-subtle">AI Review</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-cn-ink-subtle">Manage</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cn-border">
@@ -189,18 +222,59 @@ export default function AdminSupportPage() {
                         </Badge>
                       </td>
                       <td className="px-4 py-4 text-xs text-cn-ink-subtle">{timeStr}</td>
+                      <td className="px-4 py-4">
+                        <div className="flex max-w-[340px] flex-col gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant={t.aiReviewStatus === "approved" ? "success" : t.aiReviewStatus === "rejected" ? "danger" : t.aiReviewStatus === "pending_admin_approval" ? "warning" : "default"} size="sm">
+                              {t.aiReviewStatus.replace(/_/g, " ")}
+                            </Badge>
+                            {typeof t.aiRiskScore === "number" && (
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${t.aiRiskScore >= 80 ? "bg-rose-500/10 text-rose-500" : t.aiRiskScore >= 60 ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"}`}>
+                                Risk {t.aiRiskScore}
+                              </span>
+                            )}
+                          </div>
+                          {t.aiRecommendation && (
+                            <p className="line-clamp-2 text-[11px] leading-relaxed text-cn-ink-subtle">
+                              {t.aiRecommendation}
+                            </p>
+                          )}
+                          {typeof t.aiReview?.summary === "string" && (
+                            <details className="rounded-lg border border-cn-border bg-cn-canvas px-3 py-2">
+                              <summary className="cursor-pointer text-[11px] font-bold text-cn-ink">Review details</summary>
+                              <p className="mt-2 whitespace-pre-wrap text-[11px] leading-relaxed text-cn-ink-muted">{t.aiReview.summary}</p>
+                            </details>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-4 text-right">
-                        <select
-                          value={t.status}
-                          disabled={actioningId === t.id}
-                          onChange={(e) => handleStatusChange(t.id, e.target.value as any)}
-                          className="rounded-lg border border-cn-border bg-cn-canvas px-2 py-1 text-xs font-semibold text-cn-ink focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        >
-                          <option value="open">Open</option>
-                          <option value="in_progress">In progress</option>
-                          <option value="resolved">Resolved</option>
-                          <option value="closed">Closed</option>
-                        </select>
+                        <div className="flex flex-col items-end gap-2">
+                          <select
+                            value={t.status}
+                            disabled={actioningId === t.id}
+                            onChange={(e) => handleStatusChange(t.id, e.target.value as any)}
+                            className="rounded-lg border border-cn-border bg-cn-canvas px-2 py-1 text-xs font-semibold text-cn-ink focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          >
+                            <option value="open">Open</option>
+                            <option value="in_progress">In progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => void handleAiReview(t.id)}
+                            disabled={reviewingId === t.id}
+                            className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2 py-1 text-[11px] font-bold text-indigo-500 transition hover:bg-indigo-500/15 disabled:opacity-50"
+                          >
+                            {reviewingId === t.id ? "Reviewing..." : "AI review"}
+                          </button>
+                          {t.aiReviewStatus === "pending_admin_approval" && (
+                            <div className="flex gap-1">
+                              <button type="button" onClick={() => void handleAiDecision(t.id, "approved")} className="rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-500">Approve</button>
+                              <button type="button" onClick={() => void handleAiDecision(t.id, "rejected")} className="rounded-md bg-rose-500/10 px-2 py-1 text-[10px] font-bold text-rose-500">Reject</button>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

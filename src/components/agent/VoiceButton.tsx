@@ -11,13 +11,14 @@ interface VoiceButtonProps {
   /** Text for the agent to speak aloud */
   speakText?: string | null;
   disabled?: boolean;
+  onLanguageChange?: (lang: VoiceLang) => void;
 }
 
 /**
  * Voice input/output button using native Web Speech API.
  * Supports English (en-US) and Urdu (ur-PK) speech recognition and synthesis.
  */
-export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonProps) {
+export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChange }: VoiceButtonProps) {
   const [state, setState] = useState<VoiceState>("idle");
   const [transcript, setTranscript] = useState("");
   const [supported, setSupported] = useState(true);
@@ -56,10 +57,11 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
       .trim()
       .slice(0, 1200);
 
+    const spokenLang: VoiceLang = lang === "ur" || looksLikeUrdu(clean) ? "ur" : "en";
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = "en-US";
-    utterance.rate = 0.92;
-    utterance.pitch = 0.95;
+    utterance.lang = spokenLang === "ur" ? "ur-PK" : "en-US";
+    utterance.rate = spokenLang === "ur" ? 0.86 : 0.9;
+    utterance.pitch = spokenLang === "ur" ? 1.02 : 0.96;
     utterance.volume = 1.0;
 
     // Select best available MALE voice
@@ -67,16 +69,8 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
       const voices = window.speechSynthesis.getVoices();
       if (voices.length === 0) return;
 
-      const maleVoice =
-        voices.find(v => v.name.includes("Microsoft David")) ||
-        voices.find(v => v.name.includes("Microsoft Mark")) ||
-        voices.find(v => v.name.includes("Microsoft Guy")) ||
-        voices.find(v => v.name.includes("Google UK English Male")) ||
-        voices.find(v => v.name.includes("Alex")) ||
-        voices.find(v => v.name.includes("Daniel")) ||
-        voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
-        voices.find(v => v.lang === "en-US");
-      if (maleVoice) utterance.voice = maleVoice;
+      const voice = pickBestVoice(voices, spokenLang);
+      if (voice) utterance.voice = voice;
     };
 
     // Voices may not be loaded yet — try immediately, then on voiceschanged
@@ -143,6 +137,12 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
       setState("processing");
       const final = latestTranscript.current.trim();
       if (final) {
+        if (looksLikeUrdu(final)) {
+          setLang("ur");
+          onLanguageChange?.("ur");
+        } else {
+          onLanguageChange?.(lang);
+        }
         onTranscript(final);
       }
       setTimeout(() => setState("idle"), 500);
@@ -155,7 +155,7 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [state, disabled, onTranscript, lang]);
+  }, [state, disabled, onTranscript, lang, onLanguageChange]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
@@ -223,7 +223,11 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
       {/* Language toggle */}
       <button
         type="button"
-        onClick={() => setLang(l => l === "en" ? "ur" : "en")}
+        onClick={() => setLang(l => {
+          const next = l === "en" ? "ur" : "en";
+          onLanguageChange?.(next);
+          return next;
+        })}
         className="flex h-10 items-center rounded-xl border border-cn-border px-2 text-[11px] font-bold text-cn-ink-subtle transition hover:bg-cn-border/30 hover:text-cn-ink"
         title={`Switch to ${lang === "en" ? "Urdu" : "English"} voice`}
       >
@@ -249,6 +253,36 @@ export function VoiceButton({ onTranscript, speakText, disabled }: VoiceButtonPr
         </div>
       )}
     </div>
+  );
+}
+
+function looksLikeUrdu(text: string) {
+  const lower = text.toLowerCase();
+  return /[\u0600-\u06FF]/.test(text) || /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna)\b/.test(lower);
+}
+
+function pickBestVoice(voices: SpeechSynthesisVoice[], lang: VoiceLang) {
+  if (lang === "ur") {
+    return (
+      voices.find(v => v.lang.toLowerCase().startsWith("ur")) ||
+      voices.find(v => v.name.toLowerCase().includes("urdu")) ||
+      voices.find(v => v.lang.toLowerCase().includes("hi")) ||
+      voices.find(v => v.lang.toLowerCase().startsWith("en-in")) ||
+      voices.find(v => v.name.includes("Microsoft Heera")) ||
+      voices.find(v => v.name.includes("Google हिन्दी")) ||
+      voices.find(v => v.lang === "en-US")
+    );
+  }
+
+  return (
+    voices.find(v => v.name.includes("Microsoft Guy")) ||
+    voices.find(v => v.name.includes("Microsoft Mark")) ||
+    voices.find(v => v.name.includes("Google US English")) ||
+    voices.find(v => v.name.includes("Google UK English Male")) ||
+    voices.find(v => v.name.includes("Alex")) ||
+    voices.find(v => v.name.includes("Daniel")) ||
+    voices.find(v => v.lang === "en-US") ||
+    voices.find(v => v.lang.startsWith("en"))
   );
 }
 

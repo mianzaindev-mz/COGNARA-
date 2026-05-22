@@ -12,6 +12,7 @@ const nav = [
   { href: "/coach/dashboard", label: "Dashboard", icon: "grid_view" },
   { href: "/coach/courses",   label: "Courses",   icon: "menu_book" },
   { href: "/coach/library",   label: "My library",  icon: "account_balance" },
+  { href: "/coach/agent",     label: "Agent",    icon: "magic_button" },
   { href: "/coach/students",  label: "Students",  icon: "group" },
   { href: "/coach/analytics", label: "Analytics",  icon: "bar_chart" },
   { href: "/coach/earnings",  label: "Earnings",   icon: "wallet" },
@@ -22,17 +23,14 @@ const nav = [
 
 type CoachShellProps = {
   displayName: string;
-  email?: string;
-  isVerified: boolean;
   monthlyEarnings?: number;
   children: React.ReactNode;
 };
 
-export function CoachShell({ displayName, email, isVerified, monthlyEarnings, children }: CoachShellProps) {
+export function CoachShell({ displayName, monthlyEarnings, children }: CoachShellProps) {
   const pathname = usePathname();
   const initials = displayName.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
   
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   

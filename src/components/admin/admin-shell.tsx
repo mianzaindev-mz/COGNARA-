@@ -12,17 +12,17 @@ const nav = [
   { href: "/admin/users",     label: "Users",     icon: "group" },
   { href: "/admin/coaches",   label: "Coaches",   icon: "verified_user" },
   { href: "/admin/courses",   label: "Courses",   icon: "menu_book" },
+  { href: "/admin/agent",     label: "Agent",     icon: "magic_button" },
   { href: "/admin/reports",   label: "Reports",   icon: "bar_chart" },
   { href: "/admin/support",   label: "Support",   icon: "support_agent" },
 ] as const;
 
 type AdminShellProps = {
   displayName: string;
-  email?: string;
   children: React.ReactNode;
 };
 
-export function AdminShell({ displayName, email, children }: AdminShellProps) {
+export function AdminShell({ displayName, children }: AdminShellProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const initials = displayName

@@ -14,6 +14,14 @@ export interface PathAgentInput {
   completedCourses?: string[];
 }
 
+const PATH_QUALITY_ADDENDUM = `
+
+QUALITY RULES:
+- Produce a concrete plan with milestones, estimated effort, and next action.
+- Explain the reasoning briefly, like a mentor, not a generic recommender.
+- If evidence is missing, say what data would improve the recommendation.
+- Keep it polished for the COGNARA renderer; do not mention Markdown or formatting syntax.`;
+
 const PATH_ADDENDUM = `
 
 ADDITIONAL ROLE: Learning Path Advisor
@@ -39,7 +47,7 @@ Format response as:
 
 export async function runPathAgent(input: PathAgentInput): Promise<AgentResponse> {
   const basePrompt = buildSystemPrompt(input.memory, input.context);
-  const systemPrompt = basePrompt + PATH_ADDENDUM;
+  const systemPrompt = basePrompt + PATH_ADDENDUM + PATH_QUALITY_ADDENDUM;
   const groqKey = process.env.GROQ_API_KEY;
 
   let userMessage = input.message;

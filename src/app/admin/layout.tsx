@@ -36,7 +36,7 @@ export default async function AdminLayout({
     "Admin";
 
   return (
-    <AdminShell displayName={displayName} email={user.email ?? undefined}>
+    <AdminShell displayName={displayName}>
       {children}
     </AdminShell>
   );

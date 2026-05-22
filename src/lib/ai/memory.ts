@@ -19,6 +19,8 @@ export interface AgentContext {
   current_course_title?: string;
   current_page?: string;
   code_context?: string;
+  audience?: "student" | "coach" | "admin";
+  voice_language?: "en" | "ur";
 }
 
 const DEFAULT_MEMORY: AgentMemory = {
@@ -30,6 +32,21 @@ const DEFAULT_MEMORY: AgentMemory = {
   last_lesson_id: null,
   notes: null,
 };
+
+const AGENT_QUALITY_CONTRACT = `
+LANGUAGE CONTRACT:
+- If the latest user input is Urdu script, Roman Urdu, or voice_language is "ur", respond primarily in Urdu/Roman Urdu with English technical terms where natural.
+- If the user asks in English, respond in English.
+- Never force English after Urdu speech. Match the user's language unless they explicitly ask otherwise.
+
+RESPONSE CONTRACT:
+- Structure the answer so the UI renderer can turn it into polished headings, cards, lists, tables, and code blocks.
+- Use concise Markdown syntax internally, but never say "Markdown", never explain formatting, and never expose raw heading markers as content.
+- Start with the useful answer, not a generic greeting.
+- Think like an agent: identify intent, infer role, state any limitation honestly, then give next actions.
+- Do not claim to have watched a video, opened a file, changed a database row, or reported a user unless that evidence/tool result is actually provided.
+- For misconduct, plagiarism, cheating, or complaints: use careful language such as "signal", "reported issue", "evidence needed", and "requires admin approval".
+`;
 
 /**
  * Load student's agent memory from Supabase.
@@ -110,7 +127,7 @@ export function buildSystemPrompt(
   memory: AgentMemory,
   context: AgentContext,
 ): string {
-  const isUrdu = memory.preferred_language === "ur";
+  const isUrdu = context.voice_language === "ur" || memory.preferred_language === "ur";
   const sessionLabel = memory.total_sessions === 0
     ? "This is their FIRST session — be extra welcoming and set a positive tone."
     : `They have completed ${memory.total_sessions} sessions. They are a returning learner.`;
@@ -241,5 +258,5 @@ ${isUrdu ? `- **Speak in Urdu (اردو)** as the primary language for voice res
 - NEVER generate harmful, offensive, or inappropriate content
 - NEVER pretend to access the internet, files, or external systems
 - If asked something outside your scope, redirect gracefully: "That's a great question, but let me help you with your coursework instead! What topic are you working on?"
-- NEVER give direct answers to quiz/exam questions — guide the student to discover the answer themselves`;
+- NEVER give direct answers to quiz/exam questions — guide the student to discover the answer themselves` + AGENT_QUALITY_CONTRACT;
 }

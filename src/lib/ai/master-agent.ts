@@ -11,9 +11,10 @@ import { runCodeAgent } from "./agents/code-agent";
 import { runPathAgent } from "./agents/path-agent";
 import { runSupportAgent } from "./agents/support-agent";
 import { runCoachAgent } from "./agents/coach-agent";
+import { runAdminAgent } from "./agents/admin-agent";
 import type { AgentResponse } from "./agents/teach-agent";
 
-export type AgentSkill = "teach" | "debug" | "quiz" | "voice" | "path" | "support" | "verify" | "coach";
+export type AgentSkill = "teach" | "debug" | "quiz" | "voice" | "path" | "support" | "verify" | "coach" | "admin";
 
 /** Map skills to credit actions */
 const SKILL_CREDIT_MAP: Record<AgentSkill, CreditAction> = {
@@ -25,6 +26,7 @@ const SKILL_CREDIT_MAP: Record<AgentSkill, CreditAction> = {
   support: "ask_question", // support is free-ish (1 credit)
   verify: "coach_pdf_outline", // internal, free
   coach: "coach_generate_quiz", // free for coaches
+  admin: "coach_analyze_students", // internal/admin, free
 };
 
 export interface AgentRequest {
@@ -51,7 +53,8 @@ export interface AgentResult {
  */
 export async function routeAgentRequest(req: AgentRequest): Promise<AgentResult> {
   // 1. Check credits
-  const creditAction = SKILL_CREDIT_MAP[req.skill];
+  const isInternalAudience = req.context?.audience === "coach" || req.context?.audience === "admin";
+  const creditAction = isInternalAudience ? "coach_analyze_students" : SKILL_CREDIT_MAP[req.skill];
   const creditResult = await checkAndDeductCredits(req.studentId, creditAction);
 
   if (!creditResult.allowed) {
@@ -76,6 +79,8 @@ export async function routeAgentRequest(req: AgentRequest): Promise<AgentResult>
     current_lesson_title: req.context?.current_lesson_title,
     current_course_title: req.context?.current_course_title,
     code_context: req.code,
+    audience: req.context?.audience,
+    voice_language: req.context?.voice_language,
   };
 
   // 4. Route to skill agent
@@ -113,7 +118,23 @@ export async function routeAgentRequest(req: AgentRequest): Promise<AgentResult>
       });
       break;
 
+    case "admin":
+    case "verify":
+      response = await runAdminAgent({
+        message: req.message,
+        mode: req.skill === "verify" ? "verify" : "operations",
+      });
+      break;
+
     case "quiz":
+      if (req.context?.audience === "coach") {
+        response = await runCoachAgent({
+          message: `Create a high-quality coach-ready quiz or assessment from this request: ${req.message}`,
+          tool: "generate_quiz",
+        });
+        response.skill = "quiz";
+        break;
+      }
       // Quiz generation uses teach agent with a quiz-focused prompt
       response = await runTeachAgent({
         message: `Generate a quiz with 5 questions on this topic: ${req.message}. Format each question with lettered options (a, b, c, d) and mark the correct answer with ✅.`,

@@ -21,7 +21,7 @@ export default function CoachSupportPage() {
       if (!user) throw new Error("Not logged in");
       const { error: err } = await supabase.from("support_tickets").insert({
         user_id: user.id,
-        category: "coach_support",
+        category: "other",
         subject: subject.trim(),
         message: message.trim(),
         status: "open",
