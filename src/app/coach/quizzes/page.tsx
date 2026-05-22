@@ -625,8 +625,13 @@ export default function CoachQuizzesPage() {
 
       {/* CREATE QUIZ MODAL */}
       {createModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-4xl rounded-2xl border border-[#221740] bg-[#0c081d] p-6 shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col justify-between">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer top-0 left-0"
+            onClick={() => setCreateModalOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-4xl rounded-2xl border border-white/30 bg-[#0c081d] p-8 shadow-2xl shadow-black/90 max-h-[90vh] overflow-y-auto flex flex-col justify-between" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="mb-4 flex items-center justify-between border-b border-[#221740] pb-3">
               <h2 className="text-lg font-bold text-white flex items-center gap-1.5">
                 <IconClipboard className="h-5 w-5 text-indigo-500" />
@@ -915,8 +920,13 @@ export default function CoachQuizzesPage() {
 
       {/* AI GENERATE QUIZ MODAL */}
       {aiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-2xl rounded-2xl border border-[#221740] bg-[#0c081d] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer top-0 left-0"
+            onClick={() => setAiModalOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-2xl rounded-2xl border border-white/30 bg-[#0c081d] p-8 shadow-2xl shadow-black/90 max-h-[90vh] overflow-y-auto" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="mb-4 flex items-center justify-between border-b border-[#221740] pb-3">
               <h2 className="text-lg font-bold text-white flex items-center gap-1.5">
                 <IconSparkle className="h-5 w-5 text-indigo-400 animate-pulse" />
@@ -1080,8 +1090,13 @@ export default function CoachQuizzesPage() {
 
       {/* PREVIEW QUIZ MODAL (Student View Mock) */}
       {previewModalOpen && previewQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-3xl rounded-2xl border border-[#221740] bg-[#0c081d] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer top-0 left-0"
+            onClick={() => setPreviewModalOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-3xl rounded-2xl border border-white/30 bg-[#0c081d] p-8 shadow-2xl shadow-black/90 max-h-[90vh] overflow-y-auto" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="mb-4 flex items-center justify-between border-b border-[#221740] pb-3">
               <div>
                 <h2 className="text-lg font-bold text-white">{previewQuiz.title}</h2>

@@ -6,6 +6,8 @@ import Editor from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
 import { LanguageSelector } from "./LanguageSelector";
 import { OutputPanel } from "./OutputPanel";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
+import { createClient } from "@/lib/supabase/client";
 import {
   PISTON_LANGUAGES,
   DEFAULT_CODE,
@@ -51,13 +53,20 @@ function detectStdinUsage(lang: LanguageKey, code: string): boolean {
 /** Languages rendered client-side — no compiler needed */
 const CLIENT_RENDERED = new Set<LanguageKey>(["mermaid", "html", "css", "markdown"]);
 
-export function CodeEditorFull() {
+interface CodeEditorProps {
+  lessonId?: string;
+  courseId?: string;
+}
+
+export function CodeEditorFull({ lessonId }: CodeEditorProps) {
   const [language, setLanguage] = useState<LanguageKey>("python");
   const [code, setCode] = useState(DEFAULT_CODE.python);
   const [stdin, setStdin] = useState("");
   const [showStdin, setShowStdin] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const [stdinNeeded, setStdinNeeded] = useState(false);
@@ -116,6 +125,37 @@ export function CodeEditorFull() {
     }
   }, [language, code, stdin]);
 
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    setShowConfirmSubmit(false);
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error("Database offline");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Please log in to submit assignments");
+
+      const { error: subErr } = await supabase
+        .from("code_submissions")
+        .insert({
+          student_id: user.id,
+          lesson_id: lessonId,
+          language,
+          code,
+          stdin: stdin || null,
+          stdout: result?.stdout || null,
+          stderr: result?.stderr || null,
+        });
+
+      if (subErr) throw subErr;
+      alert("Assignment submitted successfully!");
+    } catch (err: any) {
+      setError(err.message || "Submission failed");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Stable ref so the keyboard shortcut always calls the latest handleRun
   const handleRunRef = useRef(handleRun);
   useEffect(() => { handleRunRef.current = handleRun; }, [handleRun]);
@@ -140,7 +180,7 @@ export function CodeEditorFull() {
   }, [language]);
 
   return (
-    <div className="relative flex h-[calc(100vh-10rem)] flex-col gap-4 lg:flex-row">
+    <div className="relative flex h-full flex-col gap-4 lg:flex-row">
       {/* Left: Editor */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cn-border bg-cn-surface shadow-[var(--cn-shadow-card)]">
         {/* Toolbar */}
@@ -186,6 +226,17 @@ export function CodeEditorFull() {
               <PlayIcon className="h-3.5 w-3.5" />
               {isRunning ? "Running…" : "Run"}
             </button>
+            {lessonId && (
+              <button
+                type="button"
+                onClick={() => setShowConfirmSubmit(true)}
+                disabled={isRunning || isSubmitting || !code.trim()}
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-1.5 text-sm font-bold text-black shadow-sm transition hover:brightness-110 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">publish</span>
+                {isSubmitting ? "Submitting…" : "Submit"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -249,6 +300,16 @@ export function CodeEditorFull() {
       <div className="absolute bottom-2 left-2 hidden text-[10px] text-cn-ink-subtle lg:block">
         Ctrl+Enter to run
       </div>
+
+      <DoubleConfirmModal
+        isOpen={showConfirmSubmit}
+        onClose={() => setShowConfirmSubmit(false)}
+        onConfirm={handleSubmit}
+        title="Submit Assignment"
+        description="Are you sure you want to submit your code? This will be graded and recorded as your final submission for this lesson."
+        confirmWord="SUBMIT"
+        actionButtonText="Submit Now"
+      />
     </div>
   );
 }

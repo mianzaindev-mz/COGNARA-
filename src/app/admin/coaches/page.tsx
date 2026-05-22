@@ -371,8 +371,13 @@ export default function AdminCoachesPage() {
 
       {/* Docs Modal Overlay */}
       {selectedDocs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="w-full max-w-md rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => setSelectedDocs(null)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-base font-bold text-cn-ink dark:text-white">Credentials & Documents</h3>
               <button

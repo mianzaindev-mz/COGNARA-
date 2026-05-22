@@ -504,15 +504,15 @@ export default function CoachLibraryPage() {
 
       {/* Main Creation/Editing Overlay Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 cursor-pointer"
             onClick={() => setModalOpen(false)}
           />
 
           <form
             onSubmit={handleSave}
-            className="relative z-10 w-full max-w-2xl rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar flex flex-col gap-5"
+            className="relative w-full max-w-2xl rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 overflow-y-auto max-h-[90vh] custom-scrollbar flex flex-col gap-5"
           >
             <div className="flex justify-between items-center pb-2 border-b border-cn-border/60">
               <h2 className="text-lg font-bold text-cn-ink">
@@ -744,8 +744,8 @@ export default function CoachLibraryPage() {
 
       {/* AI Processing overlay animation spinner */}
       {aiGenerating && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
-          <div className="floating-glass p-8 rounded-3xl text-center max-w-sm w-full flex flex-col items-center gap-6 border-pulse border border-white/10 popup-entrance">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div className="relative p-8 rounded-3xl text-center max-w-sm w-full flex flex-col items-center gap-6 border border-white/30 shadow-2xl shadow-black/90 bg-[#131313] animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
             <span className="material-symbols-outlined text-[48px] text-primary animate-spin">
               settings_suggest
             </span>
@@ -773,12 +773,12 @@ export default function CoachLibraryPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 cursor-pointer"
             onClick={() => setDeleteConfirmId(null)}
           />
-          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl text-center flex flex-col gap-4">
+          <div className="relative w-full max-w-sm rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 text-center flex flex-col gap-4 animate-in zoom-in-95 duration-300">
             <span className="material-symbols-outlined text-rose-500 text-4xl">warning</span>
             <div>
               <h3 className="text-base font-bold text-cn-ink">Delete Resource?</h3>
@@ -786,16 +786,16 @@ export default function CoachLibraryPage() {
                 This action is permanent and will detach this asset from all student dashboards and course timelines.
               </p>
             </div>
-            <div className="flex gap-3 justify-center mt-2">
+            <div className="flex gap-3 justify-center mt-2 border-t border-white/10 pt-4">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2.5 bg-cn-canvas border border-cn-border hover:bg-cn-border-strong text-cn-ink rounded-lg text-xs font-bold transition"
+                className="px-4 py-2.5 bg-white/5 border border-white/20 hover:bg-white/10 text-white/70 rounded-lg text-xs font-bold transition"
               >
                 No, Keep
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-rose-600/15 transition"
+                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-rose-600/30 transition"
               >
                 Yes, Delete
               </button>

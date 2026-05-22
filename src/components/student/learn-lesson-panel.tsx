@@ -8,8 +8,10 @@ import type { CourseLearnContext, LessonOutline } from "@/lib/student/lesson-vie
 import { cn } from "@/lib/utils/cn";
 import { createClient } from "@/lib/supabase/client";
 import { NotebookPanel } from "@/components/notebook/NotebookPanel";
+import { LiveCall } from "@/components/shared/LiveCall";
+import { CodeEditorFull } from "@/components/editor/CodeEditor";
 
-const LEFT_TABS = ["Overview", "Materials", "Curriculum"] as const;
+const LEFT_TABS = ["Overview", "Materials", "Curriculum", "Live Classes"] as const;
 
 type LearnLessonPanelProps = {
   ctx: CourseLearnContext;
@@ -87,6 +89,10 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
   const completed = ctx.completedLessonIds.includes(lesson.id);
   const [studentId, setStudentId] = useState<string | null>(null);
 
+  // Live Sessions State
+  const [liveSessions, setLiveSessions] = useState<any[]>([]);
+  const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
+
   // Split view states
   const [isMobile, setIsMobile] = useState(false);
   const [splitWidth, setSplitWidth] = useState(60); // % of left pane
@@ -115,6 +121,23 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
     }
     void fetchUser();
   }, []);
+
+  // Fetch live sessions
+  useEffect(() => {
+    if (leftTab === "Live Classes" && ctx.courseId) {
+      const fetchLive = async () => {
+        const supabase = createClient();
+        if (!supabase) return;
+        const { data } = await supabase
+          .from("live_sessions")
+          .select("*")
+          .eq("course_id", ctx.courseId)
+          .order("scheduled_at", { ascending: true });
+        setLiveSessions(data || []);
+      };
+      void fetchLive();
+    }
+  }, [leftTab, ctx.courseId]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -217,6 +240,25 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
       return false;
     }
   };
+
+  if (activeCallRoom) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-6rem)] p-4 bg-cn-canvas dark:bg-[#0a0909]">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-cn-ink dark:text-white">Live Class: {ctx.title}</h2>
+          <button 
+            onClick={() => setActiveCallRoom(null)}
+            className="px-4 py-2 bg-cn-sidebar text-white rounded-xl text-xs font-bold dark:bg-cn-yellow dark:text-cn-sidebar"
+          >
+            Exit Call
+          </button>
+        </div>
+        <div className="flex-1 min-h-[500px]">
+          <LiveCall roomUrl={activeCallRoom} onLeave={() => setActiveCallRoom(null)} />
+        </div>
+      </div>
+    );
+  }
 
   const renderVideoPlayer = () => {
     if (videoInfo.type === "youtube") {
@@ -337,6 +379,12 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
 
             {/* Tab content panel */}
             <div className="bg-white border border-cn-border rounded-[1.5rem] p-5 shadow-sm dark:bg-[#12100f] dark:border-stone-850 flex-1 overflow-y-auto">
+              {lesson.type === "code" && leftTab === "Overview" ? (
+                <div className="h-[600px] mb-6 shrink-0">
+                  <CodeEditorFull lessonId={lesson.id} courseId={ctx.courseId} />
+                </div>
+              ) : null}
+
               {leftTab === "Overview" ? (
                 isJsonBlocks ? (
                   <div className="space-y-4">
@@ -452,6 +500,35 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
                 <p className="text-xs text-cn-ink-muted">
                   Downloadable resources appear here when coaches attach files in the lesson editor.
                 </p>
+              ) : leftTab === "Live Classes" ? (
+                <div className="space-y-4">
+                  {liveSessions.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <p className="text-xs text-cn-ink-muted">No live sessions scheduled for this course.</p>
+                    </div>
+                  ) : (
+                    liveSessions.map((s) => (
+                      <div key={s.id} className="p-4 rounded-2xl border border-cn-border bg-cn-canvas/50 dark:border-stone-800 dark:bg-black/50">
+                        <h4 className="font-bold text-cn-ink dark:text-white text-sm mb-1">{s.title}</h4>
+                        <p className="text-[10px] text-cn-ink-muted mb-4 uppercase tracking-wider">
+                          {new Date(s.scheduled_at).toLocaleString()}
+                        </p>
+                        {s.status === "live" && s.daily_room_url ? (
+                          <button
+                            onClick={() => setActiveCallRoom(s.daily_room_url)}
+                            className="w-full py-2 bg-red-600 text-white rounded-xl text-xs font-bold animate-pulse"
+                          >
+                            JOIN LIVE NOW
+                          </button>
+                        ) : (
+                          <div className="py-2 text-center border border-cn-border dark:border-stone-800 rounded-xl text-[10px] font-bold text-cn-ink-subtle uppercase">
+                            {s.status === "ended" ? "Session Ended" : "Scheduled"}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               ) : (
                 <div className="mt-1">
                   <LearnCurriculum ctx={ctx} activeOrder={lesson.orderIndex} />
@@ -522,6 +599,12 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
 
               {/* Left Tab content panel */}
               <div className="bg-white border border-cn-border rounded-[1.5rem] p-5 shadow-sm dark:bg-[#12100f] dark:border-stone-850 flex-1 overflow-y-auto">
+                {lesson.type === "code" && leftTab === "Overview" ? (
+                  <div className="h-[600px] mb-6">
+                    <CodeEditorFull lessonId={lesson.id} courseId={ctx.courseId} />
+                  </div>
+                ) : null}
+
                 {leftTab === "Overview" ? (
                   isJsonBlocks ? (
                     <div className="space-y-4">
@@ -637,6 +720,35 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
                   <p className="text-xs text-cn-ink-muted">
                     Downloadable resources appear here when coaches attach files in the lesson editor.
                   </p>
+                ) : leftTab === "Live Classes" ? (
+                  <div className="space-y-4">
+                    {liveSessions.length === 0 ? (
+                      <div className="py-10 text-center">
+                        <p className="text-xs text-cn-ink-muted">No live sessions scheduled for this course.</p>
+                      </div>
+                    ) : (
+                      liveSessions.map((s) => (
+                        <div key={s.id} className="p-4 rounded-2xl border border-cn-border bg-cn-canvas/50 dark:border-stone-800 dark:bg-black/50">
+                          <h4 className="font-bold text-cn-ink dark:text-white text-sm mb-1">{s.title}</h4>
+                          <p className="text-[10px] text-cn-ink-muted mb-4 uppercase tracking-wider">
+                            {new Date(s.scheduled_at).toLocaleString()}
+                          </p>
+                          {s.status === "live" && s.daily_room_url ? (
+                            <button
+                              onClick={() => setActiveCallRoom(s.daily_room_url)}
+                              className="w-full py-2 bg-red-600 text-white rounded-xl text-xs font-bold animate-pulse"
+                            >
+                              JOIN LIVE NOW
+                            </button>
+                          ) : (
+                            <div className="py-2 text-center border border-cn-border dark:border-stone-800 rounded-xl text-[10px] font-bold text-cn-ink-subtle uppercase">
+                              {s.status === "ended" ? "Session Ended" : "Scheduled"}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 ) : (
                   <div className="mt-1">
                     <LearnCurriculum ctx={ctx} activeOrder={lesson.orderIndex} />

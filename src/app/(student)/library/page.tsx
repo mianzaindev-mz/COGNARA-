@@ -331,14 +331,15 @@ export default function StudentLibraryPage() {
 
       {/* Preview Lightbox Modal */}
       {previewResource && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-md transition-opacity duration-300"
+            className="absolute inset-0 cursor-pointer"
             onClick={() => setPreviewResource(null)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
 
-          <main className="relative z-10 w-full max-w-3xl floating-glass rounded-3xl p-6 md:p-8 flex flex-col gap-6 max-h-[90vh] overflow-y-auto custom-scrollbar popup-entrance border-pulse">
+          <main className="relative w-full max-w-3xl rounded-3xl p-8 flex flex-col gap-6 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl shadow-black/90 border border-white/30 bg-cn-surface animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
             <header className="flex justify-between items-start pb-4 border-b border-black/5 dark:border-white/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/10 shrink-0">

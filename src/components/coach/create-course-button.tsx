@@ -54,8 +54,32 @@ export function CreateCourseButton() {
       const supabase = createClient();
       if (!supabase) throw new Error("Failed to initialize database connection.");
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Authenticated session expired. Please log in again.");
+      let { data: { user } } = await supabase.auth.getUser();
+      
+      // Fallback check for demo sessions if Supabase client doesn't see them
+      if (!user && typeof document !== "undefined") {
+        const clientUserCookie = document.cookie
+          .split("; ")
+          .find(row => row.startsWith("cognara_demo_client_user="))
+          ?.split("=")[1];
+          
+        if (clientUserCookie) {
+          try {
+            const decoded = decodeURIComponent(clientUserCookie);
+            const clean = decoded.startsWith('"') && decoded.endsWith('"') ? decoded.slice(1, -1) : decoded;
+            const demoUser = JSON.parse(clean);
+            if (demoUser && demoUser.id) {
+              user = { id: demoUser.id } as any;
+            }
+          } catch (e) {
+            console.error("Failed to parse demo cookie in fallback:", e);
+          }
+        }
+      }
+
+      if (!user) {
+        throw new Error("Authenticated session expired. Please log in again.");
+      }
 
       // Clean and make unique slug
       const baseSlug = trimmedTitle
@@ -105,8 +129,13 @@ export function CreateCourseButton() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="w-full max-w-md rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-[#2e2a2a] dark:bg-[#1a1818]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={handleClose}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 animate-in zoom-in-95 duration-300 dark:border-[#2e2a2a] dark:bg-[#1a1818]" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-cn-ink dark:text-white">Create New Course</h2>
               <button

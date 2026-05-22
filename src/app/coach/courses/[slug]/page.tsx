@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 type Lesson = {
   id: string;
@@ -76,7 +77,16 @@ export default function EditCoursePage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"general" | "lessons">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "lessons" | "live">("general");
+
+  // Deletion state
+  const [lessonToDelete, setLessonToDelete] = useState<string | null>(null);
+
+  // Live Sessions state
+  const [liveSessions, setLiveSessions] = useState<any[]>([]);
+  const [startingLive, setStartingLive] = useState<string | null>(null);
+  const [isCreatingLive, setIsCreatingLive] = useState(false);
+  const [newLive, setNewLive] = useState({ title: "", scheduled_at: "" });
 
   // Course settings state
   const [course, setCourse] = useState<Course | null>(null);
@@ -386,8 +396,8 @@ export default function EditCoursePage() {
     }
   };
 
-  const handleDeleteLesson = async (lessonId: string) => {
-    if (!course || !confirm("Are you sure you want to delete this lesson?")) return;
+  const handleDeleteLesson = async () => {
+    if (!course || !lessonToDelete) return;
 
     try {
       const supabase = createClient();
@@ -396,11 +406,11 @@ export default function EditCoursePage() {
       const { error: deleteErr } = await supabase
         .from("lessons")
         .delete()
-        .eq("id", lessonId);
+        .eq("id", lessonToDelete);
 
       if (deleteErr) throw deleteErr;
 
-      const updatedLessons = lessons.filter(l => l.id !== lessonId);
+      const updatedLessons = lessons.filter(l => l.id !== lessonToDelete);
       setLessons(updatedLessons);
 
       // Decrement local course lesson count dynamically
@@ -418,8 +428,79 @@ export default function EditCoursePage() {
       }
     } catch (err: any) {
       alert(err.message || "Failed to delete lesson.");
+    } finally {
+      setLessonToDelete(null);
     }
   };
+
+  const handleStartLive = async (sessionId: string) => {
+    setStartingLive(sessionId);
+    try {
+      const res = await fetch("/api/live/create-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, type: "coach" })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setLiveSessions(prev => prev.map(s => 
+        s.id === sessionId ? { ...s, status: "live", daily_room_url: data.url } : s
+      ));
+      
+      window.open(data.url, '_blank');
+    } catch (err: any) {
+      alert(`Failed to start session: ${err.message}`);
+    } finally {
+      setStartingLive(null);
+    }
+  };
+
+  const handleCreateLive = async () => {
+    if (!newLive.title || !newLive.scheduled_at || !course) return;
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error("Database offline");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Unauthorized");
+
+      const { data, error } = await supabase
+        .from("live_sessions")
+        .insert({
+          coach_id: user.id,
+          course_id: course.id,
+          title: newLive.title,
+          scheduled_at: new Date(newLive.scheduled_at).toISOString(),
+          status: "scheduled"
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setLiveSessions(prev => [data, ...prev]);
+      setIsCreatingLive(false);
+      setNewLive({ title: "", scheduled_at: "" });
+    } catch (err: any) {
+      alert(`Failed to schedule session: ${err.message}`);
+    }
+  };
+
+  // Fetch live sessions on mount or tab change
+  useEffect(() => {
+    if (activeTab === "live" && course) {
+      const fetchLive = async () => {
+        const supabase = createClient();
+        if (!supabase) return;
+        const { data } = await supabase
+          .from("live_sessions")
+          .select("*")
+          .eq("course_id", course.id)
+          .order("scheduled_at", { ascending: true });
+        setLiveSessions(data || []);
+      };
+      void fetchLive();
+    }
+  }, [activeTab, course]);
 
   const handleMoveLesson = async (index: number, direction: "up" | "down") => {
     if (!course) return;
@@ -534,6 +615,17 @@ export default function EditCoursePage() {
           }`}
         >
           Lessons Management ({lessons.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("live")}
+          className={`pb-3 text-sm font-bold transition-all relative ${
+            activeTab === "live"
+              ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+              : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
+          }`}
+        >
+          Live Classes
         </button>
       </div>
 
@@ -727,7 +819,7 @@ export default function EditCoursePage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteLesson(lesson.id)}
+                        onClick={() => setLessonToDelete(lesson.id)}
                         className="rounded-lg border border-rose-500/20 px-3 py-1.5 text-xs text-rose-500 hover:bg-rose-500 hover:text-white transition"
                       >
                         Delete
@@ -741,10 +833,144 @@ export default function EditCoursePage() {
         </div>
       )}
 
+      {/* Live Sessions Tab content */}
+      {activeTab === "live" && (
+        <div className="flex flex-col gap-6">
+          <section className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-cn-ink dark:text-white">Live Classes & Webinars</h2>
+              <p className="text-xs text-cn-ink-muted mt-1">Schedule real-time sessions for your students.</p>
+            </div>
+            <button
+              onClick={() => setIsCreatingLive(true)}
+              className="rounded-xl bg-cn-orange px-4 py-2 text-xs font-bold text-white hover:bg-cn-orange-hover transition"
+            >
+              + Schedule Live Class
+            </button>
+          </section>
+
+          {liveSessions.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center dark:border-[#2e2a2a] dark:bg-[#1a1818]">
+              <div className="w-12 h-12 rounded-full bg-cn-orange/10 flex items-center justify-center text-cn-orange mx-auto mb-4">
+                <span className="material-symbols-outlined">videocam</span>
+              </div>
+              <p className="font-bold text-cn-ink dark:text-white">No live sessions scheduled</p>
+              <p className="mt-1 text-xs text-cn-ink-muted">Host live workshops, Q&As, or lectures for this course.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {liveSessions.map((s) => (
+                <div key={s.id} className="rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-sm dark:border-[#2e2a2a] dark:bg-[#1a1818]">
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className="font-bold text-cn-ink dark:text-white">{s.title}</h4>
+                    {s.status === "live" && (
+                      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Live</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-cn-ink-muted mb-6 font-semibold uppercase tracking-wider">
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">calendar_today</span>
+                      {new Date(s.scheduled_at).toLocaleDateString()}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">schedule</span>
+                      {new Date(s.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <button
+                    disabled={startingLive === s.id}
+                    onClick={() => handleStartLive(s.id)}
+                    className="w-full rounded-xl bg-cn-sidebar py-2.5 text-xs font-bold text-white hover:brightness-110 transition flex items-center justify-center gap-2"
+                  >
+                    {s.status === "live" ? (
+                      <>
+                        <span className="material-symbols-outlined text-sm">login</span>
+                        Join Live Call
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-sm">play_circle</span>
+                        {startingLive === s.id ? "Initializing..." : "Start Session Now"}
+                      </>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isCreatingLive && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <div 
+                className="absolute inset-0 cursor-pointer"
+                onClick={() => setIsCreatingLive(false)}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              <div className="relative bg-cn-surface w-full max-w-md rounded-[24px] p-8 shadow-2xl shadow-black/90 border border-white/30 dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
+                <h3 className="font-bold text-lg text-cn-ink dark:text-white mb-6">Schedule Live Session</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Session Title</label>
+                    <input
+                      type="text"
+                      value={newLive.title}
+                      onChange={(e) => setNewLive(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g. Weekly Q&A Session"
+                      className="w-full bg-cn-canvas border border-cn-border dark:border-[#2e2a2a] dark:bg-[#0f0e0e] rounded-xl px-4 py-2.5 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={newLive.scheduled_at}
+                      onChange={(e) => setNewLive(prev => ({ ...prev, scheduled_at: e.target.value }))}
+                      className="w-full bg-cn-canvas border border-cn-border dark:border-[#2e2a2a] dark:bg-[#0f0e0e] rounded-xl px-4 py-2.5 text-sm text-cn-ink focus:outline-none focus:border-cn-orange"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => setIsCreatingLive(false)}
+                      className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-cn-ink-muted hover:bg-cn-border/10 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateLive}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-cn-orange text-white text-sm font-bold hover:bg-cn-orange-hover transition"
+                    >
+                      Schedule
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <DoubleConfirmModal
+        isOpen={!!lessonToDelete}
+        onClose={() => setLessonToDelete(null)}
+        onConfirm={handleDeleteLesson}
+        title="Delete Lesson"
+        description="Are you sure you want to delete this lesson? This action is permanent and all student progress for this lesson will be lost."
+        confirmWord="DELETE"
+        danger
+      />
+
       {/* Lesson Details Edit/Create Modal Overlay */}
       {lessonModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-2 md:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="my-auto w-full max-w-5xl rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in fade-in zoom-in-95 duration-200 flex flex-col h-[92vh] max-h-[850px] min-h-[500px]">
+        <div className="fixed inset-0 z-[9999] flex items-start md:items-center justify-center p-2 md:p-6 overflow-y-auto bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer top-0 left-0"
+            onClick={() => setLessonModalOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative my-auto w-full max-w-5xl rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in zoom-in-95 duration-300 flex flex-col h-[92vh] max-h-[850px] min-h-[500px]" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="mb-4 flex items-center justify-between border-b border-cn-border pb-3 dark:border-[#2e2a2a]">
               <div className="flex items-center gap-3">
                 <h3 className="text-base font-bold text-cn-ink dark:text-white flex items-center gap-2">

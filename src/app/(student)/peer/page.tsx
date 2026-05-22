@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { IconUsers } from "@/components/ui/icons";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
+import { LiveCall } from "@/components/shared/LiveCall";
 
 type PeerSession = {
   id: string;
@@ -14,6 +16,9 @@ type PeerSession = {
   registered: number;
   price: string;
   isRegistered: boolean;
+  isHost: boolean;
+  status: string;
+  roomUrl?: string;
 };
 
 
@@ -23,9 +28,17 @@ export default function PeerPage() {
   const [registering, setRegistering] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   
+  // Video Call State
+  const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
+
+  // Confirmation Modals State
+  const [confirmRegister, setConfirmRegister] = useState<string | null>(null);
+  const [confirmHost, setConfirmHost] = useState(false);
+
   // Custom interactive state for Hosting
   const [hostOpen, setHostOpen] = useState(false);
   const [hosting, setHosting] = useState(false);
+  const [startingSession, setStartingSession] = useState<string | null>(null);
   const [newSession, setNewSession] = useState({
     title: "",
     topic: "",
@@ -49,6 +62,8 @@ export default function PeerPage() {
           max_students,
           price_usd,
           host_id,
+          status,
+          daily_room_url,
           profiles:host_id (
             full_name
           ),
@@ -79,6 +94,9 @@ export default function PeerPage() {
             registered: attendeeIds.length,
             price: Number(s.price_usd) === 0 ? "Free" : `$${Number(s.price_usd).toFixed(2)}`,
             isRegistered,
+            isHost,
+            status: s.status,
+            roomUrl: s.daily_room_url
           };
         });
         setSessions(formatted);
@@ -141,11 +159,11 @@ export default function PeerPage() {
       alert(`Registration failed: ${err.message}`);
     } finally {
       setRegistering(null);
+      setConfirmRegister(null);
     }
   };
 
-  const handleHostSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleHostSubmit = async () => {
     if (!userId) {
       alert("Please log in to host study sessions!");
       return;
@@ -185,6 +203,7 @@ export default function PeerPage() {
           max_students,
           price_usd,
           host_id,
+          status,
           profiles:host_id (
             full_name
           )
@@ -207,6 +226,8 @@ export default function PeerPage() {
           registered: 0,
           price: Number(data.price_usd) === 0 ? "Free" : `$${Number(data.price_usd).toFixed(2)}`,
           isRegistered: true,
+          isHost: true,
+          status: data.status
         };
 
         setSessions(prev => [added, ...prev]);
@@ -218,6 +239,7 @@ export default function PeerPage() {
           price: "Free",
         });
         setHostOpen(false);
+        setConfirmHost(false);
       }
     } catch (err: any) {
       alert(`Failed to create session: ${err.message}`);
@@ -225,6 +247,47 @@ export default function PeerPage() {
       setHosting(false);
     }
   };
+
+  const handleStartSession = async (sessionId: string) => {
+    setStartingSession(sessionId);
+    try {
+      const res = await fetch("/api/live/create-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, type: "peer" })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setSessions(prev => prev.map(s => 
+        s.id === sessionId ? { ...s, status: "live", roomUrl: data.url } : s
+      ));
+      setActiveCallRoom(data.url);
+    } catch (err: any) {
+      alert(`Failed to start session: ${err.message}`);
+    } finally {
+      setStartingSession(null);
+    }
+  };
+
+  if (activeCallRoom) {
+    return (
+      <div className="flex flex-col gap-6 h-full">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-cn-ink">Live Peer Session</h1>
+          <button 
+            onClick={() => setActiveCallRoom(null)}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-cn-ink hover:bg-white/10 transition"
+          >
+            Exit Call View
+          </button>
+        </div>
+        <div className="flex-1 min-h-[600px]">
+          <LiveCall roomUrl={activeCallRoom} onLeave={() => setActiveCallRoom(null)} />
+        </div>
+      </div>
+    );
+  }
 
 
   return (
@@ -296,17 +359,27 @@ export default function PeerPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sessions.map((session) => {
             const isFull = session.registered >= session.maxSpots;
-            const isLoading = registering === session.id;
+            const isRegLoading = registering === session.id;
+            const isStarting = startingSession === session.id;
+            
             return (
               <div
                 key={session.id}
                 className="cn-card-lift flex flex-col rounded-2xl border border-cn-border bg-cn-surface p-5 shadow-[var(--cn-shadow-card)] transition hover:border-cn-orange/30 animate-in fade-in duration-300"
               >
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="rounded-full bg-cn-lavender/20 px-2 py-0.5 text-[10px] font-bold text-cn-lavender">
-                    PEER
-                  </span>
-                  <span className="text-[10px] text-cn-ink-subtle">{session.topic}</span>
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-cn-lavender/20 px-2 py-0.5 text-[10px] font-bold text-cn-lavender">
+                      PEER
+                    </span>
+                    <span className="text-[10px] text-cn-ink-subtle">{session.topic}</span>
+                  </div>
+                  {session.status === "live" && (
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-[10px] font-bold text-red-500 uppercase">Live</span>
+                    </span>
+                  )}
                 </div>
                 <h3 className="mb-1 font-bold text-cn-ink">{session.title}</h3>
                 <p className="text-xs text-cn-ink-muted">Hosted by {session.host}</p>
@@ -326,14 +399,35 @@ export default function PeerPage() {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  disabled={isFull || session.isRegistered || isLoading}
-                  onClick={() => void handleRegister(session.id)}
-                  className="mt-4 w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50 animate-in"
-                >
-                  {isLoading ? "Registering…" : session.isRegistered ? "✓ Registered" : isFull ? "Session Full" : "Register"}
-                </button>
+                <div className="mt-4 flex flex-col gap-2">
+                  {session.status === "live" && session.isRegistered ? (
+                    <button
+                      type="button"
+                      onClick={() => session.roomUrl && setActiveCallRoom(session.roomUrl)}
+                      className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-500 shadow-lg shadow-emerald-500/20"
+                    >
+                      Join Live Call
+                    </button>
+                  ) : session.isHost && session.status !== "live" ? (
+                    <button
+                      type="button"
+                      disabled={isStarting}
+                      onClick={() => handleStartSession(session.id)}
+                      className="w-full rounded-xl bg-cn-sidebar py-2.5 text-sm font-bold text-white transition hover:bg-cn-sidebar/90"
+                    >
+                      {isStarting ? "Starting..." : "Start Session Now"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isFull || session.isRegistered || isRegLoading}
+                      onClick={() => setConfirmRegister(session.id)}
+                      className="w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50"
+                    >
+                      {isRegLoading ? "Registering…" : session.isRegistered ? "✓ Registered" : isFull ? "Session Full" : "Register Now"}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -342,8 +436,13 @@ export default function PeerPage() {
 
       {/* Host a Session Modal */}
       {hostOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-cn-surface w-full max-w-[440px] rounded-[24px] p-6 shadow-2xl border border-cn-border animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => setHostOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative bg-cn-surface w-full max-w-[440px] rounded-[24px] p-8 shadow-2xl shadow-black/90 border border-white/30 animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-lg text-cn-ink">Host a Study Session</h3>
               <button
@@ -357,7 +456,7 @@ export default function PeerPage() {
               </button>
             </div>
 
-            <form onSubmit={(e) => void handleHostSubmit(e)} className="space-y-4">
+            <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-cn-ink-muted uppercase tracking-wider mb-1.5">Session Title *</label>
                 <input
@@ -423,16 +522,38 @@ export default function PeerPage() {
               </div>
 
               <button
-                type="submit"
+                type="button"
                 disabled={hosting}
+                onClick={() => setConfirmHost(true)}
                 className="w-full rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover disabled:opacity-50 mt-2"
               >
-                {hosting ? "Publishing Session…" : "Create Session"}
+                Create Session
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Confirmation Modals */}
+      <DoubleConfirmModal
+        isOpen={!!confirmRegister}
+        onClose={() => setConfirmRegister(null)}
+        onConfirm={() => confirmRegister && handleRegister(confirmRegister)}
+        title="Confirm Registration"
+        description="Are you sure you want to register for this peer session? You will be expected to attend at the scheduled time."
+        actionButtonText="Register Now"
+      />
+
+      <DoubleConfirmModal
+        isOpen={confirmHost}
+        onClose={() => setConfirmHost(false)}
+        onConfirm={handleHostSubmit}
+        title="Host Study Session"
+        description="By hosting this session, you agree to show up on time and provide a helpful learning environment for your peers."
+        confirmWord="HOST"
+        actionButtonText="Publish Session"
+      />
     </div>
   );
 }
+

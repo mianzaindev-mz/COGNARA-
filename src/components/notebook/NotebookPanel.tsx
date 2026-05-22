@@ -5,6 +5,7 @@ import { Block, ModularCanvas } from "./ModularCanvas";
 import { CanvasStroke, CanvasAnnotation, FreehandCanvas } from "./FreehandCanvas";
 import { AIAssistantPanel } from "./AIAssistantPanel";
 import { createClient } from "@/lib/supabase/client";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 interface NotebookPanelProps {
   studentId: string;
@@ -53,6 +54,7 @@ export function NotebookPanel({
   // Version history stack
   const [historyVersions, setHistoryVersions] = useState<PageVersion[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [versionToRevert, setVersionToRevert] = useState<PageVersion | null>(null);
 
   // References for debounced save
   const dataRef = useRef({ blocks, strokes, annotations, activeTab, bgType });
@@ -105,7 +107,7 @@ export function NotebookPanel({
         }
 
         // Fetch or create notebook for this student & course
-        let { data: notebook, error: notebookErr } = await supabase
+        const { data: notebook, error: notebookErr } = await supabase
           .from("notebooks")
           .select("id")
           .eq("student_id", studentId)
@@ -114,7 +116,9 @@ export function NotebookPanel({
 
         if (notebookErr) throw notebookErr;
 
-        if (!notebook) {
+        let activeNotebook = notebook;
+
+        if (!activeNotebook) {
           const { data: newNotebook, error: createNotebookErr } = await supabase
             .from("notebooks")
             .insert({
@@ -126,25 +130,27 @@ export function NotebookPanel({
             .single();
 
           if (createNotebookErr) throw createNotebookErr;
-          notebook = newNotebook;
+          activeNotebook = newNotebook;
         }
 
-        if (notebook) {
+        if (activeNotebook) {
           // Fetch or create notebook page for this lesson
-          let { data: page, error: pageErr } = await supabase
+          const { data: page, error: pageErr } = await supabase
             .from("notebook_pages")
             .select("id, content_canvas, content_text")
-            .eq("notebook_id", notebook.id)
+            .eq("notebook_id", activeNotebook.id)
             .eq("title", `Lesson: ${lessonTitle || "Untitled"}`)
             .maybeSingle();
 
           if (pageErr) throw pageErr;
 
-          if (!page) {
+          let activePage = page;
+
+          if (!activePage) {
             const { data: newPage, error: createPageErr } = await supabase
               .from("notebook_pages")
               .insert({
-                notebook_id: notebook.id,
+                notebook_id: activeNotebook.id,
                 title: `Lesson: ${lessonTitle || "Untitled"}`,
                 content_text: "Welcome to your upgraded notebook! Select blocks or freehand draw.",
                 content_canvas: {
@@ -176,12 +182,12 @@ export function NotebookPanel({
               .single();
 
             if (createPageErr) throw createPageErr;
-            page = newPage;
+            activePage = newPage;
           }
 
-          if (page) {
-            setPageId(page.id);
-            const canvasData = page.content_canvas as any;
+          if (activePage) {
+            setPageId(activePage.id);
+            const canvasData = activePage.content_canvas as any;
             if (canvasData) {
               setBlocks(canvasData.modular_blocks || []);
               setStrokes(canvasData.freehand_strokes || []);
@@ -208,7 +214,6 @@ export function NotebookPanel({
     if (!pageId) return;
 
     let debounceTimer: NodeJS.Timeout;
-    let autoSaveTimer: NodeJS.Timeout;
 
     const triggerSave = async () => {
       setSaveStatus("saving");
@@ -267,7 +272,7 @@ export function NotebookPanel({
     };
 
     // Periodic backup every 10 seconds if any changes exist
-    autoSaveTimer = setInterval(() => {
+    const autoSaveTimer = setInterval(() => {
       if (saveStatus === "idle") {
         void triggerSave();
       }
@@ -431,13 +436,13 @@ export function NotebookPanel({
     alert("🚀 Shared link copied to clipboard! Anyone enrolled in this course can view your notes canvas.");
   };
 
-  const revertToHistory = (version: PageVersion) => {
-    if (window.confirm("Are you sure you want to restore this auto-saved snapshot? This will replace your current workspace.")) {
-      setBlocks(version.modular_blocks);
-      setStrokes(version.freehand_strokes);
-      setAnnotations(version.freehand_annotations);
-      setActiveTab("modular");
-    }
+  const revertToHistory = () => {
+    if (!versionToRevert) return;
+    setBlocks(versionToRevert.modular_blocks);
+    setStrokes(versionToRevert.freehand_strokes);
+    setAnnotations(versionToRevert.freehand_annotations);
+    setActiveTab("modular");
+    setVersionToRevert(null);
   };
 
   return (
@@ -592,7 +597,7 @@ export function NotebookPanel({
             blocks={blocks}
             onChange={setBlocks}
             videoPlayer={videoPlayer}
-            onTriggerAISummary={async (time, blockId) => {
+            onTriggerAISummary={async (time) => {
               try {
                 const mins = Math.floor(time / 60);
                 const secs = Math.floor(time % 60);
@@ -610,7 +615,7 @@ export function NotebookPanel({
                 });
                 const data = await res.json();
                 return data.content || "Could not generate summary.";
-              } catch (e) {
+              } catch {
                 return "Failed to contact agent API.";
               }
             }}
@@ -652,7 +657,7 @@ export function NotebookPanel({
                   <button
                     key={v.timestamp + i}
                     type="button"
-                    onClick={() => revertToHistory(v)}
+                    onClick={() => setVersionToRevert(v)}
                     className="w-full text-left p-3.5 hover:bg-neutral-50 border-b border-cn-border last:border-b-0 text-xs font-semibold text-cn-ink flex justify-between items-center dark:border-stone-850 dark:hover:bg-stone-850"
                   >
                     <span>🕒 Saved revision at {v.timestamp}</span>
@@ -671,6 +676,15 @@ export function NotebookPanel({
           </div>
         )}
       </div>
+
+      <DoubleConfirmModal
+        isOpen={!!versionToRevert}
+        onClose={() => setVersionToRevert(null)}
+        onConfirm={revertToHistory}
+        title="Restore Snapshot"
+        description="Are you sure you want to restore this auto-saved snapshot? This will replace your current workspace content."
+        actionButtonText="Restore Snapshot"
+      />
     </div>
   );
 }

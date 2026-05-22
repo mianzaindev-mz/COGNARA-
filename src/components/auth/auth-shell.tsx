@@ -117,8 +117,13 @@ export function AuthShell({
 
       {/* Demo Modal */}
       {demoOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-cn-surface w-full max-w-[360px] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => setDemoOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative bg-cn-surface w-full max-w-[360px] rounded-2xl p-8 shadow-2xl shadow-black/90 border border-white/30 animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-lg text-cn-ink">Demo Accounts</h3>
               <button

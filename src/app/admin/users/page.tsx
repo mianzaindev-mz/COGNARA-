@@ -250,8 +250,13 @@ export default function AdminUsersPage() {
 
       {/* Suspension Ban Reason Modal */}
       {banTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => setBanTarget(null)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
             <h3 className="text-base font-bold text-cn-ink mb-2">Suspend User Account</h3>
             <p className="text-xs text-cn-ink-muted mb-4 leading-relaxed">
               Are you sure you want to suspend <strong>{banTarget.name}</strong> ({banTarget.email})? They will immediately lose access to their learning workspace and coaching controls.

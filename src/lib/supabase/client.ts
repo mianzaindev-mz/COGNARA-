@@ -6,7 +6,18 @@ function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(";").shift() || "");
+  if (parts.length === 2) {
+    let rawValue = parts.pop()!.split(";").shift() || "";
+    // Remove potential surrounding quotes added by some servers/browsers
+    if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
+      rawValue = rawValue.substring(1, rawValue.length - 1);
+    }
+    try {
+      return decodeURIComponent(rawValue);
+    } catch {
+      return rawValue;
+    }
+  }
   return null;
 }
 

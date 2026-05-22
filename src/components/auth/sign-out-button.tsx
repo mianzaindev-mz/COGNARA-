@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 type SignOutButtonProps = {
   className?: string;
@@ -11,6 +12,7 @@ type SignOutButtonProps = {
 
 export function SignOutButton({ className, variant = "default" }: SignOutButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function signOut() {
     if (loading) return;
@@ -51,33 +53,44 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
           : base;
 
   return (
-    <button
-      type="button"
-      onClick={() => void signOut()}
-      className={mergedClass}
-      aria-label="Sign out"
-      title="Sign out"
-      disabled={loading}
-      style={loading ? { opacity: 0.5, pointerEvents: "none" } : undefined}
-    >
-      {variant === "icon" || variant === "sidebar" ? (
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.75}
-          stroke="currentColor"
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-          />
-        </svg>
-      ) : (
-        loading ? "Signing out…" : "Sign out"
-      )}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => setShowConfirm(true)}
+        className={mergedClass}
+        aria-label="Sign out"
+        title="Sign out"
+        disabled={loading}
+        style={loading ? { opacity: 0.5, pointerEvents: "none" } : undefined}
+      >
+        {variant === "icon" || variant === "sidebar" ? (
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.75}
+            stroke="currentColor"
+            aria-hidden
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+            />
+          </svg>
+        ) : (
+          loading ? "Signing out…" : "Sign out"
+        )}
+      </button>
+
+      <DoubleConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={() => void signOut()}
+        title="Sign Out"
+        description="Are you sure you want to sign out? You will need to log in again to access your dashboard."
+        actionButtonText="Sign Out"
+      />
+    </>
   );
 }

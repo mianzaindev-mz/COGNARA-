@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface DoubleConfirmModalProps {
   isOpen: boolean;
@@ -25,8 +26,35 @@ export function DoubleConfirmModal({
 }: DoubleConfirmModalProps) {
   const [inputValue, setInputValue] = useState("");
   const [checked, setChecked] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  // Ensure portal target is only accessed client-side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [isOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const handleConfirm = () => {
     if (confirmWord && inputValue !== confirmWord) return;
@@ -40,76 +68,90 @@ export function DoubleConfirmModal({
 
   const isButtonDisabled = confirmWord ? inputValue !== confirmWord : !checked;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+  const modal = (
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      {/* Backdrop — full viewport blur */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-xl cursor-pointer animate-in fade-in duration-200"
         onClick={onClose}
+        aria-hidden="true"
       />
-      
-      {/* Modal */}
-      <div className="relative w-full max-w-md bg-[#131313] border border-white/10 rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${danger ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+
+      {/* Modal card */}
+      <div
+        className="relative w-full max-w-md bg-[#1a1a1a] border border-white/30 rounded-3xl p-8 shadow-2xl shadow-black/90 animate-in fade-in zoom-in-95 duration-300"
+        style={{ zIndex: 100000 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dcm-title"
+        aria-describedby="dcm-desc"
+      >
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${danger ? 'bg-red-500/15 text-red-400' : 'bg-primary/15 text-primary'}`}>
+              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
                 {danger ? 'warning' : 'gpp_maybe'}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-on-surface">{title}</h2>
+            <div className="flex-1">
+              <h2 id="dcm-title" className="text-xl font-bold text-white tracking-tight">{title}</h2>
+              <p id="dcm-desc" className="text-sm text-white/60 mt-1 leading-relaxed">
+                {description}
+              </p>
+            </div>
           </div>
-          
-          <p className="text-sm text-on-surface-variant leading-relaxed">
-            {description}
-          </p>
 
-          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+          <div className="p-5 bg-white/8 rounded-2xl border border-white/10 space-y-4 backdrop-blur-sm">
             {confirmWord ? (
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                  Type <strong className="text-white">"{confirmWord}"</strong> to confirm
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-white/70 uppercase tracking-widest block">
+                  Type <span className="text-white font-bold">&quot;{confirmWord}&quot;</span> to confirm
                 </label>
                 <input 
                   type="text" 
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/30"
+                  autoFocus
                   placeholder={confirmWord}
+                  className="w-full bg-white/5 border border-white/20 rounded-xl py-3 px-4 text-white font-semibold placeholder:text-white/30 focus:bg-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 />
               </div>
             ) : (
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <div className="relative flex items-center justify-center pt-0.5">
+              <label className="flex items-start gap-3 cursor-pointer group p-2 hover:bg-white/5 rounded-xl transition-colors">
+                <div className="relative flex items-center justify-center pt-0.5 flex-shrink-0">
                   <input 
                     type="checkbox" 
                     checked={checked}
                     onChange={(e) => setChecked(e.target.checked)}
-                    className="w-5 h-5 appearance-none rounded border border-white/20 bg-black/30 checked:bg-primary checked:border-primary transition-all peer cursor-pointer"
+                    autoFocus
+                    className="w-5 h-5 appearance-none rounded border-2 border-white/30 bg-white/5 checked:bg-primary checked:border-primary transition-all peer cursor-pointer hover:border-white/50"
                   />
-                  <span className="material-symbols-outlined absolute pointer-events-none text-white opacity-0 peer-checked:opacity-100 text-[16px] font-bold">check</span>
+                  <span className="material-symbols-outlined absolute pointer-events-none text-black opacity-0 peer-checked:opacity-100 text-[16px] font-bold">check</span>
                 </div>
-                <span className="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors select-none">
+                <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors select-none">
                   I understand that this action is permanent and cannot be undone.
                 </span>
               </label>
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
             <button 
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-white/5 hover:text-white transition-colors"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:text-white hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all"
             >
               Cancel
             </button>
             <button 
               disabled={isButtonDisabled}
               onClick={handleConfirm}
-              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg
                 ${danger 
-                  ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20 hover:shadow-red-500/40' 
-                  : 'bg-primary text-black hover:brightness-110 shadow-primary/20 hover:shadow-primary/40'}`}
+                  ? 'bg-red-500/90 text-white hover:bg-red-500 hover:shadow-red-500/40 disabled:hover:shadow-red-500/20' 
+                  : 'bg-primary text-black hover:brightness-125 hover:shadow-primary/40 disabled:hover:shadow-primary/20'}`}
             >
               {actionButtonText}
             </button>
@@ -118,4 +160,8 @@ export function DoubleConfirmModal({
       </div>
     </div>
   );
+
+  // Portal to document.body so it escapes any parent overflow/z-index
+  return createPortal(modal, document.body);
 }
+

@@ -157,7 +157,27 @@ export default function CourseBuilderPage() {
       const supabase = createClient();
       if (!supabase) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      let { data: { user } } = await supabase.auth.getUser();
+      
+      // Fallback check for demo sessions
+      if (!user && typeof document !== "undefined") {
+        const clientUserCookie = document.cookie
+          .split("; ")
+          .find(row => row.startsWith("cognara_demo_client_user="))
+          ?.split("=")[1];
+          
+        if (clientUserCookie) {
+          try {
+            const decoded = decodeURIComponent(clientUserCookie);
+            const clean = decoded.startsWith('"') && decoded.endsWith('"') ? decoded.slice(1, -1) : decoded;
+            const demoUser = JSON.parse(clean);
+            if (demoUser && demoUser.id) {
+              user = { id: demoUser.id } as any;
+            }
+          } catch {}
+        }
+      }
+
       if (!user) return;
 
       const { data: dbCourses } = await supabase
@@ -201,7 +221,27 @@ export default function CourseBuilderPage() {
       const supabase = createClient();
       if (!supabase) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      let { data: { user } } = await supabase.auth.getUser();
+      
+      // Fallback check for demo sessions
+      if (!user && typeof document !== "undefined") {
+        const clientUserCookie = document.cookie
+          .split("; ")
+          .find(row => row.startsWith("cognara_demo_client_user="))
+          ?.split("=")[1];
+          
+        if (clientUserCookie) {
+          try {
+            const decoded = decodeURIComponent(clientUserCookie);
+            const clean = decoded.startsWith('"') && decoded.endsWith('"') ? decoded.slice(1, -1) : decoded;
+            const demoUser = JSON.parse(clean);
+            if (demoUser && demoUser.id) {
+              user = { id: demoUser.id } as any;
+            }
+          } catch {}
+        }
+      }
+
       if (!user) return;
 
       const baseSlug = newTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -1080,8 +1120,13 @@ export default function CourseBuilderPage() {
 
           {/* Create Modal */}
           {createOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-              <div className="w-full max-w-md rounded-2xl border border-[#221740] bg-[#0c081d] p-6 shadow-2xl">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <div 
+                className="absolute inset-0 cursor-pointer"
+                onClick={() => setCreateOpen(false)}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-[#0c081d] p-8 shadow-2xl shadow-black/90 animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
                 <div className="mb-4 flex items-center justify-between border-b border-[#221740] pb-3">
                   <h2 className="text-lg font-bold text-white">Create Builder Course</h2>
                   <button onClick={() => setCreateOpen(false)} className="text-gray-400 hover:text-white">✕</button>
@@ -1132,8 +1177,13 @@ export default function CourseBuilderPage() {
 
           {/* Edit Course Details Modal */}
           {editCourseModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-              <div className="w-full max-w-lg rounded-2xl border border-[#221740] bg-[#0c081d] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <div 
+                className="absolute inset-0 cursor-pointer"
+                onClick={() => setEditCourseModalOpen(false)}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              <div className="relative w-full max-w-lg rounded-2xl border border-white/30 bg-[#0c081d] p-8 shadow-2xl shadow-black/90 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
                 <div className="mb-4 flex items-center justify-between border-b border-[#221740] pb-3">
                   <h2 className="text-lg font-bold text-white">Edit Course Details</h2>
                   <button onClick={() => setEditCourseModalOpen(false)} className="text-gray-400 hover:text-white">✕</button>

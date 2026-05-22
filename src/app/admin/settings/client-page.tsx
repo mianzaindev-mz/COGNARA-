@@ -173,15 +173,16 @@ export function AdminSettingsClient() {
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          {/* Glassmorphic Backdrop */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity cursor-pointer" 
+            className="absolute inset-0 cursor-pointer" 
             onClick={() => setShowConfirmModal(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
           
           {/* Modal Container */}
-          <div className="glass-card max-w-md w-full rounded-[2rem] p-8 border border-white/10 dark:border-black/40 shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 space-y-6 bg-white/80 dark:bg-black/80 backdrop-blur-2xl">
+          <div className="relative max-w-md w-full rounded-[2rem] p-8 border border-white/30 shadow-2xl shadow-black/90 animate-in zoom-in-95 duration-300 space-y-6 bg-[#131313]" style={{ position: 'relative', zIndex: 10000 }}>
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                 maintenance ? "bg-emerald-500/10 text-emerald-500 animate-pulse" : "bg-rose-500/10 text-rose-500 animate-pulse"
