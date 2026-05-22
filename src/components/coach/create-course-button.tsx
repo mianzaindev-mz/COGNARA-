@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createCoachCourse } from "@/app/coach/courses/actions";
 
 export function CreateCourseButton() {
   const router = useRouter();
@@ -51,64 +51,36 @@ export function CreateCourseButton() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      if (!supabase) throw new Error("Failed to initialize database connection.");
+      const result = await createCoachCourse({
+        title: trimmedTitle,
+        category,
+        difficulty,
+        price: numericPrice,
+      });
 
-      let { data: { user } } = await supabase.auth.getUser();
-      
-      // Fallback check for demo sessions if Supabase client doesn't see them
-      if (!user && typeof document !== "undefined") {
-        const clientUserCookie = document.cookie
-          .split("; ")
-          .find(row => row.startsWith("cognara_demo_client_user="))
-          ?.split("=")[1];
-          
-        if (clientUserCookie) {
-          try {
-            const decoded = decodeURIComponent(clientUserCookie);
-            const clean = decoded.startsWith('"') && decoded.endsWith('"') ? decoded.slice(1, -1) : decoded;
-            const demoUser = JSON.parse(clean);
-            if (demoUser && demoUser.id) {
-              user = { id: demoUser.id } as any;
-            }
-          } catch (e) {
-            console.error("Failed to parse demo cookie in fallback:", e);
-          }
+      if (!result.ok) throw new Error(result.error);
+
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            `cognara_pending_course_${result.slug}`,
+            JSON.stringify({
+              id: `pending-${result.slug}`,
+              title: trimmedTitle,
+              slug: result.slug,
+              description: null,
+              category: category.trim(),
+              difficulty,
+              price_usd: numericPrice,
+              is_published: false,
+            }),
+          );
+        } catch {
+          // Ignore demo persistence failures.
         }
       }
 
-      if (!user) {
-        throw new Error("Authenticated session expired. Please log in again.");
-      }
-
-      // Clean and make unique slug
-      const baseSlug = trimmedTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-      const uniqueSuffix = Math.floor(1000 + Math.random() * 9000);
-      const slug = `${baseSlug}-${uniqueSuffix}`;
-
-      // Insert course
-      const { data: course, error: insertError } = await supabase
-        .from("courses")
-        .insert({
-          coach_id: user.id,
-          title: trimmedTitle,
-          slug,
-          category: category.trim(),
-          difficulty,
-          price_usd: numericPrice,
-          is_published: false
-        })
-        .select()
-        .single();
-
-      if (insertError || !course) {
-        throw new Error(insertError?.message || "Failed to create course. Please try again.");
-      }
-
-      router.push(`/coach/courses/${course.slug}`);
+      router.push(`/coach/courses/${result.slug}`);
       setOpen(false);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");

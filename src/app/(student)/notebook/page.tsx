@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { NotebookPanel } from "@/components/notebook/NotebookPanel";
+import { createNotebookWithFirstPage } from "@/lib/notebook/create-notebook";
 
 type Notebook = {
   id: string;
@@ -25,6 +27,7 @@ type NotebookPageType = {
 };
 
 export default function NotebookDashboard() {
+  const searchParams = useSearchParams();
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [pages, setPages] = useState<NotebookPageType[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -45,6 +48,7 @@ export default function NotebookDashboard() {
   
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // 1. Initial Load: Fetch current user & notebooks + pages
   useEffect(() => {
@@ -77,12 +81,18 @@ export default function NotebookDashboard() {
           setNotebooks(uniqueNotebooks);
           
           // Expand the first notebook by default
-          if (uniqueNotebooks.length > 0) {
+          const requestedNotebookId = searchParams.get("notebook");
+          const requestedNotebook = requestedNotebookId
+            ? uniqueNotebooks.find((notebook) => notebook.id === requestedNotebookId)
+            : null;
+          const defaultNotebook = requestedNotebook || uniqueNotebooks[0];
+
+          if (defaultNotebook) {
             setExpandedNotebooks((prev) => ({
               ...prev,
-              [uniqueNotebooks[0].id]: true,
+              [defaultNotebook.id]: true,
             }));
-            setActiveNotebookId(uniqueNotebooks[0].id);
+            setActiveNotebookId(defaultNotebook.id);
           }
         }
 
@@ -96,87 +106,68 @@ export default function NotebookDashboard() {
           // Deduplicate pages by ID to prevent React key collisions
           const uniquePages = Array.from(new Map(pagesData.map((p: any) => [p.id, p])).values()) as NotebookPageType[];
           setPages(uniquePages);
+
+          const requestedPageId = searchParams.get("page");
+          const requestedPage = requestedPageId
+            ? uniquePages.find((page) => page.id === requestedPageId)
+            : null;
+
+          if (requestedPage) {
+            setActiveNotebookId(requestedPage.notebook_id);
+            setExpandedNotebooks((prev) => ({ ...prev, [requestedPage.notebook_id]: true }));
+            setActivePageId(requestedPage.id);
+          }
         }
       } catch (err) {
         console.error("Error loading notebooks dashboard:", err);
+        setActionError(err instanceof Error ? err.message : "Notebook workspace could not load.");
       } finally {
         setLoading(false);
       }
     }
 
     void loadWorkspaceData();
-  }, []);
+  }, [searchParams]);
 
   // 2. Notebook Management Operations
   const createNotebook = useCallback(async () => {
-    if (!userId || isSubmitting) return;
+    if (isSubmitting) return;
     setIsSubmitting(true);
+    setActionError(null);
     try {
+      const result = await createNotebookWithFirstPage();
       const supabase = createClient();
-      if (!supabase) return;
+      if (!supabase) {
+        throw new Error("Notebook storage is not connected. Check Supabase environment settings.");
+      }
 
-      const title = "New Notebook";
-      const { data, error } = await supabase
-        .from("notebooks")
-        .insert({
-          student_id: userId,
-          title: title,
-          course_id: null,
-        })
-        .select()
-        .single();
+      const [{ data: notebookData, error: notebookError }, { data: pageData, error: pageError }] = await Promise.all([
+        supabase.from("notebooks").select("*").eq("id", result.notebookId).single(),
+        result.pageId
+          ? supabase.from("notebook_pages").select("*").eq("id", result.pageId).single()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
 
-      if (data && !error) {
-        setNotebooks((prev) => [data, ...prev]);
-        setActiveNotebookId(data.id);
-        setExpandedNotebooks((prev) => ({ ...prev, [data.id]: true }));
-        
-        // Auto create Page 1 for a new notebook
-        const { data: pageData } = await supabase
-          .from("notebook_pages")
-          .insert({
-            notebook_id: data.id,
-            title: "Page 1",
-            content_text: "Welcome to your new page!",
-            content_canvas: {
-              mode: "modular",
-              bgType: "ruled",
-              modular_blocks: [
-                {
-                  id: `b-${Math.random().toString(36).substr(2, 9)}`,
-                  type: "heading",
-                  content: "New Notebook",
-                  properties: { level: 2 },
-                  createdAt: new Date().toISOString(),
-                  lastEditedAt: new Date().toISOString(),
-                },
-                {
-                  id: `b-${Math.random().toString(36).substr(2, 9)}`,
-                  type: "text",
-                  content: "Start typing notes here, or switch to freehand canvas to draw.",
-                  createdAt: new Date().toISOString(),
-                  lastEditedAt: new Date().toISOString(),
-                }
-              ],
-              freehand_strokes: [],
-              freehand_annotations: [],
-            },
-            order_index: 0,
-          })
-          .select()
-          .single();
+      if (notebookError || !notebookData) {
+        throw new Error(notebookError?.message || "Created notebook could not be loaded.");
+      }
 
-        if (pageData) {
-          setPages((prev) => [...prev, pageData]);
-          setActivePageId(pageData.id);
-        }
+      setNotebooks((prev) => [notebookData, ...prev.filter((notebook) => notebook.id !== notebookData.id)]);
+      setActiveNotebookId(notebookData.id);
+      setExpandedNotebooks((prev) => ({ ...prev, [notebookData.id]: true }));
+
+      if (pageError) throw new Error(pageError.message);
+      if (pageData) {
+        setPages((prev) => [...prev.filter((page) => page.id !== pageData.id), pageData]);
+        setActivePageId(pageData.id);
       }
     } catch (e) {
       console.error(e);
+      setActionError(e instanceof Error ? e.message : "Notebook could not be created.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [userId, isSubmitting]);
+  }, [isSubmitting]);
 
   const updateNotebookTitle = useCallback(async (id: string, newTitle: string) => {
     const titleVal = newTitle.trim() || "Untitled Notebook";
@@ -564,6 +555,11 @@ export default function NotebookDashboard() {
         </div>
 
         {/* New Notebook Button */}
+        {actionError && (
+          <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-[11px] font-semibold leading-relaxed text-red-500">
+            {actionError}
+          </div>
+        )}
         <button
           type="button"
           onClick={() => void createNotebook()}

@@ -1,3 +1,124 @@
+const serverCourseStore = new Map<string, any[]>();
+
+function defaultMockCourses(demoUser: any) {
+  return [
+    {
+      id: "c-dsa",
+      coach_id: "00000000-0000-0000-0000-000000000001",
+      title: "Data Structures & Algos",
+      slug: "dsa",
+      description: "A visual path through arrays, recursion, graphs, and algorithmic thinking.",
+      category: "Computer Science",
+      difficulty: "intermediate",
+      total_lessons: 5,
+      total_enrolled: 312,
+      avg_rating: 4.8,
+      price_usd: 0,
+      is_published: true,
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "c-marketing",
+      coach_id: "00000000-0000-0000-0000-000000000001",
+      title: "Digital Marketing Pro",
+      slug: "marketing",
+      description: "Plan campaigns, analyze funnels, and build a practical launch playbook.",
+      category: "Marketing",
+      difficulty: "beginner",
+      total_lessons: 4,
+      total_enrolled: 188,
+      avg_rating: 4.7,
+      price_usd: 24,
+      is_published: true,
+      created_at: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "c1",
+      coach_id: demoUser.id,
+      title: "Advanced Algorithms",
+      slug: "advanced-algorithms",
+      description: "Master graph traversal, dynamic programming, and complexity analysis.",
+      category: "CS Core",
+      difficulty: "advanced",
+      total_lessons: 12,
+      total_enrolled: 124,
+      avg_rating: 4.9,
+      price_usd: 50.00,
+      is_published: true,
+      created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "c2",
+      coach_id: demoUser.id,
+      title: "Systems Architecture",
+      slug: "systems-architecture",
+      description: "Design scalable services, data flows, and resilient platform patterns.",
+      category: "Engineering",
+      difficulty: "intermediate",
+      total_lessons: 9,
+      total_enrolled: 89,
+      avg_rating: 4.7,
+      price_usd: 17.42,
+      is_published: true,
+      created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    }
+  ];
+}
+
+function loadMockCourses(demoUser: any) {
+  const key = `cognara_mock_courses_${demoUser.id}`;
+
+  if (typeof window === "undefined") {
+    if (!serverCourseStore.has(key)) {
+      serverCourseStore.set(key, defaultMockCourses(demoUser));
+    }
+    const existing = serverCourseStore.get(key) ?? [];
+    const merged = [
+      ...defaultMockCourses(demoUser).filter((course) => !existing.some((item) => item.id === course.id)),
+      ...existing,
+    ];
+    serverCourseStore.set(key, merged);
+    return [...merged];
+  }
+
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const existing = JSON.parse(stored);
+      const merged = [
+        ...defaultMockCourses(demoUser).filter((course) => !existing.some((item: any) => item.id === course.id)),
+        ...existing,
+      ];
+      localStorage.setItem(key, JSON.stringify(merged));
+      return merged;
+    }
+    const defaults = defaultMockCourses(demoUser);
+    localStorage.setItem(key, JSON.stringify(defaults));
+    return defaults;
+  } catch {
+    return defaultMockCourses(demoUser);
+  }
+}
+
+function saveMockCourses(demoUser: any, courses: any[]) {
+  const key = `cognara_mock_courses_${demoUser.id}`;
+
+  if (typeof window === "undefined") {
+    serverCourseStore.set(key, courses);
+    return;
+  }
+
+  try {
+    localStorage.setItem(key, JSON.stringify(courses));
+  } catch {
+    // Ignore storage errors in demo mode.
+  }
+}
+
 export function createMockQueryBuilder(tableName: string, demoUser: any) {
   const builder: any = {
     _single: false,
@@ -79,39 +200,104 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
           level: 4,
         };
       } else if (tableName === "enrollments") {
-        data = [];
+        let list = demoUser.role === "student" ? [
+          {
+            id: "en-dsa",
+            student_id: demoUser.id,
+            course_id: "c-dsa",
+            progress_pct: 75,
+            enrolled_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+            profiles: {
+              full_name: demoUser.name || "Demo Student",
+              email: demoUser.email,
+              avatar_url: null,
+            },
+          },
+          {
+            id: "en-marketing",
+            student_id: demoUser.id,
+            course_id: "c-marketing",
+            progress_pct: 75,
+            enrolled_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+            profiles: {
+              full_name: demoUser.name || "Demo Student",
+              email: demoUser.email,
+              avatar_url: null,
+            },
+          },
+        ] : [];
+
+        if (demoUser.role === "coach") {
+          list = [
+            {
+              id: "en-coach-demo",
+              student_id: "00000000-0000-0000-0000-000000000002",
+              course_id: "c-dsa",
+              progress_pct: 75,
+              enrolled_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+              profiles: {
+                full_name: "Demo Student",
+                email: "student@gmail.com",
+                avatar_url: null,
+              },
+            },
+          ];
+        }
+
+        data = list.filter((item: any) => builder._filters.every((f: any) => item[f.field] === f.value));
       } else if (tableName === "agent_sessions") {
         data = [
           { id: "s1", skill: "Ask a question", created_at: new Date().toISOString() },
           { id: "s2", skill: "Debug code", created_at: new Date(Date.now() - 86400000).toISOString() },
         ];
       } else if (tableName === "courses") {
-        data = [
-          {
-            id: "c1",
-            coach_id: demoUser.id,
-            title: "Advanced Algorithms",
-            slug: "advanced-algorithms",
-            category: "CS Core",
-            total_enrolled: 124,
-            avg_rating: 4.9,
-            price_usd: 50.00,
-            is_published: true,
-            updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: "c2",
-            coach_id: demoUser.id,
-            title: "Systems Architecture",
-            slug: "systems-architecture",
-            category: "Engineering",
-            total_enrolled: 89,
-            avg_rating: 4.7,
-            price_usd: 17.42,
-            is_published: true,
-            updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          }
-        ];
+        let list = loadMockCourses(demoUser);
+
+        const matchesFilters = (item: any) => {
+          return builder._filters.every((f: any) => item[f.field] === f.value);
+        };
+
+        if (builder._operation === "select") {
+          data = list.filter(matchesFilters);
+        } else if (builder._operation === "insert") {
+          const payloads = Array.isArray(builder._payload) ? builder._payload : [builder._payload];
+          const newRecords = payloads.map((p: any) => ({
+            id: p.id || `c-${Math.random().toString(36).slice(2, 10)}`,
+            coach_id: p.coach_id || demoUser.id,
+            title: p.title || "Untitled Course",
+            slug: p.slug || `course-${Math.random().toString(36).slice(2, 7)}`,
+            description: p.description ?? null,
+            category: p.category || "Computer Science",
+            difficulty: p.difficulty || "beginner",
+            total_lessons: p.total_lessons ?? 0,
+            total_enrolled: p.total_enrolled ?? 0,
+            avg_rating: p.avg_rating ?? null,
+            price_usd: p.price_usd ?? 0,
+            is_published: p.is_published ?? false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }));
+          list = [...newRecords, ...list];
+          saveMockCourses(demoUser, list);
+          data = Array.isArray(builder._payload) ? newRecords : newRecords[0];
+        } else if (builder._operation === "update") {
+          const updated: any[] = [];
+          list = list.map((item: any) => {
+            if (!matchesFilters(item)) return item;
+            const next = { ...item, ...builder._payload, updated_at: new Date().toISOString() };
+            updated.push(next);
+            return next;
+          });
+          saveMockCourses(demoUser, list);
+          data = updated;
+        } else if (builder._operation === "delete") {
+          const deleted = list.filter(matchesFilters);
+          list = list.filter((item: any) => !matchesFilters(item));
+          saveMockCourses(demoUser, list);
+          data = deleted;
+        } else {
+          data = list.filter(matchesFilters);
+        }
       } else if (tableName === "notifications") {
         data = [
           {
@@ -142,6 +328,86 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
             created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
           }
         ];
+      } else if (tableName === "lessons") {
+        const list = [
+          {
+            id: "dsa-l1",
+            course_id: "c-dsa",
+            title: "Arrays as Memory Maps",
+            content: null,
+            order_index: 1,
+            duration_mins: 12,
+            type: "text",
+            is_graded: false,
+          },
+          {
+            id: "dsa-l2",
+            course_id: "c-dsa",
+            title: "Stacks, Queues, and Flow",
+            content: null,
+            order_index: 2,
+            duration_mins: 14,
+            type: "text",
+            is_graded: false,
+          },
+          {
+            id: "dsa-l3",
+            course_id: "c-dsa",
+            title: "Recursion and Call Trees",
+            content: null,
+            order_index: 3,
+            duration_mins: 16,
+            type: "text",
+            is_graded: true,
+          },
+          {
+            id: "dsa-l4",
+            course_id: "c-dsa",
+            title: "Graph Traversal Islands",
+            content: null,
+            order_index: 4,
+            duration_mins: 18,
+            type: "text",
+            is_graded: false,
+          },
+          {
+            id: "dsa-l5",
+            course_id: "c-dsa",
+            title: "Dynamic Programming Routes",
+            content: null,
+            order_index: 5,
+            duration_mins: 20,
+            type: "text",
+            is_graded: true,
+          },
+          {
+            id: "marketing-l1",
+            course_id: "c-marketing",
+            title: "Audience Research",
+            content: null,
+            order_index: 1,
+            duration_mins: 11,
+            type: "text",
+            is_graded: false,
+          },
+          {
+            id: "marketing-l2",
+            course_id: "c-marketing",
+            title: "Offer Positioning",
+            content: null,
+            order_index: 2,
+            duration_mins: 13,
+            type: "text",
+            is_graded: false,
+          },
+        ];
+        data = list.filter((item: any) => builder._filters.every((f: any) => item[f.field] === f.value));
+      } else if (tableName === "lesson_progress") {
+        const list = [
+          { student_id: demoUser.id, lesson_id: "dsa-l1", completed: true },
+          { student_id: demoUser.id, lesson_id: "dsa-l2", completed: true },
+        ];
+        data = list.filter((item: any) => builder._filters.every((f: any) => item[f.field] === f.value));
       } else if (tableName === "notebooks") {
         const key = `cognara_mock_notebooks_${demoUser.id}`;
         let list: any[] = [];

@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { NotebookPanel } from "@/components/notebook/NotebookPanel";
 import { LiveCall } from "@/components/shared/LiveCall";
 import { CodeEditorFull } from "@/components/editor/CodeEditor";
+import { LessonWorldScene } from "@/components/student/lesson-world-scene";
 
 const LEFT_TABS = ["Overview", "Materials", "Curriculum", "Live Classes"] as const;
 
@@ -297,16 +298,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
 
     return (
       <>
-        <div className="absolute inset-0 flex items-center justify-center bg-stone-900/10">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-cn-orange text-white shadow-xl">
-            <svg className="ml-1 h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </span>
-        </div>
-        <p className="absolute bottom-4 left-4 right-4 text-center text-xs text-cn-ink-muted font-medium">
-          No video lecture attached to this lesson. Read materials below.
-        </p>
+        <LessonWorldScene ctx={ctx} lesson={lesson} />
       </>
     );
   };

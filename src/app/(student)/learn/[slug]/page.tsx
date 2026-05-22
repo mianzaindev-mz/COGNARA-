@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LearnCurriculum } from "@/components/student/learn-curriculum";
+import { ChapterRoadmap } from "@/components/student/chapter-roadmap";
 import { loadCourseLearnContext } from "@/lib/student/lesson-viewer";
 
 export const dynamic = "force-dynamic";
@@ -86,7 +87,7 @@ export default async function LearnCoursePage({ params }: PageProps) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2">
+        <section className="space-y-6 lg:col-span-2">
           <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-[1.75rem] border border-cn-border bg-gradient-to-br from-cn-lavender/25 to-cn-yellow/15">
             {firstIncomplete ? (
               <Link
@@ -110,7 +111,9 @@ export default async function LearnCoursePage({ params }: PageProps) {
             </p>
           </div>
 
-          <div className="cn-card mt-6 p-6">
+          <ChapterRoadmap ctx={ctx} />
+
+          <div className="cn-card p-6">
             <h2 className="text-lg font-bold text-cn-ink">About this course</h2>
             <p className="mt-3 text-sm leading-relaxed text-cn-ink-muted">
               Work through lessons in order. Mark each complete to sync progress to your dashboard and

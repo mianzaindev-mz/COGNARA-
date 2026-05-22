@@ -125,14 +125,29 @@ export default function EditCoursePage() {
         if (!supabase) throw new Error("Database offline.");
 
         // Fetch course
-        const { data: courseData, error: courseErr } = await supabase
+        const { data, error: courseErr } = await supabase
           .from("courses")
           .select("*")
           .eq("slug", slug)
           .single();
+        let courseData = data;
 
         if (courseErr || !courseData) {
-          throw new Error("Course not found.");
+          const pendingCourse = (() => {
+            if (typeof window === "undefined") return null;
+            try {
+              const raw = window.localStorage.getItem(`cognara_pending_course_${slug}`);
+              return raw ? JSON.parse(raw) : null;
+            } catch {
+              return null;
+            }
+          })();
+
+          if (!pendingCourse) {
+            throw new Error("Course not found.");
+          }
+
+          courseData = pendingCourse;
         }
 
         setCourse(courseData);

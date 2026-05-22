@@ -251,7 +251,7 @@ function escapeHtml(str: string): string {
 }
 
 function markdownToHtml(md: string): string {
-  let html = md
+  const html = md
     // Code blocks (fenced)
     .replace(/```(\w*)\n([\s\S]*?)```/g, (_m, lang, code) =>
       `<pre class="md-code-block"><code class="lang-${lang || "text"}">${escapeHtml(code.trim())}</code></pre>`

@@ -84,6 +84,13 @@ export function DoubleConfirmModal({
       <div
         className="relative w-full max-w-md bg-[#1a1a1a] border border-white/30 rounded-3xl p-8 shadow-2xl shadow-black/90 animate-in fade-in zoom-in-95 duration-300"
         style={{ zIndex: 100000 }}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && isButtonDisabled) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dcm-title"
@@ -120,21 +127,38 @@ export function DoubleConfirmModal({
                 />
               </div>
             ) : (
-              <label className="flex items-start gap-3 cursor-pointer group p-2 hover:bg-white/5 rounded-xl transition-colors">
+              <div
+                role="checkbox"
+                aria-checked={checked}
+                tabIndex={0}
+                className="flex items-start gap-3 cursor-pointer group p-2 hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setChecked((current) => !current);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== " " && event.key !== "Enter") return;
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setChecked((current) => !current);
+                }}
+              >
                 <div className="relative flex items-center justify-center pt-0.5 flex-shrink-0">
                   <input 
                     type="checkbox" 
                     checked={checked}
-                    onChange={(e) => setChecked(e.target.checked)}
-                    autoFocus
-                    className="w-5 h-5 appearance-none rounded border-2 border-white/30 bg-white/5 checked:bg-primary checked:border-primary transition-all peer cursor-pointer hover:border-white/50"
+                    readOnly
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    className="w-5 h-5 appearance-none rounded border-2 border-white/30 bg-white/5 checked:bg-primary checked:border-primary transition-all peer pointer-events-none"
                   />
                   <span className="material-symbols-outlined absolute pointer-events-none text-black opacity-0 peer-checked:opacity-100 text-[16px] font-bold">check</span>
                 </div>
                 <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors select-none">
                   I understand that this action is permanent and cannot be undone.
                 </span>
-              </label>
+              </div>
             )}
           </div>
 
@@ -164,4 +188,3 @@ export function DoubleConfirmModal({
   // Portal to document.body so it escapes any parent overflow/z-index
   return createPortal(modal, document.body);
 }
-

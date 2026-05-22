@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardEffects } from "@/components/student/dashboard-effects";
+import { CreateNotebookShortcut } from "@/components/student/create-notebook-shortcut";
 import { checkStudentDbHealth } from "@/lib/student/db-health";
 import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
@@ -191,6 +192,11 @@ export default async function DashboardPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-4 pt-2">
+              <CreateNotebookShortcut />
+              <Link href="/notebook" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-black/10 bg-black/5 px-6 py-3 text-sm font-black uppercase tracking-widest text-on-surface transition hover:border-primary/30 hover:bg-primary/10 dark:border-white/10 dark:bg-white/5">
+                <span className="material-symbols-outlined text-[20px]">auto_stories</span>
+                Open Notes
+              </Link>
               <span className="px-6 py-2.5 bg-emerald-500/10 text-emerald-400 rounded-full font-label-md border border-emerald-500/20 flex items-center gap-2 shadow-sm backdrop-blur-md transition-all hover:scale-105">
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
                 {completedTasks}/{totalTasks} Tasks Completed

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Point } from "@/lib/utils/simplify";
 
 export interface Block {
   id: string;
@@ -831,6 +830,7 @@ export function ModularCanvas({
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDrop={(e) => handleDrop(e, index)}
+            onKeyDown={(e) => handleKeyDown(e, block, index)}
             onDragEnd={() => {
               setDraggedIndex(null);
               setDragOverIndex(null);

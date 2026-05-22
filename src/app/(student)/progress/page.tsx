@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardStatCard } from "@/components/student/dashboard-stat-card";
 import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
-import { IconFire, IconTrophy, IconBrain, IconTarget, IconHandshake, IconGamepad } from "@/components/ui/icons";
+import { IconFire, IconTrophy, IconBrain, IconGamepad } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -46,8 +46,8 @@ export default async function ProgressPage() {
   const maxXp = Math.max(...WEEKLY_XP.map((d) => d.xp));
 
   const dynamicBadges = stats.earnedBadges.map((eb) => {
-    let icon = IconTrophy;
-    let title = `${eb.courses?.title || "Course"} (${eb.badge_type.charAt(0).toUpperCase() + eb.badge_type.slice(1)})`;
+    const icon = IconTrophy;
+    const title = `${eb.courses?.title || "Course"} (${eb.badge_type.charAt(0).toUpperCase() + eb.badge_type.slice(1)})`;
     return { icon, title, earned: true };
   });
 

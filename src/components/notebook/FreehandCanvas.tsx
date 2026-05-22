@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Point, simplifyPoints } from "@/lib/utils/simplify";
 
 export interface CanvasStroke {
@@ -46,7 +46,6 @@ export function FreehandCanvas({
   const [color, setColor] = useState<string>("#3b82f6"); // blue default
   const [width, setWidth] = useState<number>(4);
   const [shapeType, setShapeType] = useState<"rectangle" | "circle" | "triangle" | "arrow">("rectangle");
-  const [eraserMode, setEraserMode] = useState<"pixel" | "stroke">("stroke");
 
   // Zoom & Pan States
   const [zoom, setZoom] = useState<number>(1);
@@ -55,11 +54,17 @@ export function FreehandCanvas({
 
   // Drawing State
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [pointerPos, setPointerPos] = useState<Point | null>(null);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [shapeStart, setShapeStart] = useState<Point | null>(null);
   const [shapeEnd, setShapeEnd] = useState<Point | null>(null);
   const [rulerStart, setRulerStart] = useState<Point | null>(null);
   const [rulerEnd, setRulerEnd] = useState<Point | null>(null);
+
+  // Spacebar pan drag support
+  const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [panStart, setPanStart] = useState<Point>({ x: 0, y: 0 });
 
   // Lasso State
   const [lassoPolygon, setLassoPolygon] = useState<Point[]>([]);
@@ -68,7 +73,6 @@ export function FreehandCanvas({
   const [lassoDragStart, setLassoDragStart] = useState<Point | null>(null);
 
   // Text state
-  const [activeTextId, setActiveTextId] = useState<string | null>(null);
   const [textInputVal, setTextInputVal] = useState<string>("");
   const [textInputPos, setTextInputPos] = useState<Point | null>(null);
 
@@ -88,7 +92,7 @@ export function FreehandCanvas({
   const WIDTHS = [2, 4, 8, 16, 24];
 
   // Save current state to undo stack
-  const saveToHistory = (newStrokes = strokes, newAnns = annotations) => {
+  const saveToHistory = () => {
     setUndoStack((prev) => [...prev, { strokes, annotations }]);
     setRedoStack([]); // Clear redo on new action
   };
@@ -176,6 +180,62 @@ export function FreehandCanvas({
     setSelectedStrokeIds(selectedIds);
   };
 
+  const drawBackgroundGrid = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (background === "blank") return;
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(100, 116, 139, 0.08)"; // subtle slate/gray
+    ctx.lineWidth = 1;
+
+    // Use zoom and pan coordinates to draw grid aligned to world coordinate space
+    const gridSize = 40;
+    const scaledGridSize = gridSize * zoom;
+    const startX = panX % scaledGridSize;
+    const startY = panY % scaledGridSize;
+
+    if (background === "ruled") {
+      ctx.beginPath();
+      for (let y = startY; y < height; y += scaledGridSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+      }
+      ctx.stroke();
+      
+      // Draw standard left-side pink margin line
+      const marginX = 80 * zoom + panX;
+      if (marginX > 0 && marginX < width) {
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.2)"; // pink
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(marginX, 0);
+        ctx.lineTo(marginX, height);
+        ctx.stroke();
+      }
+    } else if (background === "graph") {
+      ctx.beginPath();
+      for (let x = startX; x < width; x += scaledGridSize) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+      }
+      for (let y = startY; y < height; y += scaledGridSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+      }
+      ctx.stroke();
+    } else if (background === "dot") {
+      ctx.fillStyle = "rgba(100, 116, 139, 0.2)";
+      for (let x = startX; x < width; x += scaledGridSize) {
+        for (let y = startY; y < height; y += scaledGridSize) {
+          ctx.beginPath();
+          ctx.arc(x, y, 1.2 * zoom, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+    }
+
+    ctx.restore();
+  }, [background, panX, panY, zoom]);
+
   // Render Loop
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -187,14 +247,14 @@ export function FreehandCanvas({
 
     const render = () => {
       // 1. Setup Canvas Dimensions dynamically
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
+      const canvasWidth = canvas.clientWidth;
+      const canvasHeight = canvas.clientHeight;
+      if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
       }
 
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
       // Save normal state
       ctx.save();
@@ -292,6 +352,19 @@ export function FreehandCanvas({
         ctx.setLineDash([]);
       }
 
+      if (pointerPos && !isSpacePressed && tool !== "lasso" && tool !== "text") {
+        const previewRadius = Math.max(2, (tool === "pixel-eraser" ? width : width / 2));
+        ctx.beginPath();
+        ctx.globalAlpha = tool === "highlighter" ? 0.45 : 0.9;
+        ctx.strokeStyle = tool === "pixel-eraser" || tool === "stroke-eraser" ? "rgba(239,68,68,0.9)" : color;
+        ctx.lineWidth = 1.5 / zoom;
+        ctx.setLineDash([4 / zoom, 3 / zoom]);
+        ctx.arc(pointerPos.x, pointerPos.y, previewRadius, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.setLineDash([]);
+      }
+
       // 5. Draw lasso boundary
       if (tool === "lasso" && lassoPolygon.length > 0) {
         ctx.beginPath();
@@ -332,7 +405,7 @@ export function FreehandCanvas({
       ctx.restore();
 
       // 6. Draw background grid/dots (drawn after so it sits on top, ensuring clear readability and keeping grids crisp)
-      drawBackgroundGrid(ctx, width, height);
+      drawBackgroundGrid(ctx, canvasWidth, canvasHeight);
 
       animId = requestAnimationFrame(render);
     };
@@ -361,6 +434,9 @@ export function FreehandCanvas({
     color,
     width,
     shapeType,
+    drawBackgroundGrid,
+    pointerPos,
+    isSpacePressed,
   ]);
 
   const drawShape = (ctx: CanvasRenderingContext2D, type: string, start: Point, end: Point) => {
@@ -400,62 +476,6 @@ export function FreehandCanvas({
     }
   };
 
-  const drawBackgroundGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (background === "blank") return;
-
-    ctx.save();
-    ctx.strokeStyle = "rgba(100, 116, 139, 0.08)"; // subtle slate/gray
-    ctx.lineWidth = 1;
-
-    // Use zoom and pan coordinates to draw grid aligned to world coordinate space
-    const gridSize = 40;
-    const scaledGridSize = gridSize * zoom;
-    const startX = panX % scaledGridSize;
-    const startY = panY % scaledGridSize;
-
-    if (background === "ruled") {
-      ctx.beginPath();
-      for (let y = startY; y < height; y += scaledGridSize) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-      }
-      ctx.stroke();
-      
-      // Draw standard left-side pink margin line
-      const marginX = 80 * zoom + panX;
-      if (marginX > 0 && marginX < width) {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(239, 68, 68, 0.2)"; // pink
-        ctx.lineWidth = 1.5;
-        ctx.moveTo(marginX, 0);
-        ctx.lineTo(marginX, height);
-        ctx.stroke();
-      }
-    } else if (background === "graph") {
-      ctx.beginPath();
-      for (let x = startX; x < width; x += scaledGridSize) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-      }
-      for (let y = startY; y < height; y += scaledGridSize) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-      }
-      ctx.stroke();
-    } else if (background === "dot") {
-      ctx.fillStyle = "rgba(100, 116, 139, 0.2)";
-      for (let x = startX; x < width; x += scaledGridSize) {
-        for (let y = startY; y < height; y += scaledGridSize) {
-          ctx.beginPath();
-          ctx.arc(x, y, 1.2 * zoom, 0, 2 * Math.PI);
-          ctx.fill();
-        }
-      }
-    }
-
-    ctx.restore();
-  };
-
   // Mouse Handlers
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     // If middle mouse click or spacebar is pressed, handle pan (handled in container wheel/drag)
@@ -464,6 +484,7 @@ export function FreehandCanvas({
     }
 
     const pos = getCanvasCoords(e.clientX, e.clientY);
+    setPointerPos(pos);
     setIsDrawing(true);
 
     if (tool === "lasso") {
@@ -484,7 +505,6 @@ export function FreehandCanvas({
       setIsDrawing(false);
       setTextInputPos(pos);
       setTextInputVal("");
-      setActiveTextId(null);
     } else if (tool === "stroke-eraser") {
       eraseStrokeAt(pos);
     } else {
@@ -494,8 +514,9 @@ export function FreehandCanvas({
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
     const pos = getCanvasCoords(e.clientX, e.clientY);
+    setPointerPos(pos);
+    if (!isDrawing) return;
 
     if (tool === "lasso") {
       if (isDraggingLasso && lassoDragStart) {
@@ -551,7 +572,6 @@ export function FreehandCanvas({
       eraseStrokeAt(pos);
     } else if (tool === "pixel-eraser") {
       setCurrentPoints((prev) => [...prev, pos]);
-      erasePixelAt(pos);
     } else {
       // Normal stroke path drawing
       setCurrentPoints((prev) => {
@@ -605,7 +625,20 @@ export function FreehandCanvas({
       onChange([...strokes, newStroke], annotations);
       setRulerStart(null);
       setRulerEnd(null);
-    } else if (tool === "stroke-eraser" || tool === "pixel-eraser") {
+    } else if (tool === "pixel-eraser" && currentPoints.length > 0) {
+      saveToHistory();
+      const simplified = simplifyPoints(currentPoints, 1.2);
+      const newStroke: CanvasStroke = {
+        id: `eraser-${Math.random().toString(36).substr(2, 9)}`,
+        points: simplified,
+        color: "#ffffff",
+        width: width * 2,
+        tool: "eraser",
+        isEraser: true,
+      };
+      onChange([...strokes, newStroke], annotations);
+      setCurrentPoints([]);
+    } else if (tool === "stroke-eraser") {
       // Done erasing
       setCurrentPoints([]);
       saveToHistory();
@@ -630,6 +663,7 @@ export function FreehandCanvas({
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       const pos = getCanvasCoords(touch.clientX, touch.clientY);
+      setPointerPos(pos);
       setIsDrawing(true);
 
       if (tool === "lasso") {
@@ -657,6 +691,7 @@ export function FreehandCanvas({
     if (!isDrawing || e.touches.length !== 1) return;
     const touch = e.touches[0];
     const pos = getCanvasCoords(touch.clientX, touch.clientY);
+    setPointerPos(pos);
 
     if (tool === "lasso") {
       if (isDraggingLasso && lassoDragStart) {
@@ -689,7 +724,6 @@ export function FreehandCanvas({
       eraseStrokeAt(pos);
     } else if (tool === "pixel-eraser") {
       setCurrentPoints((prev) => [...prev, pos]);
-      erasePixelAt(pos);
     } else {
       setCurrentPoints((prev) => [...prev, pos]);
     }
@@ -697,6 +731,7 @@ export function FreehandCanvas({
 
   const handleTouchEnd = () => {
     handleMouseUp();
+    setPointerPos(null);
   };
 
   // Erase whole strokes that are intersected by eraser path
@@ -722,13 +757,6 @@ export function FreehandCanvas({
     }
   };
 
-  // Erase points locally (Pixel eraser adds transparent or white overlay strokes)
-  const erasePixelAt = (pos: Point) => {
-    // We add an erasing stroke that will be rendered in white
-    // Alternatively, we filter out points near pos. To keep data intact we just add a "destination-out" white stroke.
-    // In our system, strokes with isEraser: true are drawn with strokeStyle = '#ffffff' which acts as a cover up
-  };
-
   // Zooming via Wheel
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (e.ctrlKey) {
@@ -744,11 +772,6 @@ export function FreehandCanvas({
       setPanY((prev) => prev - e.deltaY);
     }
   };
-
-  // Spacebar pan drag support
-  const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
-  const [isPanning, setIsPanning] = useState<boolean>(false);
-  const [panStart, setPanStart] = useState<Point>({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -884,7 +907,6 @@ export function FreehandCanvas({
             type="button"
             onClick={() => {
               setTool("stroke-eraser");
-              setEraserMode("stroke");
             }}
             className={`p-2 rounded-lg text-xs font-bold transition ${
               tool === "stroke-eraser" ? "bg-cn-orange text-white" : "text-cn-ink-muted hover:bg-neutral-100"
@@ -897,7 +919,6 @@ export function FreehandCanvas({
             type="button"
             onClick={() => {
               setTool("pixel-eraser");
-              setEraserMode("pixel");
             }}
             className={`p-2 rounded-lg text-xs font-bold transition ${
               tool === "pixel-eraser" ? "bg-cn-orange text-white" : "text-cn-ink-muted hover:bg-neutral-100"
@@ -1094,7 +1115,10 @@ export function FreehandCanvas({
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onMouseLeave={() => {
+            handleMouseUp();
+            setPointerPos(null);
+          }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}

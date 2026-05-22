@@ -12,9 +12,9 @@ export function LearnCurriculum({ ctx, activeOrder, maxHeight = "max-h-[480px]" 
   const completed = new Set(ctx.completedLessonIds);
 
   return (
-    <aside className="cn-card overflow-hidden p-0">
+    <aside className="overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-0 shadow-[var(--cn-shadow-card)]">
       <div className="border-b border-cn-border px-5 py-4">
-        <p className="text-sm font-bold text-cn-ink">Course content</p>
+        <p className="text-sm font-black text-cn-ink">Course content</p>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cn-canvas">
           <div
             className="h-full rounded-full bg-cn-orange transition-all"
@@ -35,13 +35,13 @@ export function LearnCurriculum({ ctx, activeOrder, maxHeight = "max-h-[480px]" 
                 <Link
                   href={`/learn/${ctx.slug}/lesson/${lesson.orderIndex}`}
                   className={cn(
-                    "flex items-center gap-3 px-5 py-3.5 text-sm transition",
+                    "group flex items-center gap-3 px-5 py-3.5 text-sm transition",
                     isActive ? "bg-cn-orange/10" : "hover:bg-cn-canvas",
                   )}
                 >
                   <span
                     className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold",
+                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black shadow-sm transition group-hover:scale-105",
                       isDone
                         ? "bg-cn-yellow text-cn-sidebar"
                         : isActive

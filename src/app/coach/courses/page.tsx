@@ -9,7 +9,13 @@ import { CreateCourseButton } from "@/components/coach/create-course-button";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My Courses — Coach — COGNARA™" };
 
-export default async function CoachCoursesPage() {
+export default async function CoachCoursesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string }>;
+}) {
+  const params = await searchParams;
+  const search = params?.search?.trim() ?? "";
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -21,7 +27,13 @@ export default async function CoachCoursesPage() {
     .eq("coach_id", user.id)
     .order("created_at", { ascending: false });
 
-  const list = courses ?? [];
+  const list = (courses ?? []).filter((course: any) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return [course.title, course.description, course.category, course.difficulty]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(q));
+  });
   const publishedCount = list.filter((c: any) => c.is_published).length;
 
   return (
@@ -29,7 +41,9 @@ export default async function CoachCoursesPage() {
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-cn-ink">My Courses</h1>
-          <p className="mt-1 text-sm text-cn-ink-muted">{list.length} courses · {publishedCount} published</p>
+          <p className="mt-1 text-sm text-cn-ink-muted">
+            {list.length} courses · {publishedCount} published{search ? ` matching "${search}"` : ""}
+          </p>
         </div>
         <div className="flex gap-2">
           <Link

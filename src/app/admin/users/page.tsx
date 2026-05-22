@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { IconUsers } from "@/components/ui/icons";
 import { getUsersWithEmails, updateUserRole, banUser } from "./actions";
@@ -21,6 +22,7 @@ const statusVariant: Record<string, "success" | "danger"> = {
 };
 
 export default function AdminUsersPage() {
+  const searchParams = useSearchParams();
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,10 @@ export default function AdminUsersPage() {
   useEffect(() => {
     void fetchUsers();
   }, []);
+
+  useEffect(() => {
+    setSearch(searchParams.get("search") ?? "");
+  }, [searchParams]);
 
   const handleRoleChange = async (userId: string, newRole: "student" | "coach" | "admin") => {
     if (actioningId) return;

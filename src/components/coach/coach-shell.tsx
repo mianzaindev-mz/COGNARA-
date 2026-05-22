@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -29,18 +29,31 @@ type CoachShellProps = {
 
 export function CoachShell({ displayName, monthlyEarnings, children }: CoachShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const initials = displayName.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
   
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAllAsRead, loading } = useNotifications();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement | null;
+
+      if (target?.closest('[role="dialog"][aria-modal="true"]')) {
+        return;
+      }
+
+      if (notifRef.current && target && !notifRef.current.contains(target)) {
         setShowNotifications(false);
+      }
+      if (profileRef.current && target && !profileRef.current.contains(target)) {
+        setShowProfileMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -143,10 +156,25 @@ export function CoachShell({ displayName, monthlyEarnings, children }: CoachShel
           </nav>
         </div>
         <div className="flex items-center gap-6">
-          <div className="relative group hidden lg:block">
+          <form
+            className="relative group hidden lg:block"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const q = searchQuery.trim();
+              if (!q) return;
+              router.push(`/coach/courses?search=${encodeURIComponent(q)}`);
+              setSearchQuery("");
+            }}
+          >
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/20 group-focus-within:text-primary transition-colors text-xl">search</span>
-            <input className="bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-xl pl-11 pr-6 py-2 w-72 text-sm focus:ring-1 focus:ring-primary/30 focus:bg-black/5 dark:focus:bg-white/5 transition-all outline-none" placeholder="Search insights..." type="text"/>
-          </div>
+            <input
+              className="bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-xl pl-11 pr-6 py-2 w-72 text-sm focus:ring-1 focus:ring-primary/30 focus:bg-black/5 dark:focus:bg-white/5 transition-all outline-none"
+              placeholder="Search courses..."
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+          </form>
           <div className="flex items-center gap-4 border-l border-black/5 dark:border-white/5 pl-6">
             <ThemeToggle />
             <div className="relative" ref={notifRef}>
@@ -197,13 +225,38 @@ export function CoachShell({ displayName, monthlyEarnings, children }: CoachShel
                 )}
             </div>
             
-            <div className="flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 px-4 py-1.5 rounded-xl group cursor-pointer hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-400 flex items-center justify-center text-white font-black text-[10px] shadow-lg">{initials}</div>
-              <div className="hidden xl:block">
-                <p className="text-[11px] font-black leading-tight text-on-surface">{displayName}</p>
-                <p className="text-[9px] text-primary font-bold leading-tight mt-0.5">${monthlyEarnings !== undefined ? monthlyEarnings.toFixed(2) : "0.00"}</p>
-              </div>
-              <span className="material-symbols-outlined text-on-surface-variant/20 group-hover:text-primary transition-colors text-lg">expand_more</span>
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => setShowProfileMenu((open) => !open)}
+                className="flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 px-4 py-1.5 rounded-xl group cursor-pointer hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
+                aria-expanded={showProfileMenu}
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-400 flex items-center justify-center text-white font-black text-[10px] shadow-lg">{initials}</div>
+                <div className="hidden xl:block text-left">
+                  <p className="text-[11px] font-black leading-tight text-on-surface">{displayName}</p>
+                  <p className="text-[9px] text-primary font-bold leading-tight mt-0.5">${monthlyEarnings !== undefined ? monthlyEarnings.toFixed(2) : "0.00"}</p>
+                </div>
+                <span className="material-symbols-outlined text-on-surface-variant/20 group-hover:text-primary transition-colors text-lg">expand_more</span>
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-black/10 bg-white/80 p-2 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-black/80">
+                  <Link
+                    href="/coach/settings"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-cn-ink transition hover:bg-black/5 dark:text-white dark:hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-base">settings</span>
+                    Settings
+                  </Link>
+                  <div className="mt-1 border-t border-black/5 pt-1 dark:border-white/10">
+                    <SignOutButton
+                      className="flex w-full items-center justify-start gap-3 rounded-xl border-0 bg-transparent px-3 py-2 text-left text-xs font-bold text-red-500 transition hover:bg-red-500/10 dark:text-red-400"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

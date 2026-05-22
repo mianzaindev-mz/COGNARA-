@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { IconShieldAlert } from "@/components/ui/icons";
 
@@ -64,7 +65,12 @@ export default function AdminSecurityPage() {
                 <p className="text-sm text-cn-ink">{item.user}: &ldquo;{item.message}&rdquo;</p>
                 <p className="mt-1 text-xs text-cn-ink-subtle">Pattern: <code className="bg-cn-canvas px-1 rounded text-rose-500 dark:text-rose-400">{item.pattern}</code> · {item.time}</p>
               </div>
-              <button className="shrink-0 rounded-lg bg-cn-canvas px-3 py-1.5 text-[10px] font-bold text-cn-ink hover:bg-cn-surface">Investigate</button>
+              <Link
+                href="/admin/support"
+                className="shrink-0 rounded-lg bg-cn-canvas px-3 py-1.5 text-[10px] font-bold text-cn-ink hover:bg-cn-surface"
+              >
+                Investigate
+              </Link>
             </div>
           ))}
         </div>

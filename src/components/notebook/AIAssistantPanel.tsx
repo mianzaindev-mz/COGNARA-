@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Block } from "./ModularCanvas";
-import { createClient } from "@/lib/supabase/client";
 
 interface AIAssistantPanelProps {
   studentId: string;
@@ -25,7 +24,8 @@ interface ChatMessage {
 }
 
 // Parses markdown response text into distinct modular block specifications
-export function parseMarkdownToBlocks(markdown: string, playhead: number = 0): { type: Block["type"]; content: string; properties?: any }[] {
+export function parseMarkdownToBlocks(markdown: string, _playhead: number = 0): { type: Block["type"]; content: string; properties?: any }[] {
+  void _playhead;
   const lines = markdown.split(/\r?\n/);
   const blocks: { type: Block["type"]; content: string; properties?: any }[] = [];
   

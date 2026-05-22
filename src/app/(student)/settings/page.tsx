@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/theme/theme-provider";
 import { SettingsSection, SettingsToggle, SettingsSelect } from "@/components/ui/settings-ui";
@@ -181,9 +182,9 @@ export default function SettingsPage() {
             <p className="text-lg font-bold text-on-surface">Delete Account</p>
             <p className="text-sm font-semibold text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
           </div>
-          <button type="button" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm shrink-0">
-            Delete Account
-          </button>
+          <Link href="/support" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm shrink-0">
+            Request Deletion
+          </Link>
         </SettingsSection>
       </div>
 
@@ -207,4 +208,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

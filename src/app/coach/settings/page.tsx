@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { SettingsSection, SettingsToggle, SettingsInput, SettingsSelect, SettingsTextarea } from "@/components/ui/settings-ui";
 
 export default function SettingsPage() {
   const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   
   // Profile settings
   const [fullName, setFullName] = useState("");
@@ -17,9 +20,6 @@ export default function SettingsPage() {
   const [notifCompletion, setNotifCompletion] = useState(true);
   const [notifReview, setNotifReview] = useState(true);
   const [notifPayout, setNotifPayout] = useState(true);
-
-  // Danger zone
-  const [deleteConfirm, setDeleteConfirm] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -41,14 +41,33 @@ export default function SettingsPage() {
     load();
   }, []);
 
-  const handleSave = () => {
-    // Show toast or saving state
-    console.log("Settings saved", { fullName, bio, timezone });
-  };
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error("Unable to connect to database.");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("You must be logged in to save settings.");
 
-  const handleStripeConnect = () => {
-    // Initiate Stripe OAuth flow
-    console.log("Redirecting to Stripe...");
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: fullName.trim(),
+          bio: bio.trim(),
+          timezone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+      setSaveMessage("Settings saved.");
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err) {
+      setSaveMessage(err instanceof Error ? err.message : "Failed to save settings.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!loaded) {
@@ -127,13 +146,12 @@ export default function SettingsPage() {
                   <p className="text-xs text-cn-ink-subtle dark:text-on-surface-variant opacity-60 mt-0.5">Not connected · Set up to receive student payments</p>
                 </div>
               </div>
-              <button 
-                type="button" 
-                onClick={handleStripeConnect}
+              <Link
+                href="/coach/earnings"
                 className="bg-black/5 dark:bg-white/5 hover:bg-indigo-600 hover:text-white text-indigo-600 dark:text-indigo-300 px-6 py-2.5 rounded-xl text-xs font-black border border-black/5 dark:border-white/5 transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] whitespace-nowrap"
               >
                 Connect Stripe
-              </button>
+              </Link>
             </div>
             <div className="flex justify-between items-center text-xs text-black/40 dark:text-on-surface-variant/50 px-2">
               <span>Revenue share: 85% to coach, 15% platform fee</span>
@@ -169,21 +187,28 @@ export default function SettingsPage() {
             <p className="text-lg font-bold text-on-surface">Delete Account</p>
             <p className="text-sm font-semibold text-on-surface-variant">Permanently delete your data. This cannot be undone.</p>
           </div>
-          <button type="button" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm shrink-0">
-            Delete Account
-          </button>
+          <Link href="/coach/support" className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all text-sm shrink-0">
+            Request Deletion
+          </Link>
         </SettingsSection>
 
       </div>
 
+      {saveMessage && (
+        <div className="relative z-10 rounded-xl border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm font-bold text-indigo-500">
+          {saveMessage}
+        </div>
+      )}
+
       {/* Save Button */}
       <div className="w-full mt-12 relative z-10">
         <button 
-          onClick={handleSave}
+          onClick={() => void handleSave()}
+          disabled={saving}
           className="w-full bg-primary hover:bg-primary/95 text-white dark:text-black dark:bg-white dark:hover:bg-white/95 py-5 rounded-[2rem] text-2xl font-black transition-all shadow-[0_15px_40px_rgba(139,92,246,0.2)] dark:shadow-[0_0_30px_rgba(255,255,255,0.05)] flex items-center justify-center gap-3 hover:-translate-y-1 active:scale-95 active:translate-y-0 duration-300"
         >
           <span className="material-symbols-outlined text-3xl">save</span>
-          Save Changes
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
 

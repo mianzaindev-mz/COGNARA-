@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CreateCourseButton } from "@/components/coach/create-course-button";
 import { DashboardEffects } from "@/components/coach/dashboard-effects";
+import { ExportRevenueButton } from "@/components/coach/export-revenue-button";
 
 export const dynamic = "force-dynamic";
 
@@ -129,7 +130,14 @@ export default async function CoachDashboardPage() {
               <p className="text-on-surface-variant/40 text-xs mt-1">Net performance across active modules</p>
             </div>
             <div className="flex gap-2">
-              <button className="bg-white/[0.03] border border-white/5 rounded-lg px-4 py-2 text-[10px] font-black text-on-surface-variant hover:bg-white/10 transition-all uppercase tracking-wider">Export</button>
+              <ExportRevenueButton
+                data={[
+                  { date: "Oct 1", revenue: 128 },
+                  { date: "Oct 10", revenue: 186 },
+                  { date: "Oct 20", revenue: 219 },
+                  { date: "Oct 30", revenue: 247 },
+                ]}
+              />
               <select className="bg-white/[0.05] border-none text-on-surface text-[10px] font-black rounded-lg py-2 pl-3 pr-8 focus:ring-1 focus:ring-primary/40 outline-none cursor-pointer appearance-none uppercase tracking-wider">
                 <option>Monthly (USD)</option>
                 <option>Weekly (USD)</option>

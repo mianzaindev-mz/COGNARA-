@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-
-export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { CatalogCourseCard } from "@/components/public/catalog-course-card";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
@@ -9,8 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { IconBook, IconGraduate, IconChartBar, IconBrain, IconTarget, IconUsers } from "@/components/ui/icons";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "Browse courses — COGNARA™",
+  title: "Browse courses - COGNARA",
 };
 
 const demoCourses = [
@@ -113,27 +113,34 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
   }
 
   return (
-    <div className="w-full px-6 py-12 sm:px-12 lg:px-16 xl:px-24">
-      <div className="max-w-2xl">
-        <p className="text-xs font-bold uppercase tracking-[0.25em] text-cn-orange">Catalog</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-cn-ink sm:text-4xl">Browse courses</h1>
-        <p className="mt-3 text-sm leading-relaxed text-cn-ink-muted">
-          {courses.length > 0
-            ? "Enroll free while checkout is in development — progress syncs to your student dashboard."
-            : "Explore our demo catalog below. Connect Supabase and run demo_seed.sql for live data."}
-        </p>
-        {isLoggedIn ? (
-          <Link
-            href="/my-courses"
-            className="mt-4 inline-flex text-sm font-semibold text-cn-orange hover:underline"
-          >
-            Go to my courses →
-          </Link>
-        ) : null}
-      </div>
+    <div className="w-full px-6 py-10 sm:px-12 lg:px-16 xl:px-24">
+      <section className="relative overflow-hidden rounded-3xl border border-cn-border bg-cn-surface p-6 shadow-[var(--cn-shadow-card)] sm:p-8">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cn-orange/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/3 h-40 w-72 rounded-full bg-cn-lavender/20 blur-3xl" />
+        <div className="relative max-w-3xl">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-cn-orange">Catalog</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-cn-ink sm:text-5xl">Choose your next world</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-cn-ink-muted">
+            {courses.length > 0
+              ? "Start with fast 2D cards, then enter guided chapter maps and immersive lesson worlds as you learn."
+              : "Explore the demo catalog below. Connect Supabase and run demo_seed.sql for live data."}
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link
+              href={isLoggedIn ? "/my-courses" : "/register"}
+              className="inline-flex rounded-xl bg-cn-orange px-5 py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover"
+            >
+              {isLoggedIn ? "Go to my courses" : "Start learning"}
+            </Link>
+            <span className="rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-xs font-bold text-cn-ink-muted">
+              Lightweight catalog - maps load inside courses
+            </span>
+          </div>
+        </div>
+      </section>
 
       {courses.length > 0 ? (
-        <ul className="cn-stagger mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="cn-stagger mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {courses.map((c) => (
             <CatalogCourseCard
               key={c.id}
@@ -144,17 +151,16 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
           ))}
         </ul>
       ) : (
-        <ul className="cn-stagger mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="cn-stagger mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {demoCourses.map((c) => {
             const Icon = c.icon;
             return (
               <li
                 key={c.slug}
-                className={`cn-card-lift flex flex-col rounded-2xl border p-6 transition-all ${c.tint}`}
+                className={`group relative flex min-h-[320px] flex-col overflow-hidden rounded-2xl border p-5 shadow-[var(--cn-shadow-card)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg ${c.tint}`}
               >
-                {/* Header */}
                 <div className="flex items-start justify-between">
-                  <span className="rounded-full bg-cn-surface/80 px-3 py-1 text-[10px] font-bold text-cn-ink">
+                  <span className="rounded-full bg-cn-surface/80 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-cn-ink">
                     {c.category}
                   </span>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${difficultyColor[c.difficulty] ?? ""}`}>
@@ -162,31 +168,27 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
                   </span>
                 </div>
 
-                {/* Icon + Title */}
                 <div className="mt-5 flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cn-surface/60">
-                    <Icon className="h-5 w-5 text-cn-ink-muted" />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cn-border bg-cn-surface/70 transition group-hover:scale-105">
+                    <Icon className="h-5 w-5 text-cn-orange" />
                   </div>
-                  <h2 className="text-base font-bold leading-snug text-cn-ink">{c.title}</h2>
+                  <h2 className="text-lg font-black leading-tight text-cn-ink">{c.title}</h2>
                 </div>
 
-                {/* Description */}
-                <p className="mt-3 flex-1 text-xs leading-relaxed text-cn-ink-muted">{c.desc}</p>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-cn-ink-muted">{c.desc}</p>
 
-                {/* Meta */}
-                <div className="mt-4 flex items-center gap-4 border-t border-cn-border/40 pt-4 text-[10px] text-cn-ink-subtle">
+                <div className="mt-5 flex items-center gap-4 border-y border-cn-border/40 py-3 text-[11px] text-cn-ink-subtle">
                   <span className="flex items-center gap-1">
-                    <IconBook className="h-3 w-3" /> {c.lessons} lessons
+                    <IconBook className="h-3.5 w-3.5 text-cn-orange" /> {c.lessons} lessons
                   </span>
                   <span className="flex items-center gap-1">
-                    <IconUsers className="h-3 w-3" /> {c.students} enrolled
+                    <IconUsers className="h-3.5 w-3.5 text-cn-orange" /> {c.students} enrolled
                   </span>
                 </div>
 
-                {/* CTA */}
                 <Link
                   href="/register"
-                  className="mt-4 inline-flex w-full justify-center rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover"
+                  className="mt-5 inline-flex w-full justify-center rounded-xl bg-cn-orange py-2.5 text-sm font-bold text-white transition hover:bg-cn-orange-hover"
                 >
                   Enroll free
                 </Link>

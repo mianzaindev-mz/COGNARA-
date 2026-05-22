@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme/theme-provider";
 import { CognaraLogo } from "@/components/shared/cognara-logo";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -14,6 +14,7 @@ const nav = [
   { href: "/admin/courses",   label: "Courses",   icon: "menu_book" },
   { href: "/admin/agent",     label: "Agent",     icon: "magic_button" },
   { href: "/admin/reports",   label: "Reports",   icon: "bar_chart" },
+  { href: "/admin/security",  label: "Security",  icon: "shield" },
   { href: "/admin/support",   label: "Support",   icon: "support_agent" },
 ] as const;
 
@@ -24,6 +25,7 @@ type AdminShellProps = {
 
 export function AdminShell({ displayName, children }: AdminShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const initials = displayName
     .split(/\s+/)
@@ -34,6 +36,7 @@ export function AdminShell({ displayName, children }: AdminShellProps) {
 
   const [signingOut, setSigningOut] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const notifRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAllAsRead, loading } = useNotifications();
 
@@ -66,10 +69,6 @@ export function AdminShell({ displayName, children }: AdminShellProps) {
 
   return (
     <div className={`admin-theme ${theme} min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)] font-sans selection:bg-[#dc143c]/30 selection:text-white transition-colors duration-300`}>
-      {/* Dynamic Font and Icon sheets loading */}
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-
       {/* Side Navigation Sidebar */}
       <aside
         id="sidebar"
@@ -151,16 +150,27 @@ export function AdminShell({ displayName, children }: AdminShellProps) {
         </div>
 
         <div className="flex items-center gap-10">
-          <div className="relative group/search">
+          <form
+            className="relative group/search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const q = searchQuery.trim();
+              if (!q) return;
+              router.push(`/admin/users?search=${encodeURIComponent(q)}`);
+              setSearchQuery("");
+            }}
+          >
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-card-text-subtle)] group-hover/search:text-[#dc143c] text-lg transition-colors">
               search
             </span>
             <input
-              type="text"
-              placeholder="Search systems..."
+              type="search"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="bg-[var(--admin-input-bg)] border border-[var(--admin-input-border)] rounded-full pl-11 pr-6 py-2 text-sm w-56 focus:w-72 focus:border-[var(--admin-input-focus-border)] focus:bg-[var(--admin-input-focus-bg)] transition-all outline-none text-[var(--admin-card-text-primary)] placeholder-[var(--admin-card-text-subtle)]"
             />
-          </div>
+          </form>
 
           <div className="flex items-center gap-6">
             <button

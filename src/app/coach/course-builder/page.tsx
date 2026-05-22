@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, DragEvent } from "react";
+import { useState, useEffect, useCallback, DragEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import * as THREE from "three";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 // --- Types ---
@@ -127,7 +126,7 @@ export default function CourseBuilderPage() {
   const [confirmModalDesc, setConfirmModalDesc] = useState("");
   const [confirmWord, setConfirmWord] = useState<string | undefined>(undefined);
 
-  // 3D Pathway Map Data
+  // Motion pathway map data
   const [chapters, setChapters] = useState<ChapterNode[]>([]);
   const [lessons, setLessons] = useState<LessonNode[]>([]);
   const [activeChapter, setActiveChapter] = useState<ChapterNode | null>(null);
@@ -141,14 +140,6 @@ export default function CourseBuilderPage() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [draggingNew, setDraggingNew] = useState<BlockType | null>(null);
   const [draggingBlock, setDraggingBlock] = useState<string | null>(null);
-
-  // Ref container for Three.js canvas
-  const mountRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const meshesRef = useRef<Record<string, THREE.Object3D>>({});
-  const selectedNodeRef = useRef<string | null>(null);
 
   // --- Fetch Courses ---
   const loadCourses = async () => {
@@ -284,7 +275,7 @@ export default function CourseBuilderPage() {
     }
   };
 
-  // --- Open 3D Map ---
+  // --- Open Path Map ---
   const handleOpenPathway = async (course: CourseItem) => {
     setSelectedCourse(course);
     setView("pathway");
@@ -498,342 +489,6 @@ export default function CourseBuilderPage() {
     }
   };
 
-  // --- Three.js Game World Render Hook ---
-  useEffect(() => {
-    if (view !== "pathway" || !mountRef.current) return;
-
-    // 1. Setup Scene, Camera, Renderer
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
-    
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x07040f);
-    scene.fog = new THREE.FogExp2(0x07040f, 0.015);
-    sceneRef.current = scene;
-
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-    // Bird's eye angled look
-    camera.position.set(0, 20, 20);
-    camera.lookAt(0, 0, 0);
-    cameraRef.current = camera;
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setSize(width, height);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    mountRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
-
-    // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0x221a3a, 1.2);
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0x8a5cf5, 2.0);
-    dirLight.position.set(10, 30, 15);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.bias = -0.001;
-    scene.add(dirLight);
-
-    // Glowing point lights
-    const mapLight = new THREE.PointLight(0xff5500, 2, 20);
-    mapLight.position.set(0, 2, 0);
-    scene.add(mapLight);
-
-    // 3. Grid & Atmospheric Star System
-    const gridHelper = new THREE.GridHelper(60, 60, 0x1f1938, 0x130e28);
-    gridHelper.position.y = -0.5;
-    scene.add(gridHelper);
-
-    const groundGeo = new THREE.PlaneGeometry(120, 120);
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x080613,
-      roughness: 0.95,
-      metalness: 0.05,
-      transparent: true,
-      opacity: 0.95,
-      side: THREE.DoubleSide
-    });
-    const groundPlane = new THREE.Mesh(groundGeo, groundMat);
-    groundPlane.rotation.x = -Math.PI / 2;
-    groundPlane.position.y = -0.72;
-    groundPlane.receiveShadow = true;
-    scene.add(groundPlane);
-
-    const centerGlow = new THREE.RingGeometry(9, 9.8, 64);
-    const centerGlowMat = new THREE.MeshBasicMaterial({
-      color: 0x7c3aed,
-      transparent: true,
-      opacity: 0.18,
-      side: THREE.DoubleSide
-    });
-    const centerGlowMesh = new THREE.Mesh(centerGlow, centerGlowMat);
-    centerGlowMesh.rotation.x = -Math.PI / 2;
-    centerGlowMesh.position.y = -0.7;
-    scene.add(centerGlowMesh);
-
-    // Stars particle system
-    const starsGeom = new THREE.BufferGeometry();
-    const starsCount = 1500;
-    const starPositions = new Float32Array(starsCount * 3);
-    for (let i = 0; i < starsCount * 3; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 160;
-      starPositions[i + 1] = Math.random() * 80 + 10;
-      starPositions[i + 2] = (Math.random() - 0.5) * 160;
-    }
-    starsGeom.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    const starsMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.15,
-      transparent: true,
-      opacity: 0.75
-    });
-    const starField = new THREE.Points(starsGeom, starsMat);
-    scene.add(starField);
-
-    // 4. Render Chapters & Lessons
-    meshesRef.current = {};
-    const glowRings: Record<string, THREE.Mesh> = {};
-
-    // Draw lines/energy beams connecting chapters
-    const lineMat = new THREE.LineDashedMaterial({ color: 0x818cf8, dashSize: 1.2, gapSize: 0.6, transparent: true, opacity: 0.9 });
-    for (let i = 0; i < chapters.length - 1; i++) {
-      const start = chapters[i];
-      const end = chapters[i + 1];
-      const points = [
-        new THREE.Vector3(start.x, start.y + 0.2, start.z),
-        new THREE.Vector3((start.x + end.x) / 2, Math.max(start.y, end.y) + 3.5, (start.z + end.z) / 2),
-        new THREE.Vector3(end.x, end.y + 0.2, end.z),
-      ];
-      const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-      const energyLine = new THREE.Line(lineGeom, lineMat);
-      energyLine.computeLineDistances();
-      scene.add(energyLine);
-
-      const beamGeom = new THREE.CylinderGeometry(0.05, 0.05, points[0].distanceTo(points[2]), 12);
-      const beamMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.18 });
-      const beam = new THREE.Mesh(beamGeom, beamMat);
-      beam.position.copy(new THREE.Vector3((start.x + end.x) / 2, Math.max(start.y, end.y) + 1.7, (start.z + end.z) / 2));
-      beam.lookAt(new THREE.Vector3(end.x, end.y + 0.2, end.z));
-      beam.rotateX(Math.PI / 2);
-      scene.add(beam);
-    }
-
-    chapters.forEach((ch, idx) => {
-      const geom = new THREE.CylinderGeometry(2.2, 2.8, 0.9, 8);
-      const isLocked = simulationMode === "preview" && ch.locked;
-
-      const mat = new THREE.MeshStandardMaterial({
-        color: isLocked ? 0x292529 : idx === 0 ? 0xff6d00 : idx === 1 ? 0x8b5cf6 : 0x22d3ee,
-        roughness: 0.25,
-        metalness: 0.18,
-        emissive: isLocked ? 0x06040b : idx === 0 ? 0xff6d00 : idx === 1 ? 0x8b5cf6 : 0x22d3ee,
-        emissiveIntensity: isLocked ? 0.15 : 0.3
-      });
-
-      const island = new THREE.Mesh(geom, mat);
-      island.position.set(ch.x, ch.y, ch.z);
-      island.castShadow = true;
-      island.receiveShadow = true;
-      island.name = ch.id;
-      scene.add(island);
-      meshesRef.current[ch.id] = island;
-
-      const ringGeom = new THREE.RingGeometry(2.3, 2.8, 64);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: idx === 0 ? 0xffb347 : idx === 1 ? 0xbf94ff : 0x56d1ff,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.7
-      });
-      const glowRing = new THREE.Mesh(ringGeom, ringMat);
-      glowRing.rotation.x = Math.PI / 2;
-      glowRing.position.y = -0.42;
-      glowRing.name = `${ch.id}-ring`;
-      island.add(glowRing);
-      glowRings[ch.id] = glowRing;
-
-      if (ch.wallType !== "none") {
-        if (ch.wallType === "cloud") {
-          const cloudGroup = new THREE.Group();
-          const cloudMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.35, roughness: 0.9 });
-          for (let c = 0; c < 4; c++) {
-            const ballGeom = new THREE.SphereGeometry(0.7 + Math.random() * 0.3, 8, 8);
-            const ball = new THREE.Mesh(ballGeom, cloudMat);
-            ball.position.set((Math.random() - 0.5) * 2.4, 0.5, (Math.random() - 0.5) * 2.4);
-            cloudGroup.add(ball);
-          }
-          cloudGroup.position.set(ch.x - 3.2, ch.y + 0.3, ch.z - 1.2);
-          scene.add(cloudGroup);
-        } else {
-          const wallGeom = new THREE.BoxGeometry(4.2, 2.2, 0.55);
-          const wallMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.85, metalness: 0.05 });
-          const wall = new THREE.Mesh(wallGeom, wallMat);
-          wall.position.set(ch.x - 3.2, ch.y + 0.9, ch.z - 1.2);
-          wall.castShadow = true;
-          scene.add(wall);
-        }
-
-        if (isLocked) {
-          const lockGeom = new THREE.TorusGeometry(0.35, 0.12, 8, 24);
-          const lockMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.55 });
-          const lockMesh = new THREE.Mesh(lockGeom, lockMat);
-          lockMesh.position.set(ch.x - 3.2, ch.y + 2.0, ch.z - 1.2);
-          scene.add(lockMesh);
-        }
-      }
-
-      const chapterLessons = lessons.filter(l => l.chapterId === ch.id);
-      chapterLessons.forEach((les, lesIdx) => {
-        const theta = (lesIdx / Math.max(chapterLessons.length, 1)) * Math.PI * 2;
-        const radius = 1.6;
-        const lx = Math.cos(theta) * radius;
-        const lz = Math.sin(theta) * radius;
-
-        const lesLocked = simulationMode === "preview" && les.locked;
-        const orbGeom = new THREE.SphereGeometry(0.35, 18, 18);
-        const orbMat = new THREE.MeshStandardMaterial({
-          color: lesLocked ? 0x52525b : 0x22c55e,
-          roughness: 0.15,
-          metalness: 0.85,
-          emissive: lesLocked ? 0x0a0a0a : 0x22c55e,
-          emissiveIntensity: 0.85
-        });
-
-        const orb = new THREE.Mesh(orbGeom, orbMat);
-        orb.position.set(ch.x + lx, ch.y + 0.9, ch.z + lz);
-        orb.name = `lesson:${les.id}`;
-        scene.add(orb);
-      });
-    });
-
-    // 5. Animation Render Loop
-    const clock = new THREE.Clock();
-    let animId: number;
-
-    const animate = () => {
-      animId = requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
-
-      Object.keys(meshesRef.current).forEach((key, idx) => {
-        const mesh = meshesRef.current[key];
-        const chapter = chapters[idx];
-        mesh.position.y = chapter.y + Math.sin(elapsed * 1.5 + idx) * 0.18;
-        mesh.rotation.y = elapsed * 0.08 + idx * 0.12;
-      });
-
-      Object.entries(glowRings).forEach(([key, ring]) => {
-        const isSelected = selectedNodeRef.current === key;
-        const targetScale = isSelected ? 1.15 + Math.sin(elapsed * 2) * 0.04 : 1;
-        ring.scale.setScalar(targetScale);
-        (ring.material as THREE.MeshBasicMaterial).opacity = isSelected ? 0.92 : 0.72;
-      });
-
-      if (!selectedNodeRef.current) {
-        const orbitRadius = 24;
-        camera.position.x = Math.cos(elapsed * 0.12) * orbitRadius;
-        camera.position.z = Math.sin(elapsed * 0.12) * orbitRadius;
-        camera.lookAt(0, 0, 0);
-      }
-
-      starField.rotation.y = elapsed * 0.006;
-      centerGlowMesh.rotation.z = elapsed * 0.1;
-
-      renderer.render(scene, camera);
-    };
-    void animate();
-
-    // 6. Interaction Raycasting (Click handling & dragging)
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    const handleCanvasClick = (e: MouseEvent) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / height) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(scene.children, true);
-
-      if (intersects.length > 0) {
-        let hitObject = intersects[0].object;
-        
-        // Traverse up to find parent if clicked child component
-        while (hitObject.parent && hitObject.parent !== scene && !hitObject.name) {
-          hitObject = hitObject.parent as THREE.Object3D;
-        }
-
-        const name = hitObject.name;
-        if (!name) return;
-
-        // Lesson click check
-        if (name.startsWith("lesson:")) {
-          const lessonId = name.replace("lesson:", "");
-          const targetLesson = lessons.find(l => l.id === lessonId);
-          if (targetLesson) {
-            // Check Lock
-            if (simulationMode === "preview" && targetLesson.locked) {
-              alert("This lesson node is currently locked! Complete the previous lesson platform first.");
-              return;
-            }
-            void handleOpenLesson(targetLesson);
-          }
-        } else {
-          // Chapter node click zoom fly-in
-          const targetCh = chapters.find(c => c.id === name);
-          if (targetCh) {
-            if (simulationMode === "preview" && targetCh.locked) {
-              alert("This chapter platform is locked by a physical barrier cloud/wall.");
-              return;
-            }
-
-            setActiveChapter(targetCh);
-            selectedNodeRef.current = targetCh.id;
-
-            // Camera Fly-In Zoom transition
-            const targetPos = new THREE.Vector3(targetCh.x, targetCh.y + 4.5, targetCh.z + 5.5);
-            
-            // Fast slide animation
-            let progress = 0;
-            const camFly = () => {
-              if (progress < 1) {
-                progress += 0.08;
-                camera.position.lerp(targetPos, 0.15);
-                camera.lookAt(targetCh.x, targetCh.y, targetCh.z);
-                requestAnimationFrame(camFly);
-              }
-            };
-            void camFly();
-          }
-        }
-      }
-    };
-
-    renderer.domElement.addEventListener("click", handleCanvasClick);
-
-    // Resize Handler
-    const handleResize = () => {
-      if (!mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener("resize", handleResize);
-
-    // Cleanup
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener("resize", handleResize);
-      if (renderer.domElement && renderer.domElement.parentNode) {
-        renderer.domElement.parentNode.removeChild(renderer.domElement);
-      }
-      renderer.dispose();
-    };
-  }, [view, chapters, lessons, simulationMode, handleOpenLesson]);
-
   // --- Add Chapter Node ---
   const handleAddChapterNode = () => {
     const nextId = `ch-${chapters.length + 1}`;
@@ -1019,8 +674,6 @@ export default function CourseBuilderPage() {
     if (selectedBlockId === id) setSelectedBlockId(null);
   };
 
-  const selectedBlock = blocks.find((block) => block.id === selectedBlockId) ?? null;
-
   return (
     <div className="min-h-screen bg-[#07040f] text-white flex flex-col font-sans">
       {/* Visual Navigation Bar */}
@@ -1030,7 +683,7 @@ export default function CourseBuilderPage() {
             COGNARA CREATOR™
           </span>
           <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-[10px] font-bold text-violet-400 border border-violet-500/35 uppercase">
-            3D Platform
+            Motion Pathway
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -1057,7 +710,7 @@ export default function CourseBuilderPage() {
           <section className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white">Course Pathway Builder</h1>
-              <p className="mt-1 text-sm text-gray-400">Design dynamic 3D paths, chapter lock gates, and lesson content modules.</p>
+              <p className="mt-1 text-sm text-gray-400">Design dynamic course paths, chapter lock gates, and lesson content modules.</p>
             </div>
             <button
               onClick={() => setCreateOpen(true)}
@@ -1075,7 +728,7 @@ export default function CourseBuilderPage() {
           ) : courses.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#221740] bg-[#0c081d] py-16 text-center">
               <h2 className="text-lg font-bold text-white">No builder courses</h2>
-              <p className="mt-1 text-sm text-gray-400 max-w-sm">Create a course above to initialize the 3D map environment.</p>
+              <p className="mt-1 text-sm text-gray-400 max-w-sm">Create a course above to initialize the motion map workspace.</p>
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -1104,7 +757,7 @@ export default function CourseBuilderPage() {
                       onClick={() => handleOpenPathway(course)}
                       className="flex-1 rounded-xl bg-violet-600/80 py-2.5 text-xs font-bold text-white hover:bg-violet-700 transition"
                     >
-                      3D Map →
+                      Path Map →
                     </button>
                     <button
                       onClick={() => openEditCourseModal(course)}
@@ -1139,7 +792,7 @@ export default function CourseBuilderPage() {
                       required
                       minLength={5}
                       maxLength={200}
-                      placeholder="e.g. Intro to 3D Shader Math"
+                      placeholder="e.g. Intro to Algorithm Design"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
@@ -1196,7 +849,7 @@ export default function CourseBuilderPage() {
                       required
                       minLength={5}
                       maxLength={200}
-                      placeholder="e.g. Intro to 3D Shader Math"
+                      placeholder="e.g. Intro to Algorithm Design"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       className="w-full rounded-xl border border-[#221740] bg-[#120c2b] px-4 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
@@ -1332,17 +985,98 @@ export default function CourseBuilderPage() {
         </main>
       )}
 
-      {/* --- LAYER 2: 3D PATHWAY MAP VIEW --- */}
+      {/* --- LAYER 2: 2D MOTION PATHWAY MAP VIEW --- */}
       {view === "pathway" && selectedCourse && (
-        <main className="flex-1 flex relative overflow-hidden">
-          {/* Three.js canvas mount wrapper */}
-          <div ref={mountRef} className="absolute inset-0 z-0" />
+        <main className="flex-1 flex relative overflow-hidden bg-[#07040f]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_56%_42%,rgba(124,58,237,.22),transparent_34%),linear-gradient(135deg,#0b0718,#030107_70%)]" />
+          <div
+            className="absolute left-1/2 top-[54%] h-[92%] w-[118%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-violet-300/10 bg-[linear-gradient(rgba(139,92,246,.14)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,.14)_1px,transparent_1px)] bg-[size:38px_38px] opacity-70"
+            style={{ transform: "translate(-50%, -50%) perspective(1000px) rotateX(64deg) rotateZ(-10deg)" }}
+          />
+          <svg className="absolute inset-0 h-full w-full opacity-90" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M245 365 C 350 250, 490 425, 585 300 S 725 205, 835 260" fill="none" stroke="rgba(124,58,237,.22)" strokeWidth="58" strokeLinecap="round" />
+            <path d="M245 365 C 350 250, 490 425, 585 300 S 725 205, 835 260" fill="none" stroke="rgba(165,180,252,.55)" strokeWidth="4" strokeDasharray="22 18" strokeLinecap="round" />
+          </svg>
+
+          <div className="absolute inset-0 z-0">
+            {chapters.map((ch, idx) => {
+              const x = 28 + idx * 25 + ch.x * 0.45;
+              const y = 60 - idx * 13 - ch.z * 0.7;
+              const isLocked = simulationMode === "preview" && ch.locked;
+              const colors = ["from-orange-500 to-amber-600", "from-violet-500 to-indigo-600", "from-cyan-500 to-sky-700"];
+              const chapterLessons = lessons.filter((item) => item.chapterId === ch.id);
+
+              return (
+                <div
+                  key={ch.id}
+                  className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+                  style={{ left: `${Math.max(18, Math.min(82, x))}%`, top: `${Math.max(18, Math.min(76, y))}%` }}
+                >
+                  {ch.wallType === "cloud" && (
+                    <div className="absolute -left-16 top-4 h-12 w-24 rounded-full bg-white/10 blur-sm" />
+                  )}
+                  {ch.wallType === "wall" && (
+                    <div className="absolute -left-12 top-7 h-20 w-8 rotate-12 rounded-md bg-slate-600/60 shadow-xl" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isLocked) {
+                        alert("This chapter platform is locked by a barrier.");
+                        return;
+                      }
+                      setActiveChapter(ch);
+                    }}
+                    className={`group relative grid h-32 w-44 place-items-center rounded-[52%_48%_46%_54%] border transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] ${
+                      isLocked
+                        ? "border-white/10 bg-neutral-800 opacity-60"
+                        : `border-white/20 bg-gradient-to-br ${colors[idx % colors.length]} shadow-[0_26px_50px_rgba(0,0,0,.45)]`
+                    }`}
+                    style={{ transform: "perspective(480px) rotateX(56deg) rotateZ(-8deg)" }}
+                  >
+                    <span className="absolute -inset-2 rounded-[50%] border-4 border-violet-400/20 opacity-70" />
+                    <span className="relative z-10 text-xs font-black text-white" style={{ transform: "rotateZ(8deg) rotateX(-34deg)" }}>
+                      {isLocked ? "LOCKED" : `CH ${idx + 1}`}
+                    </span>
+                  </button>
+                  <div className="mt-3 max-w-44 rounded-2xl border border-white/10 bg-black/55 px-3 py-2 text-center shadow-xl backdrop-blur">
+                    <p className="line-clamp-1 text-xs font-black text-white">{ch.title}</p>
+                    <p className="mt-1 text-[10px] text-white/50">{chapterLessons.length} lessons</p>
+                  </div>
+                  <div className="absolute -top-2 left-1/2 flex -translate-x-1/2 gap-3">
+                    {chapterLessons.slice(0, 4).map((item, lessonIndex) => {
+                      const locked = simulationMode === "preview" && item.locked;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (locked) {
+                              alert("This lesson node is currently locked.");
+                              return;
+                            }
+                            void handleOpenLesson(item);
+                          }}
+                          className={`h-5 w-5 rounded-full border shadow-lg transition hover:scale-125 ${
+                            locked ? "border-white/10 bg-zinc-500" : "border-emerald-200 bg-emerald-500"
+                          }`}
+                          title={item.title}
+                          style={{ transform: `translateY(${lessonIndex % 2 ? 14 : 0}px)` }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Overlays / Control Panel */}
           <div className="absolute top-4 left-4 z-10 flex flex-col gap-3 max-w-xs w-full pointer-events-auto">
             <div className="rounded-2xl border border-[#221740] bg-[#0c081d]/85 backdrop-blur-md p-4 shadow-xl">
               <h2 className="text-sm font-bold text-white truncate">{selectedCourse.title}</h2>
-              <p className="text-[10px] text-gray-400 mt-0.5">Click chapter platform to view nested lesson nodes.</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Click a platform to view nested lesson nodes.</p>
 
               {/* Simulation Toggler */}
               <div className="mt-4 flex rounded-xl bg-[#120c2b] p-1 border border-[#221740]">
