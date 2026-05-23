@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AgentFloatingButton } from "@/components/student/agent-floating-button";
 
 export default async function AdminLayout({
   children,
@@ -36,8 +37,11 @@ export default async function AdminLayout({
     "Admin";
 
   return (
-    <AdminShell displayName={displayName}>
-      {children}
-    </AdminShell>
+    <>
+      <AdminShell displayName={displayName}>
+        {children}
+      </AdminShell>
+      <AgentFloatingButton userId={user.id} audience="admin" />
+    </>
   );
 }

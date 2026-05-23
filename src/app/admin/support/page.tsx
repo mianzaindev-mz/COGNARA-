@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { IconTicket } from "@/components/ui/icons";
+import { useToast } from "@/components/ui/toast-provider";
 import { decideTicketAiReview, getTickets, reviewTicketWithAgent, updateTicketStatus } from "./actions";
 
 type TicketItem = {
@@ -39,6 +40,7 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function AdminSupportPage() {
+  const { notify } = useToast();
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,8 @@ export default function AdminSupportPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [decisionDraft, setDecisionDraft] = useState<{ ticketId: string; decision: "approved" | "rejected" } | null>(null);
+  const [decisionReason, setDecisionReason] = useState("");
 
   const fetchTickets = async () => {
     try {
@@ -71,7 +75,7 @@ export default function AdminSupportPage() {
       // Optimistic update
       setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: newStatus } : t));
     } catch (err: any) {
-      alert(err.message || "Failed to update ticket status.");
+      notify({ tone: "error", title: "Status update failed", description: err.message || "Failed to update ticket status." });
     } finally {
       setActioningId(null);
     }
@@ -84,20 +88,31 @@ export default function AdminSupportPage() {
       const review = await reviewTicketWithAgent(ticketId);
       setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, ...review } : t));
     } catch (err: any) {
-      alert(err.message || "AI review failed.");
+      notify({ tone: "error", title: "AI review failed", description: err.message || "AI review failed." });
     } finally {
       setReviewingId(null);
     }
   };
 
   const handleAiDecision = async (ticketId: string, decision: "approved" | "rejected") => {
-    const reason = window.prompt(decision === "approved" ? "Approval reason for audit log:" : "Rejection reason for audit log:") ?? "";
-    if (!reason.trim()) return;
+    setDecisionDraft({ ticketId, decision });
+    setDecisionReason("");
+  };
+
+  const confirmAiDecision = async () => {
+    if (!decisionDraft || !decisionReason.trim()) return;
     try {
-      await decideTicketAiReview(ticketId, decision, reason);
-      setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, aiReviewStatus: decision } : t));
+      await decideTicketAiReview(decisionDraft.ticketId, decisionDraft.decision, decisionReason.trim());
+      setTickets(prev => prev.map(t => t.id === decisionDraft.ticketId ? { ...t, aiReviewStatus: decisionDraft.decision } : t));
+      notify({
+        tone: "success",
+        title: "AI decision saved",
+        description: "The admin approval decision was recorded for the audit log.",
+      });
+      setDecisionDraft(null);
+      setDecisionReason("");
     } catch (err: any) {
-      alert(err.message || "Failed to save AI review decision.");
+      notify({ tone: "error", title: "Decision failed", description: err.message || "Failed to save AI review decision." });
     }
   };
 
@@ -281,6 +296,43 @@ export default function AdminSupportPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {decisionDraft && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-2xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-500">Admin approval required</p>
+            <h2 className="mt-2 text-xl font-black text-cn-ink">
+              {decisionDraft.decision === "approved" ? "Approve AI Review" : "Reject AI Review"}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-cn-ink-muted">
+              Add a clear reason for the audit trail. The AI can recommend, but this action stays under admin control.
+            </p>
+            <textarea
+              value={decisionReason}
+              onChange={(e) => setDecisionReason(e.target.value)}
+              rows={4}
+              className="mt-4 w-full rounded-xl border border-cn-border bg-cn-canvas p-3 text-sm text-cn-ink outline-none focus:ring-2 focus:ring-indigo-500/30"
+              placeholder="Example: Evidence supports the report at 12:43 and 18:10; escalate to trust and safety."
+            />
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDecisionDraft(null)}
+                className="rounded-xl border border-cn-border px-4 py-2 text-sm font-bold text-cn-ink-muted hover:bg-cn-canvas"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmAiDecision()}
+                disabled={!decisionReason.trim()}
+                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Save Decision
+              </button>
+            </div>
           </div>
         </div>
       )}

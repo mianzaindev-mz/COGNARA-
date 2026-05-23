@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { NotebookPanel } from "@/components/notebook/NotebookPanel";
 import { createNotebookWithFirstPage } from "@/lib/notebook/create-notebook";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 type Notebook = {
   id: string;
@@ -49,6 +50,11 @@ export default function NotebookDashboard() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [deleteRequest, setDeleteRequest] = useState<{
+    kind: "notebook" | "page";
+    id: string;
+    title: string;
+  } | null>(null);
 
   // 1. Initial Load: Fetch current user & notebooks + pages
   useEffect(() => {
@@ -189,10 +195,13 @@ export default function NotebookDashboard() {
   }, []);
 
   const deleteNotebook = useCallback(async (id: string) => {
-    if (!confirm("Are you sure you want to delete this notebook? All pages inside it will be lost permanently.")) {
-      return;
-    }
-    
+    const notebook = notebooks.find((item) => item.id === id);
+    setDeleteRequest({ kind: "notebook", id, title: notebook?.title || "this notebook" });
+  }, [notebooks]);
+
+  const confirmDeleteNotebook = useCallback(async (id: string) => {
+    setDeleteRequest(null);
+
     // Optimistic update
     setNotebooks((prev) => prev.filter((n) => n.id !== id));
     setPages((prev) => prev.filter((p) => p.notebook_id !== id));
@@ -290,8 +299,13 @@ export default function NotebookDashboard() {
   }, []);
 
   const deletePage = useCallback(async (id: string) => {
-    if (!confirm("Delete this page?")) return;
-    
+    const page = pages.find((item) => item.id === id);
+    setDeleteRequest({ kind: "page", id, title: page?.title || "this page" });
+  }, [pages]);
+
+  const confirmDeletePage = useCallback(async (id: string) => {
+    setDeleteRequest(null);
+
     // Optimistic update
     setPages((prev) => prev.filter((p) => p.id !== id));
     if (activePageId === id) {
@@ -307,6 +321,15 @@ export default function NotebookDashboard() {
       console.error(e);
     }
   }, [activePageId]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteRequest) return;
+    if (deleteRequest.kind === "notebook") {
+      await confirmDeleteNotebook(deleteRequest.id);
+      return;
+    }
+    await confirmDeletePage(deleteRequest.id);
+  }, [confirmDeleteNotebook, confirmDeletePage, deleteRequest]);
 
   // Expand or collapse notebook pages in sidebar
   const toggleNotebookExpand = (id: string) => {
@@ -357,6 +380,19 @@ export default function NotebookDashboard() {
 
   return (
     <div className="flex gap-6 h-[calc(100vh-8.5rem)] relative overflow-hidden">
+      <DoubleConfirmModal
+        isOpen={Boolean(deleteRequest)}
+        onClose={() => setDeleteRequest(null)}
+        onConfirm={() => void confirmDelete()}
+        title={deleteRequest?.kind === "notebook" ? "Delete Notebook" : "Delete Page"}
+        description={
+          deleteRequest?.kind === "notebook"
+            ? `Delete "${deleteRequest.title}" and all pages inside it.`
+            : `Delete "${deleteRequest?.title || "this page"}" from your notebook.`
+        }
+        confirmWord="DELETE"
+        danger
+      />
       {/* ─── Sidebar: Notebooks & Pages Manager ────────────────────────── */}
       <aside className="w-80 shrink-0 flex flex-col border border-cn-border/50 bg-white/70 backdrop-blur-md rounded-[2rem] p-5 shadow-sm dark:bg-[#1a1816]/70 dark:border-stone-850 h-full overflow-hidden select-none">
         

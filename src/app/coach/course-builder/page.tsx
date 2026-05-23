@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, DragEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
+import { useToast } from "@/components/ui/toast-provider";
 
 // --- Types ---
 type CourseItem = {
@@ -97,6 +98,7 @@ export default function CourseBuilderPage() {
   const [courses, setCourses] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null);
+  const { notify } = useToast();
 
   // New Course Modal
   const [createOpen, setCreateOpen] = useState(false);
@@ -396,16 +398,26 @@ export default function CourseBuilderPage() {
       if (!supabase) return;
 
       // Update lesson table content
-      await supabase
+      const { error } = await supabase
         .from("lessons")
         .update({ content: JSON.stringify(blocks) })
         .eq("course_id", selectedCourse.id)
         .eq("title", activeLesson.title);
 
-      alert("Lesson content saved to cloud database!");
+      if (error) throw error;
+
+      notify({
+        title: "Lesson Saved",
+        description: "Lesson content saved to cloud database!",
+        tone: "success"
+      });
     } catch (err) {
       console.error(err);
-      alert("Failed to save lesson content.");
+      notify({
+        title: "Save Failed",
+        description: "Failed to save lesson content.",
+        tone: "error"
+      });
     } finally {
       setSavingBlock(false);
     }
@@ -462,7 +474,11 @@ export default function CourseBuilderPage() {
 
       if (error) throw error;
 
-      alert("Course details updated successfully!");
+      notify({
+        title: "Course Updated",
+        description: "Course details updated successfully!",
+        tone: "success"
+      });
       setEditCourseModalOpen(false);
       
       // Update local state if this was our currently selected course
@@ -483,7 +499,11 @@ export default function CourseBuilderPage() {
       void loadCourses();
     } catch (err) {
       console.error(err);
-      alert("Failed to update course details.");
+      notify({
+        title: "Update Failed",
+        description: "Failed to update course details.",
+        tone: "error"
+      });
     } finally {
       setSavingCourseDetails(false);
     }
@@ -1022,7 +1042,11 @@ export default function CourseBuilderPage() {
                     type="button"
                     onClick={() => {
                       if (isLocked) {
-                        alert("This chapter platform is locked by a barrier.");
+                        notify({
+                          title: "Chapter Locked",
+                          description: "This chapter platform is locked by a barrier.",
+                          tone: "warning"
+                        });
                         return;
                       }
                       setActiveChapter(ch);
@@ -1053,7 +1077,11 @@ export default function CourseBuilderPage() {
                           onClick={(event) => {
                             event.stopPropagation();
                             if (locked) {
-                              alert("This lesson node is currently locked.");
+                              notify({
+                                title: "Lesson Locked",
+                                description: "This lesson node is currently locked.",
+                                tone: "warning"
+                              });
                               return;
                             }
                             void handleOpenLesson(item);

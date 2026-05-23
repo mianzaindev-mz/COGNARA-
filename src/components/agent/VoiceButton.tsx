@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 type VoiceState = "idle" | "listening" | "processing" | "speaking";
 type VoiceLang = "en" | "ur";
@@ -25,6 +26,7 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
   const [lang, setLang] = useState<VoiceLang>("en");
   const recognitionRef = useRef<any>(null);
   const latestTranscript = useRef("");
+  const { notify } = useToast();
 
   useEffect(() => {
     latestTranscript.current = transcript;
@@ -104,7 +106,10 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
     window.speechSynthesis?.cancel();
 
     const recognition = new SR();
-    recognition.lang = lang === "ur" ? "ur-PK" : "en-US";
+    // ur-PK is not supported by most browsers' SpeechRecognition.
+    // Use hi-IN (Hindi) as the recognition language for Urdu — phonetically close
+    // and widely supported by Chrome/Edge. TTS output still uses ur-PK.
+    recognition.lang = lang === "ur" ? "hi-IN" : "en-US";
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
@@ -149,13 +154,62 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
     };
 
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
+      const errorCode = event.error as string;
       setState("idle");
+
+      switch (errorCode) {
+        case "not-allowed":
+          notify({
+            tone: "error",
+            title: "Microphone blocked",
+            description: "Allow microphone access in your browser settings, then try again.",
+          });
+          break;
+        case "no-speech":
+          notify({
+            tone: "info",
+            title: "No speech detected",
+            description: "Tap the mic and speak clearly.",
+          });
+          break;
+        case "network":
+          notify({
+            tone: "error",
+            title: "Network error",
+            description: "Speech recognition requires an internet connection.",
+          });
+          break;
+        case "language-not-supported":
+          notify({
+            tone: "warning",
+            title: "Language not supported",
+            description: `Your browser doesn't support ${lang === "ur" ? "Urdu/Hindi" : "English"} speech recognition. Switching to English.`,
+          });
+          setLang("en");
+          break;
+        default:
+          notify({
+            tone: "error",
+            title: "Voice error",
+            description: `Speech recognition failed: ${errorCode}`,
+          });
+      }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
-  }, [state, disabled, onTranscript, lang, onLanguageChange]);
+
+    try {
+      recognition.start();
+    } catch {
+      // Handle the case where recognition.start() throws (e.g. already started)
+      setState("idle");
+      notify({
+        tone: "error",
+        title: "Voice error",
+        description: "Could not start speech recognition. Please try again.",
+      });
+    }
+  }, [state, disabled, onTranscript, lang, onLanguageChange, notify]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();

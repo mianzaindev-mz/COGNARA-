@@ -48,7 +48,7 @@ export default async function StudentPortalLayout({
       >
         {children}
       </StudentShell>
-      <AgentFloatingButton />
+      <AgentFloatingButton userId={user.id} audience="student" />
     </>
   );
 }

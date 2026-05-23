@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconClipboard, IconSparkle, IconTrash, IconEye, IconPlus } from "@/components/ui/icons";
+import { useToast } from "@/components/ui/toast-provider";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 type Option = {
   id?: string;
@@ -57,6 +59,8 @@ export default function CoachQuizzesPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [quizToDelete, setQuizToDelete] = useState<string | null>(null);
+  const { notify } = useToast();
 
   // Selected entities
   const [previewQuiz, setPreviewQuiz] = useState<Quiz | null>(null);
@@ -266,8 +270,22 @@ export default function CoachQuizzesPage() {
   // Save manual quiz to database
   const handleSaveQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) { alert("Please provide a quiz title."); return; }
-    if (formQuestions.length === 0) { alert("Please add at least one question."); return; }
+    if (!newTitle.trim()) {
+      notify({
+        title: "Required Field",
+        description: "Please provide a quiz title.",
+        tone: "warning"
+      });
+      return;
+    }
+    if (formQuestions.length === 0) {
+      notify({
+        title: "Incomplete Quiz",
+        description: "Please add at least one question.",
+        tone: "warning"
+      });
+      return;
+    }
 
     const invalidQuestion = formQuestions.some(q => {
       if (!q.text.trim()) return true;
@@ -277,7 +295,11 @@ export default function CoachQuizzesPage() {
       return false;
     });
     if (invalidQuestion) {
-      alert("Please fill in all question texts and option labels.");
+      notify({
+        title: "Incomplete Questions",
+        description: "Please fill in all question texts and option labels.",
+        tone: "warning"
+      });
       return;
     }
 
@@ -341,7 +363,11 @@ export default function CoachQuizzesPage() {
         }
       }
 
-      alert("Quiz created successfully!");
+      notify({
+        title: "Quiz Created",
+        description: "Quiz created successfully!",
+        tone: "success"
+      });
       setCreateModalOpen(false);
       // Reset form
       setNewTitle("");
@@ -356,7 +382,11 @@ export default function CoachQuizzesPage() {
       void fetchQuizzesAndMeta();
 
     } catch (err: any) {
-      alert(err.message || "Failed to create quiz.");
+      notify({
+        title: "Creation Failed",
+        description: err.message || "Failed to create quiz.",
+        tone: "error"
+      });
     } finally {
       setSavingQuiz(false);
     }
@@ -365,7 +395,14 @@ export default function CoachQuizzesPage() {
   // AI generate request handler
   const handleAIGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aiTopic.trim()) { alert("Please provide a topic."); return; }
+    if (!aiTopic.trim()) {
+      notify({
+        title: "Required Field",
+        description: "Please provide a topic.",
+        tone: "warning"
+      });
+      return;
+    }
 
     setGenerating(true);
     setGeneratedPreview(null);
@@ -398,7 +435,11 @@ export default function CoachQuizzesPage() {
       });
 
     } catch (err: any) {
-      alert(err.message || "Failed to generate AI quiz.");
+      notify({
+        title: "Generation Failed",
+        description: err.message || "Failed to generate AI quiz.",
+        tone: "error"
+      });
     } finally {
       setGenerating(false);
     }
@@ -467,7 +508,11 @@ export default function CoachQuizzesPage() {
         }
       }
 
-      alert("AI Quiz accepted and saved successfully!");
+      notify({
+        title: "Quiz Saved",
+        description: "AI Quiz accepted and saved successfully!",
+        tone: "success"
+      });
       setAiModalOpen(false);
       setAiTopic("");
       setGeneratedPreview(null);
@@ -478,15 +523,25 @@ export default function CoachQuizzesPage() {
       void fetchQuizzesAndMeta();
 
     } catch (err: any) {
-      alert(err.message || "Failed to save AI Generated quiz.");
+      notify({
+        title: "Save Failed",
+        description: err.message || "Failed to save AI Generated quiz.",
+        tone: "error"
+      });
     } finally {
       setSavingQuiz(false);
     }
   };
 
   // Delete Quiz
-  const handleDeleteQuiz = async (quizId: string) => {
-    if (!confirm("Are you sure you want to delete this quiz? All nested questions and student attempts will be deleted permanently.")) return;
+  const handleDeleteQuiz = (quizId: string) => {
+    setQuizToDelete(quizId);
+  };
+
+  const handleConfirmDeleteQuiz = async () => {
+    if (!quizToDelete) return;
+    const targetId = quizToDelete;
+    setQuizToDelete(null);
 
     try {
       const supabase = createClient();
@@ -495,15 +550,23 @@ export default function CoachQuizzesPage() {
       const { error } = await supabase
         .from("quizzes")
         .delete()
-        .eq("id", quizId);
+        .eq("id", targetId);
 
       if (error) throw error;
 
-      alert("Quiz deleted successfully!");
-      setQuizzes(quizzes.filter(q => q.id !== quizId));
+      notify({
+        title: "Quiz Deleted",
+        description: "Quiz deleted successfully!",
+        tone: "success"
+      });
+      setQuizzes(quizzes.filter(q => q.id !== targetId));
 
     } catch (err: any) {
-      alert(err.message || "Failed to delete quiz.");
+      notify({
+        title: "Deletion Failed",
+        description: err.message || "Failed to delete quiz.",
+        tone: "error"
+      });
     }
   };
 
@@ -1156,6 +1219,15 @@ export default function CoachQuizzesPage() {
           </div>
         </div>
       )}
+      <DoubleConfirmModal
+        isOpen={!!quizToDelete}
+        onClose={() => setQuizToDelete(null)}
+        onConfirm={handleConfirmDeleteQuiz}
+        title="Delete Quiz"
+        description="Are you sure you want to delete this quiz? All nested questions and student attempts will be deleted permanently."
+        actionButtonText="Delete Quiz"
+        danger={true}
+      />
     </div>
   );
 }

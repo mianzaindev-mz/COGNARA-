@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { CoachShell } from "@/components/coach/coach-shell";
+import { AgentFloatingButton } from "@/components/student/agent-floating-button";
 
 export default async function CoachLayout({
   children,
@@ -49,11 +50,14 @@ export default async function CoachLayout({
   );
 
   return (
-    <CoachShell
-      displayName={displayName}
-      monthlyEarnings={monthlyEarnings}
-    >
-      {children}
-    </CoachShell>
+    <>
+      <CoachShell
+        displayName={displayName}
+        monthlyEarnings={monthlyEarnings}
+      >
+        {children}
+      </CoachShell>
+      <AgentFloatingButton userId={user.id} audience="coach" />
+    </>
   );
 }

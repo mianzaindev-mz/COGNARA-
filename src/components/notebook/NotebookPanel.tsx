@@ -6,6 +6,7 @@ import { CanvasStroke, CanvasAnnotation, FreehandCanvas } from "./FreehandCanvas
 import { AIAssistantPanel } from "./AIAssistantPanel";
 import { createClient } from "@/lib/supabase/client";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface NotebookPanelProps {
   studentId: string;
@@ -37,6 +38,7 @@ export function NotebookPanel({
   selectedPageId,
   videoPlayer,
 }: NotebookPanelProps) {
+  const { notify } = useToast();
   // Tabs State
   const [activeTab, setActiveTab] = useState<"modular" | "freehand" | "assistant" | "history">("modular");
   
@@ -419,7 +421,11 @@ export function NotebookPanel({
   const exportAsPNG = () => {
     const canvas = document.querySelector("canvas");
     if (!canvas) {
-      alert("No active canvas found to export. Draw in Freehand Canvas mode first.");
+      notify({
+        tone: "warning",
+        title: "No freehand canvas found",
+        description: "Switch to Freehand Canvas and draw something before exporting PNG.",
+      });
       return;
     }
     const url = canvas.toDataURL("image/png");
@@ -429,11 +435,57 @@ export function NotebookPanel({
     a.click();
   };
 
-  const shareNote = () => {
+  const shareNote = async () => {
     if (!pageId) return;
-    const shareUrl = `${window.location.origin}/notebook/shared/${pageId}`;
-    navigator.clipboard.writeText(shareUrl);
-    alert("🚀 Shared link copied to clipboard! Anyone enrolled in this course can view your notes canvas.");
+    try {
+      const supabase = createClient();
+      if (!supabase) {
+        notify({
+          tone: "error",
+          title: "Sharing unavailable",
+          description: "Connect Supabase before creating notebook share links.",
+        });
+        return;
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        notify({
+          tone: "error",
+          title: "Sign in required",
+          description: "Please sign in again before creating a private share link.",
+        });
+        return;
+      }
+
+      const token =
+        crypto.randomUUID().replace(/-/g, "") +
+        Math.random().toString(36).slice(2, 8);
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { error } = await supabase.from("notebook_share_tokens").insert({
+        page_id: pageId,
+        created_by: authData.user.id,
+        token,
+        visibility: "private_link",
+        expires_at: expiresAt,
+      });
+
+      if (error) throw error;
+
+      const shareUrl = `${window.location.origin}/notebook/share/${token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      notify({
+        tone: "success",
+        title: "Private share link copied",
+        description: "Anyone with this token link can view the note until it expires in 30 days.",
+      });
+    } catch (error: any) {
+      notify({
+        tone: "error",
+        title: "Could not create share link",
+        description: error?.message || "The notebook share token could not be saved.",
+      });
+    }
   };
 
   const revertToHistory = () => {
@@ -541,7 +593,7 @@ export function NotebookPanel({
                 <button
                   type="button"
                   onClick={() => {
-                    shareNote();
+                    void shareNote();
                     setIsMenuOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-neutral-50 rounded-xl font-medium text-indigo-500 dark:hover:bg-stone-850"

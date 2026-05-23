@@ -624,6 +624,52 @@ export function createMockQueryBuilder(tableName: string, demoUser: any) {
           } catch {}
           data = deleted;
         }
+      } else if (tableName === "notebook_share_tokens") {
+        const key = `cognara_mock_notebook_share_tokens_${demoUser.id}`;
+        let list: any[] = [];
+        try {
+          const stored = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+          list = stored ? JSON.parse(stored) : [];
+        } catch {}
+
+        if (builder._operation === "select") {
+          data = list.filter(item => {
+            return builder._filters.every((f: any) => item[f.field] === f.value);
+          });
+        } else if (builder._operation === "insert") {
+          const payloads = Array.isArray(builder._payload) ? builder._payload : [builder._payload];
+          const newRecords = payloads.map((p: any) => ({
+            id: p.id || `nst-${Math.random().toString(36).substring(2, 9)}`,
+            page_id: p.page_id,
+            created_by: p.created_by || demoUser.id,
+            token: p.token,
+            visibility: p.visibility || "private_link",
+            expires_at: p.expires_at || null,
+            revoked_at: p.revoked_at || null,
+            created_at: new Date().toISOString(),
+          }));
+          list = [...list, ...newRecords];
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = Array.isArray(builder._payload) ? newRecords : newRecords[0];
+        } else if (builder._operation === "update") {
+          let updatedRecord: any = null;
+          list = list.map(item => {
+            const matches = builder._filters.every((f: any) => item[f.field] === f.value);
+            if (!matches) return item;
+            updatedRecord = { ...item, ...builder._payload };
+            return updatedRecord;
+          });
+          try {
+            if (typeof window !== "undefined") {
+              localStorage.setItem(key, JSON.stringify(list));
+            }
+          } catch {}
+          data = updatedRecord ? [updatedRecord] : [];
+        }
       } else if (tableName === "notebook_page_versions") {
         data = [];
       } else {

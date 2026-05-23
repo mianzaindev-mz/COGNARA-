@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Point, simplifyPoints } from "@/lib/utils/simplify";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 export interface CanvasStroke {
   id: string;
@@ -79,6 +80,7 @@ export function FreehandCanvas({
   // Undo / Redo Stacks
   const [undoStack, setUndoStack] = useState<{ strokes: CanvasStroke[]; annotations: CanvasAnnotation[] }[]>([]);
   const [redoStack, setRedoStack] = useState<{ strokes: CanvasStroke[]; annotations: CanvasAnnotation[] }[]>([]);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Color Palette Presets
   const PRESET_COLORS = [
@@ -838,12 +840,15 @@ export function FreehandCanvas({
 
   // Reset/Clear Canvas
   const handleClearCanvas = () => {
-    if (window.confirm("Are you sure you want to clear your freehand sketches?")) {
-      saveToHistory();
-      onChange([], []);
-      setSelectedStrokeIds([]);
-      setLassoPolygon([]);
-    }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearCanvas = () => {
+    saveToHistory();
+    onChange([], []);
+    setSelectedStrokeIds([]);
+    setLassoPolygon([]);
+    setShowClearConfirm(false);
   };
 
   return (
@@ -1173,6 +1178,15 @@ export function FreehandCanvas({
           </div>
         )}
       </div>
+      <DoubleConfirmModal
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={confirmClearCanvas}
+        title="Clear Sketches"
+        description="This will remove every freehand stroke and annotation on this notebook page."
+        actionButtonText="Clear Canvas"
+        danger
+      />
     </div>
   );
 }

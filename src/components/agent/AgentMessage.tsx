@@ -292,7 +292,7 @@ function MarkdownTable({ headers, rows }: { headers: string[]; rows: string[][] 
         <thead>
           <tr className="border-b border-cn-border bg-cn-canvas">
             {headers.map((h, i) => (
-              <th key={i} className="px-3 py-2 text-left text-xs font-bold text-cn-ink">{h}</th>
+              <th key={i} className="px-3 py-2 text-left text-xs font-bold text-cn-ink"><InlineMarkdown text={h} /></th>
             ))}
           </tr>
         </thead>
@@ -300,7 +300,7 @@ function MarkdownTable({ headers, rows }: { headers: string[]; rows: string[][] 
           {rows.map((row, ri) => (
             <tr key={ri} className="hover:bg-cn-canvas/50">
               {row.map((cell, ci) => (
-                <td key={ci} className="px-3 py-2 text-cn-ink-muted">{cell}</td>
+                <td key={ci} className="px-3 py-2 text-cn-ink-muted"><InlineMarkdown text={cell} /></td>
               ))}
             </tr>
           ))}

@@ -8,6 +8,7 @@ import { LanguageSelector } from "./LanguageSelector";
 import { OutputPanel } from "./OutputPanel";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/ui/toast-provider";
 import {
   PISTON_LANGUAGES,
   DEFAULT_CODE,
@@ -68,6 +69,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { notify } = useToast();
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const [stdinNeeded, setStdinNeeded] = useState(false);
 
@@ -148,7 +150,11 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
         });
 
       if (subErr) throw subErr;
-      alert("Assignment submitted successfully!");
+      notify({
+        title: "Assignment Submitted",
+        description: "Successfully submitted your code assignment solution!",
+        tone: "success"
+      });
     } catch (err: any) {
       setError(err.message || "Submission failed");
     } finally {

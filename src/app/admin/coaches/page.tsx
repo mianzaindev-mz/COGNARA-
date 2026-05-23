@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/ui/toast-provider";
 
 type Profile = {
   id: string;
@@ -37,6 +38,9 @@ export default function AdminCoachesPage() {
   const [error, setError] = useState<string | null>(null);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [selectedDocs, setSelectedDocs] = useState<CoachDocument[] | null>(null);
+  const [rejectingApp, setRejectingApp] = useState<Application | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const { notify } = useToast();
 
   const fetchApplications = async () => {
     try {
@@ -122,20 +126,34 @@ export default function AdminCoachesPage() {
 
       if (profileErr) throw profileErr;
 
+      notify({
+        title: "Application Approved",
+        description: `Successfully approved coach credentials for ${app.profiles?.full_name || "user"}.`,
+        tone: "success"
+      });
+
       // Refresh list
       await fetchApplications();
     } catch (err: any) {
-      alert(err.message || "Approval process failed.");
+      notify({
+        title: "Approval Failed",
+        description: err.message || "Approval process failed.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }
   };
 
-  const handleReject = async (app: Application) => {
-    if (actioningId) return;
-    const reason = prompt("Please enter a reason for rejection:");
-    if (reason === null) return; // User cancelled
+  const handleReject = (app: Application) => {
+    setRejectingApp(app);
+    setRejectReason("");
+  };
 
+  const handleConfirmReject = async () => {
+    if (!rejectingApp || actioningId) return;
+    const app = rejectingApp;
+    setRejectingApp(null);
     setActioningId(app.id);
 
     try {
@@ -146,16 +164,26 @@ export default function AdminCoachesPage() {
         .from("coach_applications")
         .update({
           status: "rejected",
-          rejection_reason: reason.trim() || "Documents do not meet required specifications.",
+          rejection_reason: rejectReason.trim() || "Documents do not meet required specifications.",
           reviewed_at: new Date().toISOString()
         })
         .eq("id", app.id);
 
       if (appErr) throw appErr;
 
+      notify({
+        title: "Application Rejected",
+        description: "The coach application has been declined.",
+        tone: "warning"
+      });
+
       await fetchApplications();
     } catch (err: any) {
-      alert(err.message || "Rejection process failed.");
+      notify({
+        title: "Rejection Failed",
+        description: err.message || "Rejection process failed.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }
@@ -222,7 +250,11 @@ export default function AdminCoachesPage() {
 
       await fetchApplications();
     } catch (err: any) {
-      alert(err.message || "Failed to seed demo data.");
+      notify({
+        title: "Seed Failed",
+        description: err.message || "Failed to seed demo data.",
+        tone: "error"
+      });
     } finally {
       setLoading(false);
     }
@@ -422,6 +454,50 @@ export default function AdminCoachesPage() {
                 className="rounded-xl bg-cn-orange px-5 py-2 text-xs font-bold text-white hover:bg-cn-orange-hover"
               >
                 Close View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Rejection Modal */}
+      {rejectingApp && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-in fade-in duration-300" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => setRejectingApp(null)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-cn-surface p-8 shadow-2xl shadow-black/90 dark:border-[#2e2a2a] dark:bg-[#1a1818] animate-in zoom-in-95 duration-300" style={{ position: 'relative', zIndex: 10000 }}>
+            <h3 className="text-base font-bold text-cn-ink mb-2">Reject Coach Application</h3>
+            <p className="text-xs text-cn-ink-muted mb-4 leading-relaxed">
+              Are you sure you want to reject the application from <strong>{rejectingApp.profiles?.full_name || "this applicant"}</strong>? Please specify the reason so they can correct and resubmit.
+            </p>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-cn-ink-subtle">Rejection Reason</label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="e.g. Uploaded documents are blurry, credentials cannot be verified..."
+                rows={3}
+                className="w-full rounded-xl border border-cn-border bg-cn-canvas p-3 text-sm text-cn-ink placeholder-cn-ink-subtle focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setRejectingApp(null)}
+                className="rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-xs font-bold text-cn-ink hover:bg-cn-canvas-hover transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmReject}
+                className="rounded-xl bg-rose-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-rose-700 transition"
+              >
+                Confirm Rejection
               </button>
             </div>
           </div>

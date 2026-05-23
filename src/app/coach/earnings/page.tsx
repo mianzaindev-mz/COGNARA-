@@ -6,6 +6,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
 import { IconCurrency, IconBuilding, IconSparkle, IconCreditCard } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/toast-provider";
 
 
 type CourseSales = {
@@ -23,6 +24,7 @@ type WithdrawalRow = {
 };
 
 export default function CoachEarningsPage() {
+  const { notify } = useToast();
   const [courses, setCourses] = useState<CourseSales[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -123,7 +125,24 @@ export default function CoachEarningsPage() {
     if (!user) return;
 
     setSavingDetails(true);
-    // Simulate API routing / stripe handshaking
+    if (payoutMethod === "stripe") {
+      try {
+        const response = await fetch("/api/coach/stripe/connect", { method: "POST" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Stripe Connect could not be opened.");
+        window.location.href = data.url;
+        return;
+      } catch (error: any) {
+        notify({
+          tone: "error",
+          title: "Stripe Connect unavailable",
+          description: error?.message || "Could not create the coach onboarding link.",
+        });
+        setSavingDetails(false);
+        return;
+      }
+    }
+
     setTimeout(() => {
       const payload = {
         isConnected: true,
@@ -135,7 +154,11 @@ export default function CoachEarningsPage() {
       localStorage.setItem(`cognara_coach_payout_${user.id}`, JSON.stringify(payload));
       setIsStripeConnected(true);
       setSavingDetails(false);
-      alert("Stripe Payout details linked and verified successfully!");
+      notify({
+        tone: "success",
+        title: "Payout details saved",
+        description: "Direct deposit details are stored for demo payouts. Use Stripe Connect for production payouts.",
+      });
     }, 1200);
   };
 
@@ -143,16 +166,28 @@ export default function CoachEarningsPage() {
   const handleWithdrawFunds = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isStripeConnected) {
-      alert("Please connect Stripe or input bank payout details before requesting withdrawals.");
+      notify({
+        tone: "warning",
+        title: "Payout setup required",
+        description: "Connect Stripe or save direct deposit details before requesting withdrawals.",
+      });
       return;
     }
     const amount = Number(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
-      alert("Please input a valid positive amount.");
+      notify({
+        tone: "warning",
+        title: "Invalid amount",
+        description: "Enter a positive withdrawal amount.",
+      });
       return;
     }
     if (amount > availableBalance) {
-      alert("Insufficient funds. Amount exceeds available balance.");
+      notify({
+        tone: "error",
+        title: "Insufficient funds",
+        description: "The requested amount exceeds your available balance.",
+      });
       return;
     }
 
@@ -180,7 +215,11 @@ export default function CoachEarningsPage() {
       setAvailableBalance(newBalance);
       setWithdrawAmount("");
       setWithdrawing(false);
-      alert(`Successfully withdrew $${amount.toFixed(2)}! Funds will clear in 1–2 business days.`);
+      notify({
+        tone: "success",
+        title: "Withdrawal requested",
+        description: `$${amount.toFixed(2)} will clear in 1-2 business days.`,
+      });
     }, 1500);
   };
 

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { AgentIcon } from "@/components/ui/agent-icon";
+import { useToast } from "@/components/ui/toast-provider";
 
 type UploadedDoc = {
   name: string;
@@ -26,6 +27,7 @@ export default function CoachVerificationPage() {
     id: null,
   });
   const [uploading, setUploading] = useState<string | null>(null);
+  const { notify } = useToast();
   const [verificationStatus, setVerificationStatus] = useState<string>("not_started");
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [aiConfidence, setAiConfidence] = useState<number | null>(null);
@@ -129,12 +131,20 @@ export default function CoachVerificationPage() {
 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      alert("File too large. Max 10MB.");
+      notify({
+        title: "File Too Large",
+        description: "Maximum supported size is 10MB.",
+        tone: "warning"
+      });
       return;
     }
     const allowed = ["application/pdf", "image/jpeg", "image/png"];
     if (!allowed.includes(file.type)) {
-      alert("Invalid file type. Only PDF, JPG, PNG allowed.");
+      notify({
+        title: "Invalid File Type",
+        description: "Only PDF, JPG, and PNG documents are allowed.",
+        tone: "warning"
+      });
       return;
     }
 
@@ -152,7 +162,11 @@ export default function CoachVerificationPage() {
       });
 
     if (error) {
-      alert(`Upload failed: ${error.message}`);
+      notify({
+        title: "Upload Failed",
+        description: `Upload failed: ${error.message}`,
+        tone: "error"
+      });
       setUploading(null);
       return;
     }
@@ -171,7 +185,7 @@ export default function CoachVerificationPage() {
     }));
 
     setUploading(null);
-  }, []);
+  }, [notify]);
 
   const handleSubmitApplication = async () => {
     const supabase = createClient();
@@ -180,7 +194,11 @@ export default function CoachVerificationPage() {
     if (!user) return;
 
     if (!uploads.degree || !uploads.certificate || !uploads.id) {
-      alert("Please upload all three required documents before submitting.");
+      notify({
+        title: "Incomplete Credentials",
+        description: "Please upload all three required documents before submitting.",
+        tone: "warning"
+      });
       return;
     }
 
@@ -225,9 +243,17 @@ export default function CoachVerificationPage() {
       setVerificationStatus("pending");
       setAiConfidence(score);
       setAiNotes(notes);
-      alert("Application submitted successfully for review!");
+      notify({
+        title: "Application Submitted",
+        description: "Application submitted successfully for review!",
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to submit verification application.");
+      notify({
+        title: "Submission Failed",
+        description: err.message || "Failed to submit verification application.",
+        tone: "error"
+      });
     } finally {
       setSubmitting(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/ui/toast-provider";
 
 const CREDIT_PACKS = [
   { id: "starter", credits: 100, price: "$1.99", perCredit: "$0.020", popular: false },
@@ -29,9 +30,11 @@ type Transaction = {
 };
 
 export default function BillingPage() {
+  const { notify } = useToast();
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [purchasingPack, setPurchasingPack] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -75,6 +78,28 @@ export default function BillingPage() {
     }
     void load();
   }, []);
+
+  const handlePurchase = async (packId: string) => {
+    if (purchasingPack) return;
+    setPurchasingPack(packId);
+    try {
+      const response = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packId }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not start checkout.");
+      window.location.href = data.url;
+    } catch (error: any) {
+      notify({
+        tone: "error",
+        title: "Checkout unavailable",
+        description: error?.message || "Stripe checkout could not be opened.",
+      });
+      setPurchasingPack(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -143,13 +168,15 @@ export default function BillingPage() {
                 <p className="text-[11px] text-cn-ink-subtle">{pack.perCredit} per credit</p>
                 <button
                   type="button"
+                  onClick={() => void handlePurchase(pack.id)}
+                  disabled={purchasingPack !== null}
                   className={`mt-3 w-full rounded-xl py-2.5 text-sm font-bold transition ${
                     pack.popular
                       ? "bg-cn-orange text-white hover:bg-cn-orange-hover"
                       : "border border-cn-border text-cn-ink hover:bg-cn-border/30"
-                  }`}
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
                 >
-                  Purchase
+                  {purchasingPack === pack.id ? "Opening Stripe..." : "Purchase"}
                 </button>
               </div>
             </div>

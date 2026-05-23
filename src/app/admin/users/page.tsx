@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { IconUsers } from "@/components/ui/icons";
 import { getUsersWithEmails, updateUserRole, banUser } from "./actions";
+import { useToast } from "@/components/ui/toast-provider";
+import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 
 type UserItem = {
   id: string;
@@ -31,9 +33,12 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [actioningId, setActioningId] = useState<string | null>(null);
 
+  const { notify } = useToast();
+
   // Ban Modal State
   const [banTarget, setBanTarget] = useState<UserItem | null>(null);
   const [banReasonInput, setBanReasonInput] = useState("");
+  const [unbanTarget, setUnbanTarget] = useState<UserItem | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -61,8 +66,17 @@ export default function AdminUsersPage() {
       await updateUserRole(userId, newRole);
       // Optimistic update
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      notify({
+        title: "Role Updated",
+        description: "Successfully updated user role.",
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to update user role.");
+      notify({
+        title: "Update Failed",
+        description: err.message || "Failed to update user role.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }
@@ -80,23 +94,45 @@ export default function AdminUsersPage() {
       await banUser(banTarget.id, true, banReasonInput);
       setUsers(prev => prev.map(u => u.id === banTarget.id ? { ...u, status: "banned", banReason: banReasonInput || "Suspended by administrator." } : u));
       setBanTarget(null);
+      notify({
+        title: "User Suspended",
+        description: `Successfully suspended ${banTarget.name}.`,
+        tone: "warning"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to suspend user.");
+      notify({
+        title: "Suspension Failed",
+        description: err.message || "Failed to suspend user.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }
   };
 
-  const handleUnban = async (user: UserItem) => {
-    if (actioningId) return;
-    if (!confirm(`Are you sure you want to lift the suspension for ${user.name}?`)) return;
+  const handleUnban = (user: UserItem) => {
+    setUnbanTarget(user);
+  };
 
-    setActioningId(user.id);
+  const handleConfirmUnban = async () => {
+    if (!unbanTarget || actioningId) return;
+    const target = unbanTarget;
+    setUnbanTarget(null);
+    setActioningId(target.id);
     try {
-      await banUser(user.id, false);
-      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: "active", banReason: "" } : u));
+      await banUser(target.id, false);
+      setUsers(prev => prev.map(u => u.id === target.id ? { ...u, status: "active", banReason: "" } : u));
+      notify({
+        title: "Suspension Lifted",
+        description: `Successfully restored access for ${target.name}.`,
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to lift suspension.");
+      notify({
+        title: "Lift Suspension Failed",
+        description: err.message || "Failed to lift suspension.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }
@@ -299,6 +335,16 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      <DoubleConfirmModal
+        isOpen={!!unbanTarget}
+        onClose={() => setUnbanTarget(null)}
+        onConfirm={handleConfirmUnban}
+        title="Lift Account Suspension"
+        description={unbanTarget ? `Are you sure you want to lift the suspension for ${unbanTarget.name}? They will immediately regain access to their COGNARA portal.` : ""}
+        actionButtonText="Lift Suspension"
+        danger={false}
+      />
     </div>
   );
 }

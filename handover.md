@@ -376,3 +376,100 @@ Upgraded the COGNARA AI Agent with improved response rendering, better voice beh
 - `[MODIFY] src/app/admin/support/actions.ts` — AI review, risk scoring, and admin review decisions.
 - `[MODIFY] src/app/admin/support/page.tsx` — AI review and approval controls.
 - `[MODIFY] src/app/coach/support/page.tsx` — Corrected support ticket category to match DB constraints.
+
+---
+
+## Session 23 — Full Codebase Wiring Audit & Current Improvement Backlog
+
+**Date:** 2026-05-23  
+**Build:** Route map, dead-control scan, Supabase wiring scan, and validation commands performed in the Codex workspace.
+
+### Current Route Coverage
+All major portal routes currently exist:
+- Public/Auth: `/`, `/courses`, `/pricing`, `/setup`, `/login`, `/register`, `/forgot-password`, `/reset-password`, legal pages, certificate verification.
+- Student: `/dashboard`, `/my-courses`, `/learn/[slug]`, `/learn/[slug]/lesson/[order]`, `/library`, `/editor`, `/notebook`, `/notebook/shared/[pageId]`, `/agent`, `/quizzes`, `/quizzes/[id]`, `/progress`, `/peer`, `/billing`, `/settings`, `/support`, `/profile`, `/certificates`.
+- Coach: `/coach/dashboard`, `/coach/courses`, `/coach/courses/[slug]`, `/coach/course-builder`, `/coach/library`, `/coach/quizzes`, `/coach/students`, `/coach/analytics`, `/coach/earnings`, `/coach/verification`, `/coach/support`, `/coach/settings`, `/coach/agent`.
+- Admin: `/admin/dashboard`, `/admin/users`, `/admin/coaches`, `/admin/courses`, `/admin/support`, `/admin/security`, `/admin/reports`, `/admin/settings`, `/admin/agent`.
+
+### Recently Fixed Wiring
+- Student dashboard now has a real **Create Notebook** shortcut that creates a notebook plus Page 1 and routes to `/notebook?notebook=...&page=...`.
+- `/notebook` creation no longer silently fails; it resolves the active user on click and surfaces errors.
+- `/notebook/shared/[pageId]` route now exists, matching the link copied by the notebook share action.
+- Coach profile sign-out modal no longer unmounts when clicking portaled modal content.
+- Freehand editor live stroke preview no longer uses canvas width as brush width; brush preview is now accurate.
+
+### Remaining Weak Spots / Improvements
+| Area | Status | Recommended Addition |
+|------|--------|----------------------|
+| Browser alerts/confirms | Many flows still use native `alert()` / `confirm()` across quizzes, peer sessions, verification, earnings, notebook, admin ops, and course builder. | Replace with app-native toast + `DoubleConfirmModal` patterns for consistent UX and fewer accidental exits. |
+| Coach course builder media blocks | Some media/resource blocks still show placeholder preview labels until URLs are supplied. | Add real URL validation, upload picker, preview errors, and Supabase Storage integration for media attachments. |
+| Payments/earnings | Coach earnings and student billing simulate payout/credit flows. | Add Stripe Checkout, Stripe Connect onboarding, webhook-backed invoices, and payout ledger reconciliation. |
+| Video/live sessions | Daily.co room creation exists, but full recorded-video hosting pipeline is not complete. | Add Mux or Supabase Storage video ingestion, transcoding status, playback IDs, and transcript generation. |
+| Notifications | Notification UI exists and demo notifications load, but push/realtime behavior is partial. | Add Supabase Realtime subscriptions plus optional web push and notification preference enforcement. |
+| Peer sessions | Peer session creation/register flows exist, but production-grade conflict handling, cancellation, reminders, and payment settlement need hardening. | Add attendance lifecycle, calendar reminders, refund/cancel rules, and moderation hooks. |
+| Admin moderation | Admin support AI review is wired, but broader misconduct evidence workflow is still early. | Add live-session evidence viewer, timestamped video review, plagiarism report dashboard, and audit export. |
+| Notebook sharing | Shared route exists under authenticated student layout and currently depends on RLS visibility. | Decide whether sharing is private, enrolled-only, or public-token based; add explicit `share_tokens` table if public sharing is desired. |
+| Demo mock client | Demo mode uses localStorage/browser state for mock data by design. | Keep as sandbox-only; avoid describing it as production persistence. Add a visible "Demo data" badge if needed. |
+| Error handling | Many DB calls still log to console and continue with fallback UI. | Standardize `Result` helpers, inline error banners, and retry affordances for all write actions. |
+
+### Connection / Wiring Notes
+- Supabase access is centralized through `src/lib/supabase/server.ts`, `client.ts`, `admin.ts`, and the demo `mock-client.ts`.
+- Server-protected portal layouts correctly redirect to `/setup` when Supabase env is absent and `/login` when no session exists.
+- Demo accounts are supported through `cognara_demo_session` and `cognara_demo_client_user` cookies; this is intentional sandbox behavior, not production auth.
+- Routes are broadly present; the more important remaining work is replacing simulated business processes with real external providers and standardizing write-action feedback.
+
+### Recommended Next Build Order
+1. Replace native alerts/confirms with reusable toast + modal components across the app.
+2. Harden notebook sharing with explicit privacy modes and tokenized public links.
+3. Upgrade coach course builder media blocks to real upload/preview/storage flows.
+4. Add Stripe Checkout/Connect and webhook-backed billing state.
+5. Add realtime notifications and background job status UI.
+6. Add admin evidence review pages for misconduct/plagiarism/video-class reports.
+
+---
+
+## Session 24 — Agent Overlay, Private Sharing, Stripe Routes & Native Feedback Upgrade
+
+**Date:** 2026-05-23  
+**Build:** `npm run lint`, `npm run type-check`, and `npm run build` all completed successfully.
+
+### Implemented
+- **Global Floating AI Agent**
+  - Added the COGNARA floating AI button to authenticated student, coach, and admin layouts.
+  - The popup now supports quick chat, Speak, Guide, Explain, Study, and Quiz actions.
+  - Guide mode scans only the current open page, highlights detected sections, scrolls through them, and provides Previous/Next navigation.
+  - Speak mode now detects Urdu script and uses `ur-PK` speech output where supported by the browser.
+
+- **App-Native Toast Layer**
+  - Added `ToastProvider` and `useToast` as a shared notification layer.
+  - Replaced native browser feedback in the newly touched billing, earnings, notebook sharing, notebook export, and admin support decision flows.
+
+- **Notebook Privacy Hardening**
+  - Added `notebook_share_tokens` migration with owner-scoped RLS policies.
+  - Notebook sharing now creates a private token link with a 30-day expiry instead of copying a raw page ID URL.
+  - Added `/notebook/share/[token]` public token viewer with expiry/revocation checks and admin-client fallback handling.
+  - Demo/mock client now supports `notebook_share_tokens` inserts/selects for sandbox testing.
+  - Notebook and page deletion no longer use native `confirm()`; they use the app double-confirm modal.
+
+- **Stripe Billing Foundation**
+  - Added real Stripe Checkout session creation at `/api/billing/checkout`.
+  - Student billing purchase buttons now open Stripe Checkout when `STRIPE_SECRET_KEY` is configured.
+  - Added signed Stripe webhook handling at `/api/stripe/webhook` for `checkout.session.completed`, updating `ai_credits` and writing `credit_transactions`.
+  - Added Stripe Connect onboarding at `/api/coach/stripe/connect`.
+  - Coach earnings now routes Stripe payout setup to Connect and uses app-native toasts for payout validation and withdrawal feedback.
+
+- **Admin Review UX**
+  - Replaced the admin support native prompt for AI review approval/rejection with an app modal requiring an audit reason.
+  - Admin support errors now surface through app toasts instead of browser alerts.
+
+### Environment Required
+- Stripe Checkout and Connect require `STRIPE_SECRET_KEY`.
+- Webhook-backed credit updates require `STRIPE_WEBHOOK_SECRET` and a Stripe endpoint pointing to `/api/stripe/webhook`.
+- Token notebook sharing requires applying `supabase/migrations/20260523000001_notebook_share_tokens.sql`.
+- Public token reads work best with `SUPABASE_SERVICE_ROLE_KEY`; authenticated fallback remains available.
+
+### Remaining Native Dialogs / Provider Work
+- Native `alert()` / `confirm()` still remain in coach quizzes, coach verification, course builder/course lesson actions, peer sessions, student quiz submission, admin users/coaches/courses, and the standalone code editor.
+- Coach course media blocks still need Supabase Storage upload widgets, preview validation, object cleanup, and signed/public URL policy decisions.
+- Realtime notification subscriptions and background job status UI still need a dedicated surface beyond the existing notification bell and agent job APIs.
+- Admin misconduct/plagiarism/video evidence review should become a dedicated evidence timeline with transcript/video timestamps, attachments, and admin decision export.

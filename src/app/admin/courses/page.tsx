@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { IconBook } from "@/components/ui/icons";
 import { getCoursesWithCoaches, toggleCourseFeatured, toggleCoursePublished } from "./actions";
+import { useToast } from "@/components/ui/toast-provider";
 
 type CourseItem = {
   id: string;
@@ -25,6 +26,7 @@ export default function AdminCoursesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const { notify } = useToast();
 
   const fetchCourses = async () => {
     try {
@@ -48,8 +50,17 @@ export default function AdminCoursesPage() {
       const newFeatured = !currentFeatured;
       await toggleCourseFeatured(courseId, newFeatured);
       setCourses(prev => prev.map(c => c.id === courseId ? { ...c, isFeatured: newFeatured } : c));
+      notify({
+        title: newFeatured ? "Course Featured" : "Course Unfeatured",
+        description: `Successfully updated featuring configuration.`,
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to update featured status.");
+      notify({
+        title: "Configuration Failed",
+        description: err.message || "Failed to update featured status.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }
@@ -62,8 +73,17 @@ export default function AdminCoursesPage() {
       const newPublished = !currentPublished;
       await toggleCoursePublished(courseId, newPublished);
       setCourses(prev => prev.map(c => c.id === courseId ? { ...c, isPublished: newPublished } : c));
+      notify({
+        title: newPublished ? "Course Published" : "Course Set to Draft",
+        description: `Successfully updated publication configuration.`,
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to update published status.");
+      notify({
+        title: "Configuration Failed",
+        description: err.message || "Failed to update published status.",
+        tone: "error"
+      });
     } finally {
       setActioningId(null);
     }

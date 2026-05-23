@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
+import { useToast } from "@/components/ui/toast-provider";
 
 type Option = {
   id: string;
@@ -370,6 +371,7 @@ export default function QuizTakePage() {
 
   // Double Confirm Modal states
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const { notify } = useToast();
 
   useEffect(() => {
     if (!id) return;
@@ -604,7 +606,11 @@ export default function QuizTakePage() {
     if (submitted || submitting) return;
 
     if (!allAnswered) {
-      alert("Please select or type an answer for all questions before submitting.");
+      notify({
+        title: "Unanswered Questions",
+        description: "Please select or type an answer for all questions before submitting.",
+        tone: "warning"
+      });
       return;
     }
 
@@ -755,7 +761,11 @@ export default function QuizTakePage() {
       setAttemptsCount(prev => prev + 1);
       setSubmitted(true);
     } catch (err: any) {
-      alert(err.message || "Failed to submit quiz attempt. Please try again.");
+      notify({
+        title: "Submission Failed",
+        description: err.message || "Failed to submit quiz attempt. Please try again.",
+        tone: "error"
+      });
     } finally {
       setSubmitting(false);
     }

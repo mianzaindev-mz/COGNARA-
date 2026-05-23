@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
+import { useToast } from "@/components/ui/toast-provider";
 
 type Lesson = {
   id: string;
@@ -78,6 +79,7 @@ export default function EditCoursePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"general" | "lessons" | "live">("general");
+  const { notify } = useToast();
 
   // Deletion state
   const [lessonToDelete, setLessonToDelete] = useState<string | null>(null);
@@ -441,8 +443,17 @@ export default function EditCoursePage() {
           .update({ order_index: i + 1 })
           .eq("id", updatedLessons[i].id);
       }
+      notify({
+        title: "Lesson Deleted",
+        description: "Successfully deleted the lesson.",
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to delete lesson.");
+      notify({
+        title: "Deletion Failed",
+        description: err.message || "Failed to delete lesson.",
+        tone: "error"
+      });
     } finally {
       setLessonToDelete(null);
     }
@@ -464,8 +475,17 @@ export default function EditCoursePage() {
       ));
       
       window.open(data.url, '_blank');
+      notify({
+        title: "Session Started",
+        description: "Successfully launched the live class room.",
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(`Failed to start session: ${err.message}`);
+      notify({
+        title: "Launch Failed",
+        description: `Failed to start session: ${err.message}`,
+        tone: "error"
+      });
     } finally {
       setStartingLive(null);
     }
@@ -495,8 +515,17 @@ export default function EditCoursePage() {
       setLiveSessions(prev => [data, ...prev]);
       setIsCreatingLive(false);
       setNewLive({ title: "", scheduled_at: "" });
+      notify({
+        title: "Session Scheduled",
+        description: "Successfully scheduled a new live class.",
+        tone: "success"
+      });
     } catch (err: any) {
-      alert(`Failed to schedule session: ${err.message}`);
+      notify({
+        title: "Scheduling Failed",
+        description: `Failed to schedule session: ${err.message}`,
+        tone: "error"
+      });
     }
   };
 

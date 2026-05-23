@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { IconUsers } from "@/components/ui/icons";
 import { DoubleConfirmModal } from "@/components/ui/double-confirm-modal";
 import { LiveCall } from "@/components/shared/LiveCall";
+import { useToast } from "@/components/ui/toast-provider";
 
 type PeerSession = {
   id: string;
@@ -27,6 +28,7 @@ export default function PeerPage() {
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const { notify } = useToast();
   
   // Video Call State
   const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
@@ -128,7 +130,11 @@ export default function PeerPage() {
 
   const handleRegister = async (sessionId: string) => {
     if (!userId) {
-      alert("Please log in to register for peer sessions!");
+      notify({
+        title: "Authentication Required",
+        description: "Please log in to register for peer sessions!",
+        tone: "warning"
+      });
       return;
     }
     setRegistering(sessionId);
@@ -156,7 +162,11 @@ export default function PeerPage() {
           : s
       ));
     } catch (err: any) {
-      alert(`Registration failed: ${err.message}`);
+      notify({
+        title: "Registration Failed",
+        description: `Registration failed: ${err.message}`,
+        tone: "error"
+      });
     } finally {
       setRegistering(null);
       setConfirmRegister(null);
@@ -165,11 +175,19 @@ export default function PeerPage() {
 
   const handleHostSubmit = async () => {
     if (!userId) {
-      alert("Please log in to host study sessions!");
+      notify({
+        title: "Authentication Required",
+        description: "Please log in to host study sessions!",
+        tone: "warning"
+      });
       return;
     }
     if (!newSession.title || !newSession.topic || !newSession.date) {
-      alert("Please fill in all required fields!");
+      notify({
+        title: "Required Fields",
+        description: "Please fill in all required fields!",
+        tone: "warning"
+      });
       return;
     }
 
@@ -242,7 +260,11 @@ export default function PeerPage() {
         setConfirmHost(false);
       }
     } catch (err: any) {
-      alert(`Failed to create session: ${err.message}`);
+      notify({
+        title: "Session Creation Failed",
+        description: `Failed to create session: ${err.message}`,
+        tone: "error"
+      });
     } finally {
       setHosting(false);
     }
@@ -264,7 +286,11 @@ export default function PeerPage() {
       ));
       setActiveCallRoom(data.url);
     } catch (err: any) {
-      alert(`Failed to start session: ${err.message}`);
+      notify({
+        title: "Live Call Launch Failed",
+        description: `Failed to start session: ${err.message}`,
+        tone: "error"
+      });
     } finally {
       setStartingSession(null);
     }
