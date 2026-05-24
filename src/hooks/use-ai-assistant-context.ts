@@ -70,20 +70,6 @@ export function useAIAssistantContext(): AIAssistantContext {
           return;
         }
 
-        if (!isValidUUID(user.id)) {
-          console.log("[AI Assistant Context] Invalid UUID, disabling AI");
-          if (mounted) {
-            setContext({
-              isEnabled: false,
-              userRole: null,
-              currentPage: pathname,
-              isQuizActive: false,
-              isLoading: false,
-            });
-          }
-          return;
-        }
-
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
