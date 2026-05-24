@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Kodchasan, Source_Serif_4, Manrope, Hanken_Grotesk } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 import "material-symbols/outlined.css";
 import "./globals.css";
 
@@ -31,7 +32,10 @@ export default function RootLayout({
         className={`${kodchasan.variable} ${jetbrainsMono.variable} ${sourceSerif.variable} ${manrope.variable} ${hankenGrotesk.variable} min-h-screen bg-cn-canvas font-sans text-cn-ink antialiased`}
       >
         <ThemeProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            {children}
+            <AIAssistant />
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
