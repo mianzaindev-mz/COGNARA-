@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { routeAgentRequest, type AgentSkill } from "@/lib/ai/master-agent";
 import { SECURITY_HEADERS } from "@/lib/security/sanitize";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export async function POST(request: NextRequest) {
   const secret = process.env.AGENT_WORKER_SECRET || process.env.CRON_SECRET;
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
     const processed = [];
 
     for (const job of jobs ?? []) {
+      if (!isValidUUID(job.id)) {
+        continue;
+      }
       await supabase
         .from("agent_jobs")
         .update({ status: "running", started_at: new Date().toISOString(), updated_at: new Date().toISOString() })

@@ -4,6 +4,8 @@
  * Updated after each session with new insights.
  */
 
+import { isValidUUID } from "@/lib/utils/uuid";
+
 export interface AgentMemory {
   weak_topics: string[];
   strong_topics: string[];
@@ -55,6 +57,9 @@ RESPONSE CONTRACT:
 export async function loadStudentMemory(
   studentId: string,
 ): Promise<AgentMemory> {
+  if (!isValidUUID(studentId)) {
+    return { ...DEFAULT_MEMORY };
+  }
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
@@ -89,6 +94,9 @@ export async function updateStudentMemory(
   studentId: string,
   updates: Partial<AgentMemory>,
 ): Promise<void> {
+  if (!isValidUUID(studentId)) {
+    return;
+  }
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();

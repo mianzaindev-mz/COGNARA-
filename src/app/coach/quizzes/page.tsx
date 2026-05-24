@@ -54,6 +54,7 @@ export default function CoachQuizzesPage() {
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [lessons, setLessons] = useState<LessonOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Modal States
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -180,6 +181,7 @@ export default function CoachQuizzesPage() {
 
     } catch (err: any) {
       console.error("Failed to load quizzes:", err.message);
+      setError(err.message || "Failed to load quizzes");
     } finally {
       setLoading(false);
     }
@@ -588,6 +590,13 @@ export default function CoachQuizzesPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Error Display */}
+      {error && (
+        <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p>{error}</p>
+        </div>
+      )}
+
       {/* Header */}
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div>

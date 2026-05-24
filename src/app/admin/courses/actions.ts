@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -76,6 +77,9 @@ export async function getCoursesWithCoaches() {
 }
 
 export async function toggleCourseFeatured(courseId: string, isFeatured: boolean) {
+  if (!isValidUUID(courseId)) {
+    throw new Error("Invalid course ID");
+  }
   await verifyAdmin();
   const supabase = await createClient();
 
@@ -89,6 +93,9 @@ export async function toggleCourseFeatured(courseId: string, isFeatured: boolean
 }
 
 export async function toggleCoursePublished(courseId: string, isPublished: boolean) {
+  if (!isValidUUID(courseId)) {
+    throw new Error("Invalid course ID");
+  }
   await verifyAdmin();
   const supabase = await createClient();
 

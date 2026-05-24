@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runAdminAgent } from "@/lib/ai/agents/admin-agent";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -88,6 +89,9 @@ export async function getTickets() {
 }
 
 export async function updateTicketStatus(ticketId: string, status: "open" | "in_progress" | "resolved" | "closed") {
+  if (!isValidUUID(ticketId)) {
+    throw new Error("Invalid ticket ID");
+  }
   await verifyAdmin();
   const supabase = await createClient();
 
@@ -104,6 +108,9 @@ export async function updateTicketStatus(ticketId: string, status: "open" | "in_
 }
 
 export async function reviewTicketWithAgent(ticketId: string) {
+  if (!isValidUUID(ticketId)) {
+    throw new Error("Invalid ticket ID");
+  }
   await verifyAdmin();
   const supabase = createAdminClient();
 
@@ -188,6 +195,9 @@ Return a careful admin review with:
 }
 
 export async function decideTicketAiReview(ticketId: string, decision: "approved" | "rejected", reason: string) {
+  if (!isValidUUID(ticketId)) {
+    throw new Error("Invalid ticket ID");
+  }
   await verifyAdmin();
   const supabase = createAdminClient();
 

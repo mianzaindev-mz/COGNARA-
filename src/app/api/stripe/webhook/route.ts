@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,10 @@ export async function POST(request: NextRequest) {
   const credits = Number(metadata.credits);
   if (!userId || !Number.isFinite(credits) || credits <= 0) {
     return NextResponse.json({ error: "Invalid credit metadata." }, { status: 400 });
+  }
+
+  if (!isValidUUID(userId)) {
+    return NextResponse.json({ error: "Invalid user ID." }, { status: 400 });
   }
 
   const supabase = createAdminClient();

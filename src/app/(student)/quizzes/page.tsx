@@ -22,6 +22,7 @@ export default function QuizzesPage() {
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [filter, setFilter] = useState<"all" | "passed" | "pending">("all");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -114,6 +115,7 @@ export default function QuizzesPage() {
         setQuizzes(items);
       } catch (err) {
         console.error("Failed to load quizzes list:", err);
+        setError(err instanceof Error ? err.message : "Failed to load quizzes");
       } finally {
         setLoading(false);
       }
@@ -150,6 +152,12 @@ export default function QuizzesPage() {
           Test your knowledge. Pass score: 70%.
         </p>
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p>{error}</p>
+        </div>
+      )}
 
       <div className="flex gap-2">
         {(["all", "passed", "pending"] as const).map((f) => (

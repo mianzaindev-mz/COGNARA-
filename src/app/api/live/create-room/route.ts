@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 const DAILY_API_KEY = process.env.DAILY_API_KEY;
 const DAILY_API_URL = "https://api.daily.co/v1";
@@ -18,6 +19,10 @@ export async function POST(req: Request) {
 
     if (!sessionId || !type) {
       return NextResponse.json({ error: "Missing session ID or type" }, { status: 400 });
+    }
+
+    if (!isValidUUID(sessionId)) {
+      return NextResponse.json({ error: "Invalid session ID" }, { status: 400 });
     }
 
     if (!DAILY_API_KEY) {

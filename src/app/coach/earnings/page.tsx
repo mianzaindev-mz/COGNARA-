@@ -27,6 +27,7 @@ export default function CoachEarningsPage() {
   const { notify } = useToast();
   const [courses, setCourses] = useState<CourseSales[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Stripe & Payout Details
   const [isStripeConnected, setIsStripeConnected] = useState(false);
@@ -107,6 +108,7 @@ export default function CoachEarningsPage() {
 
     } catch (err: any) {
       console.error("Failed to load earnings:", err.message);
+      setError(err.message || "Failed to load earnings data");
     } finally {
       setLoading(false);
     }
@@ -254,6 +256,13 @@ export default function CoachEarningsPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Error Display */}
+      {error && (
+        <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p>{error}</p>
+        </div>
+      )}
+
       {/* Page Title */}
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div>

@@ -26,6 +26,7 @@ type PeerSession = {
 export default function PeerPage() {
   const [sessions, setSessions] = useState<PeerSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [registering, setRegistering] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const { notify } = useToast();
@@ -105,6 +106,7 @@ export default function PeerPage() {
       }
     } catch (err: any) {
       console.error("Error loading peer sessions:", err.message);
+      setError(err.message || "Failed to load peer sessions");
     } finally {
       setLoading(false);
     }
@@ -346,6 +348,12 @@ export default function PeerPage() {
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p>{error}</p>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

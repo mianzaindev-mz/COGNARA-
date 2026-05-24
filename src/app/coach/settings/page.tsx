@@ -7,6 +7,7 @@ import { SettingsSection, SettingsToggle, SettingsInput, SettingsSelect, Setting
 
 export default function SettingsPage() {
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   
@@ -34,6 +35,7 @@ export default function SettingsPage() {
         }
       } catch (err) {
         console.error(err);
+        setError(err instanceof Error ? err.message : "Failed to load settings");
       } finally {
         setLoaded(true);
       }
@@ -106,6 +108,12 @@ export default function SettingsPage() {
           <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-1">Don't forget to click "Save Changes" at the bottom of the screen after modifying your profile.</p>
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p>{error}</p>
+        </div>
+      )}
 
       <div className="space-y-8 relative z-10">
         

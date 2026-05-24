@@ -1,50 +1,35 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { PremiumCognaraLogo } from "@/components/student/premium-cognara-logo";
+import React from "react";
 
 interface FloatingAIButtonProps {
   onClick: () => void;
   disabled?: boolean;
-  isActive?: boolean;
+  hasExistingFAB?: boolean;
 }
 
-export function FloatingAIButton({ onClick, disabled = false, isActive = false }: FloatingAIButtonProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+export function FloatingAIButton({ onClick, disabled = false, hasExistingFAB = false }: FloatingAIButtonProps) {
+  const positionClass = hasExistingFAB ? "bottom-[88px]" : "bottom-[24px]";
 
   return (
     <button
-      ref={buttonRef}
       type="button"
       onClick={onClick}
       disabled={disabled}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className={`
-        fixed bottom-6 right-6 z-50
+        fixed ${positionClass} right-[24px] z-[9999]
         flex items-center justify-center
-        w-14 h-14 rounded-2xl
-        bg-gradient-to-br from-cn-orange to-cn-pink
-        shadow-lg shadow-cn-orange/30
-        transition-all duration-300 ease-out
-        hover:scale-110 hover:shadow-xl hover:shadow-cn-orange/40
-        active:scale-95
-        disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
-        ${isActive ? 'ring-2 ring-cn-orange ring-offset-2 ring-offset-cn-surface' : ''}
+        w-[52px] h-[52px] rounded-full
+        bg-[#E05A2B]
+        transition-transform duration-[200ms] ease-out
+        hover:scale-[1.08]
+        disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:hover:scale-100
       `}
+      style={{ transform: "scale(1)" }}
       aria-label="Open AI Assistant"
-      title={disabled ? "AI Assistant unavailable during assessments" : "Open AI Assistant"}
+      title={disabled ? "AI disabled during assessments" : "Open AI Assistant"}
     >
-      <div className="relative">
-        <PremiumCognaraLogo className="w-8 h-8 text-white" idSuffix="float" />
-        {isHovered && !disabled && (
-          <div className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-cn-surface" />
-          </div>
-        )}
-      </div>
+      <span className="text-white font-bold text-[20px] font-sans">C</span>
     </button>
   );
 }

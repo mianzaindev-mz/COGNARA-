@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type CreatedNotebook = {
   notebookId: string;
@@ -52,6 +53,10 @@ export async function createNotebookWithFirstPage(title = "New Notebook"): Promi
 
   if (!user) {
     throw new Error("Your session expired. Please sign in again before creating a notebook.");
+  }
+
+  if (!isValidUUID(user.id)) {
+    throw new Error("Invalid user ID");
   }
 
   const { data: notebook, error: notebookError } = await supabase

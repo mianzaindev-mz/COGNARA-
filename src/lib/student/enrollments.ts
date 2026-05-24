@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type EnrolledCourse = {
   enrollmentId: string;
@@ -22,6 +23,10 @@ type CourseRow = {
 };
 
 export const loadStudentEnrollments = cache(async (userId: string): Promise<EnrolledCourse[]> => {
+  if (!isValidUUID(userId)) {
+    return [];
+  }
+
   try {
     const supabase = await createClient();
     const { data, error } = await supabase

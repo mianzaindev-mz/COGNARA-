@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export async function completeOnboarding() {
   const supabase = await createClient();
@@ -10,6 +11,10 @@ export async function completeOnboarding() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
+    redirect("/login");
+  }
+
+  if (!isValidUUID(user.id)) {
     redirect("/login");
   }
 

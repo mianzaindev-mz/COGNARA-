@@ -191,6 +191,7 @@ export default function NotebookDashboard() {
       }
     } catch (e) {
       console.error(e);
+      setActionError(e instanceof Error ? e.message : "Failed to update notebook title");
     }
   }, []);
 
@@ -219,6 +220,7 @@ export default function NotebookDashboard() {
       }
     } catch (e) {
       console.error(e);
+      setActionError(e instanceof Error ? e.message : "Failed to delete notebook");
     }
   }, [activeNotebookId]);
 
@@ -274,6 +276,7 @@ export default function NotebookDashboard() {
       }
     } catch (e) {
       console.error(e);
+      setActionError(e instanceof Error ? e.message : "Failed to create page");
     } finally {
       setIsSubmitting(false);
     }
@@ -295,6 +298,7 @@ export default function NotebookDashboard() {
       }
     } catch (e) {
       console.error(e);
+      setActionError(e instanceof Error ? e.message : "Failed to update page title");
     }
   }, []);
 
@@ -319,6 +323,7 @@ export default function NotebookDashboard() {
       }
     } catch (e) {
       console.error(e);
+      setActionError(e instanceof Error ? e.message : "Failed to delete page");
     }
   }, [activePageId]);
 

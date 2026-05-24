@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -59,6 +60,9 @@ export async function getUsersWithEmails() {
 }
 
 export async function updateUserRole(userId: string, role: "student" | "coach" | "admin") {
+  if (!isValidUUID(userId)) {
+    throw new Error("Invalid user ID");
+  }
   await verifyAdmin();
   const supabase = await createClient();
 
@@ -72,6 +76,9 @@ export async function updateUserRole(userId: string, role: "student" | "coach" |
 }
 
 export async function banUser(userId: string, isBanned: boolean, reason?: string) {
+  if (!isValidUUID(userId)) {
+    throw new Error("Invalid user ID");
+  }
   await verifyAdmin();
   const supabase = await createClient();
 

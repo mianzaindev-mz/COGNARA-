@@ -50,6 +50,7 @@ export default function SettingsPage() {
         }
       } catch (err) {
         console.error("Failed to load settings:", err);
+        setError(err instanceof Error ? err.message : "Failed to load settings");
       } finally {
         setLoading(false);
       }
@@ -139,6 +140,12 @@ export default function SettingsPage() {
         <h2 className="text-4xl font-bold text-on-surface tracking-tight">Settings</h2>
         <p className="text-lg text-on-surface-variant opacity-80">Manage your preferences, notifications, and privacy.</p>
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <p>{error}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-8">
         {/* Appearance */}

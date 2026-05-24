@@ -97,6 +97,7 @@ export default function CourseBuilderPage() {
   const [view, setView] = useState<"lobby" | "pathway" | "editor">("lobby");
   const [courses, setCourses] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null);
   const { notify } = useToast();
 
@@ -196,6 +197,7 @@ export default function CourseBuilderPage() {
       setCourses(items);
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to load courses");
     } finally {
       setLoading(false);
     }
@@ -274,6 +276,7 @@ export default function CourseBuilderPage() {
       }
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to create course");
     }
   };
 
@@ -385,6 +388,7 @@ export default function CourseBuilderPage() {
       }
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to load pathway data");
     }
   }, [selectedCourse]);
 
@@ -413,6 +417,7 @@ export default function CourseBuilderPage() {
       });
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to save lesson content");
       notify({
         title: "Save Failed",
         description: "Failed to save lesson content.",
@@ -499,6 +504,7 @@ export default function CourseBuilderPage() {
       void loadCourses();
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to update course details");
       notify({
         title: "Update Failed",
         description: "Failed to update course details.",
@@ -739,6 +745,12 @@ export default function CourseBuilderPage() {
               + Create New Course
             </button>
           </section>
+
+          {error && (
+            <div className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+              <p>{error}</p>
+            </div>
+          )}
 
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

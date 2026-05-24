@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type AppNotification = {
   id: string;
@@ -23,7 +24,7 @@ export function useNotifications() {
     async function loadNotifications() {
       if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user || !isValidUUID(user.id)) {
         setLoading(false);
         return;
       }
@@ -65,7 +66,7 @@ export function useNotifications() {
   const markAllAsRead = async () => {
     if (!supabase) return;
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user || !isValidUUID(user.id)) return;
 
     // Optimistic UI update
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));

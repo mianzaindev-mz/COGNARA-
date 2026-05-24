@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type StudentDbHealth = {
   configured: boolean;
@@ -19,6 +20,17 @@ export async function checkStudentDbHealth(userId: string): Promise<StudentDbHea
       creditsOk: false,
       enrollmentsOk: false,
       message: "Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local, then restart npm run dev.",
+    };
+  }
+
+  if (!isValidUUID(userId)) {
+    return {
+      configured: true,
+      profileOk: false,
+      settingsOk: false,
+      creditsOk: false,
+      enrollmentsOk: false,
+      message: "Invalid user ID",
     };
   }
 

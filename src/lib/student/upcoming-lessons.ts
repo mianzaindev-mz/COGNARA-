@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type UpcomingLessonRow = {
   lessonLabel: string;
@@ -14,6 +15,7 @@ export type UpcomingLessonRow = {
 export const loadStudentUpcomingLessons = cache(
   async (userId: string, limit = 5): Promise<UpcomingLessonRow[]> => {
     if (!isSupabaseConfigured()) return [];
+    if (!isValidUUID(userId)) return [];
 
     try {
       const supabase = await createClient();

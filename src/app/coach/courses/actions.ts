@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 type CreateCoachCourseInput = {
   title: string;
@@ -51,6 +52,10 @@ export async function createCoachCourse(
 
     if (userError || !user) {
       return { ok: false, error: "Authenticated session expired. Please log in again." };
+    }
+
+    if (!isValidUUID(user.id)) {
+      return { ok: false, error: "Invalid user ID" };
     }
 
     const { data: profile } = await supabase

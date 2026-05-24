@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { UserRole } from "@/lib/auth/roles";
 import { isUserRole } from "@/lib/auth/roles";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type AuthUser = User;
 
@@ -12,6 +13,9 @@ export async function requireUser(): Promise<AuthUser> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
+    redirect("/login");
+  }
+  if (!isValidUUID(user.id)) {
     redirect("/login");
   }
   return user;

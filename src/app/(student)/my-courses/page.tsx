@@ -36,7 +36,7 @@ export default async function MyCoursesPage() {
         <p className="mt-1 text-sm text-cn-ink-muted">
           {enrollments.length > 0
             ? `${enrollments.length} enrolled — pick up where you left off.`
-            : "You are not enrolled yet. Enroll free from the catalog below or run demo_seed.sql in Supabase."}
+            : "No courses enrolled yet"}
         </p>
       </div>
 
@@ -58,15 +58,17 @@ export default async function MyCoursesPage() {
           </ul>
         </section>
       ) : (
-        <div className="cn-callout p-6">
-          <p className="font-bold text-cn-ink">No enrollments yet</p>
-          <p className="mt-2 text-sm text-cn-ink-muted">
-            Run <code className="font-mono text-xs">docs/supabase/demo_seed.sql</code> in Supabase (after schema) to
-            attach sample courses to your user, or use Enroll free on any catalog course.
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-24 h-24 rounded-full bg-cn-canvas flex items-center justify-center mb-6">
+            <span className="material-symbols-outlined text-5xl text-cn-ink-subtle">school</span>
+          </div>
+          <h2 className="text-xl font-bold text-cn-ink mb-2">No courses enrolled yet</h2>
+          <p className="text-sm text-cn-ink-muted mb-6 max-w-md">
+            Start your learning journey by enrolling in courses from our catalog.
           </p>
           <Link
             href="/courses"
-            className="mt-4 inline-flex rounded-full bg-cn-orange px-5 py-2.5 text-sm font-bold text-white hover:bg-cn-orange-hover"
+            className="inline-flex rounded-full bg-cn-orange px-6 py-3 text-sm font-bold text-white hover:bg-cn-orange-hover transition-colors"
           >
             Browse catalog
           </Link>

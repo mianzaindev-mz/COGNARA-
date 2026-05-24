@@ -11,6 +11,7 @@ import {
   getSupabasePublicUrl,
   isSupabaseConfigured,
 } from "@/lib/supabase/env";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 async function fetchProfile(
   supabase: ReturnType<typeof createServerClient>,
@@ -20,6 +21,9 @@ async function fetchProfile(
   is_banned: boolean;
   onboarding_complete: boolean | null;
 } | null> {
+  if (!isValidUUID(userId)) {
+    return null;
+  }
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role, is_banned")

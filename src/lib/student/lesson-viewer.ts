@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type LessonOutline = {
   id: string;
@@ -24,6 +25,9 @@ export type CourseLearnContext = {
 
 export const loadCourseLearnContext = cache(
   async (slug: string, userId: string): Promise<CourseLearnContext | null> => {
+    if (!isValidUUID(userId)) {
+      return null;
+    }
     try {
       const supabase = await createClient();
 

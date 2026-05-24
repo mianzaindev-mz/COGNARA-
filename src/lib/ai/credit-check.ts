@@ -3,6 +3,8 @@
  * Credits are checked BEFORE every agent action.
  */
 
+import { isValidUUID } from "@/lib/utils/uuid";
+
 export const CREDIT_COSTS = {
   ask_question: 1,
   explain_concept: 2,
@@ -36,6 +38,14 @@ export async function checkAndDeductCredits(
   studentId: string,
   action: CreditAction,
 ): Promise<CreditCheckResult> {
+  if (!isValidUUID(studentId)) {
+    return {
+      allowed: false,
+      remaining: 0,
+      cost: CREDIT_COSTS[action],
+      error: "Invalid student ID",
+    };
+  }
   const cost = CREDIT_COSTS[action];
 
   // Free actions always pass

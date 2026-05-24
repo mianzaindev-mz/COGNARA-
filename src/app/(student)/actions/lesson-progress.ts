@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type LessonProgressResult = { ok: true; progressPct: number } | { ok: false; error: string };
 
@@ -10,6 +11,12 @@ export async function markLessonComplete(
   courseId: string,
   slug: string,
 ): Promise<LessonProgressResult> {
+  if (!isValidUUID(lessonId)) {
+    return { ok: false, error: "Invalid lesson ID" };
+  }
+  if (!isValidUUID(courseId)) {
+    return { ok: false, error: "Invalid course ID" };
+  }
   const supabase = await createClient();
   const {
     data: { user },

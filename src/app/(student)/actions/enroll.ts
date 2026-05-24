@@ -2,10 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type EnrollResult = { ok: true } | { ok: false; error: string };
 
 export async function enrollInCourse(courseId: string): Promise<EnrollResult> {
+  if (!isValidUUID(courseId)) {
+    return { ok: false, error: "Invalid course ID." };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

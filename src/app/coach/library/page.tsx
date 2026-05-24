@@ -205,11 +205,30 @@ export default function CoachLibraryPage() {
   // Save changes
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase || !coachId || !formTitle) return;
+    
+    // Validation
+    if (!formTitle.trim()) {
+      alert("Resource title is required");
+      return;
+    }
+    if (formTitle.trim().length < 3) {
+      alert("Resource title must be at least 3 characters");
+      return;
+    }
+    if (formUrl && !formUrl.match(/^https?:\/\/.+/)) {
+      alert("Please enter a valid URL (starting with http:// or https://)");
+      return;
+    }
+    if (!formIsPermanentlyFree && (isNaN(parseFloat(formPrice)) || parseFloat(formPrice) < 0)) {
+      alert("Please enter a valid price");
+      return;
+    }
+    
+    if (!supabase || !coachId) return;
 
     const payload = {
       coach_id: coachId,
-      title: formTitle,
+      title: formTitle.trim(),
       type: formType,
       url: formUrl || null,
       access_level: formAccessLevel,
@@ -235,6 +254,8 @@ export default function CoachLibraryPage() {
           )
         );
         setModalOpen(false);
+      } else {
+        alert("Failed to update resource: " + error.message);
       }
     } else {
       // Insert
@@ -247,6 +268,8 @@ export default function CoachLibraryPage() {
       if (!error && data) {
         setResources([data as Resource, ...resources]);
         setModalOpen(false);
+      } else {
+        alert("Failed to create resource: " + error?.message);
       }
     }
   };

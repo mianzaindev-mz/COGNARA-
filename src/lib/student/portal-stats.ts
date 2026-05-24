@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export type StudentPortalStats = {
   enrolledCourses: number;
@@ -107,6 +108,9 @@ async function loadStatsInner(
 
 /** Per-request dedupe when layout + pages both need the same snapshot. */
 export const loadStudentPortalStats = cache(async (userId: string): Promise<StudentPortalStats> => {
+  if (!isValidUUID(userId)) {
+    return emptyStats;
+  }
   try {
     const supabase = await createClient();
     return await loadStatsInner(supabase, userId);

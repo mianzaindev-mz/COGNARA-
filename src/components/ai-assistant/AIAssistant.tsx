@@ -1,16 +1,38 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, createContext, useContext } from "react";
 import { FloatingAIButton } from "./FloatingAIButton";
 import { CompactChatWindow } from "./CompactChatWindow";
 import { useAIAssistantContext } from "@/hooks/use-ai-assistant-context";
 import { createClient } from "@/lib/supabase/client";
-import type { AgentAudience } from "./CompactChatWindow";
+
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+};
+
+interface AIAssistantState {
+  isOpen: boolean;
+  isMinimized: boolean;
+  messages: Message[];
+}
+
+interface AIAssistantContextValue {
+  state: AIAssistantState;
+  setState: React.Dispatch<React.SetStateAction<AIAssistantState>>;
+}
+
+const AIAssistantStateContext = createContext<AIAssistantContextValue | null>(null);
 
 export function AIAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [state, setState] = useState<AIAssistantState>({
+    isOpen: false,
+    isMinimized: false,
+    messages: [],
+  });
   const [studentId, setStudentId] = useState<string>("");
-  const [initialCredits, setInitialCredits] = useState<number | null>(null);
   const context = useAIAssistantContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -24,14 +46,6 @@ export function AIAssistant() {
 
         if (user) {
           setStudentId(user.id);
-
-          const { data: credits } = await supabase
-            .from("user_credits")
-            .select("balance")
-            .eq("user_id", user.id)
-            .maybeSingle();
-
-          setInitialCredits(credits?.balance ?? null);
         }
       } catch (error) {
         console.error("[AI Assistant] Error fetching user data:", error);
@@ -45,54 +59,61 @@ export function AIAssistant() {
 
   useEffect(() => {
     return () => {
-      // Cleanup: close chat window on unmount
-      setIsOpen(false);
+      setState({ isOpen: false, isMinimized: false, messages: [] });
     };
   }, []);
 
   const handleToggle = () => {
-    setIsOpen((prev) => !prev);
+    setState((prev) => ({ ...prev, isOpen: !prev.isOpen, isMinimized: false }));
   };
 
   const handleClose = () => {
-    setIsOpen(false);
+    setState({ isOpen: false, isMinimized: false, messages: [] });
+  };
+
+  const handleMinimize = () => {
+    setState((prev) => ({ ...prev, isMinimized: !prev.isMinimized }));
   };
 
   if (context.isLoading) {
+    console.log("[AI Assistant] Loading context...");
     return null;
   }
 
   if (!context.isEnabled) {
+    console.log("[AI Assistant] Not enabled on this page:", context.currentPage);
     return null;
   }
 
   if (context.isQuizActive) {
     return (
-      <FloatingAIButton
-        onClick={() => {}}
-        disabled={true}
-        isActive={false}
-      />
+      <AIAssistantStateContext.Provider value={{ state, setState }}>
+        <FloatingAIButton
+          onClick={() => {}}
+          disabled={true}
+          hasExistingFAB={false}
+        />
+      </AIAssistantStateContext.Provider>
     );
   }
 
-  const audience: AgentAudience = context.userRole === "support" ? "support" : context.userRole === "admin" ? "admin" : context.userRole === "coach" ? "coach" : "student";
-
   return (
-    <div ref={containerRef}>
-      <FloatingAIButton
-        onClick={handleToggle}
-        disabled={false}
-        isActive={isOpen}
-      />
-      <CompactChatWindow
-        isOpen={isOpen}
-        onClose={handleClose}
-        studentId={studentId}
-        audience={audience}
-        initialCredits={initialCredits}
-        currentPage={context.currentPage}
-      />
-    </div>
+    <AIAssistantStateContext.Provider value={{ state, setState }}>
+      <div ref={containerRef}>
+        <FloatingAIButton
+          onClick={handleToggle}
+          disabled={false}
+          hasExistingFAB={false}
+        />
+        <CompactChatWindow
+          isOpen={state.isOpen}
+          onClose={handleClose}
+          onMinimize={handleMinimize}
+          studentId={studentId}
+          userRole={context.userRole || "student"}
+          currentPage={context.currentPage}
+        />
+      </div>
+    </AIAssistantStateContext.Provider>
   );
 }
