@@ -1,6 +1,13 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import {
+  type VoiceLang,
+  looksLikeUrdu,
+  pickSoftVoice,
+  stripMarkdownForSpeech,
+  VOICE_CONFIG,
+} from "@/lib/voice/utils";
 
 type Props = {
   role: "user" | "assistant";
@@ -375,7 +382,7 @@ function InlineMarkdown({ text }: { text: string }) {
 
 function ExplainButton({ text }: { text: string }) {
   const [speaking, setSpeaking] = useState(false);
-  const [lang, setLang] = useState<"en" | "ur">("en");
+  const [lang, setLang] = useState<VoiceLang>("en");
 
   const speak = useCallback(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -386,28 +393,17 @@ function ExplainButton({ text }: { text: string }) {
       return;
     }
 
-    // Strip markdown for clean speech
-    const clean = text
-      .replace(/```[\s\S]*?```/g, " code example omitted ")
-      .replace(/\|[^\n]+\|/g, "")
-      .replace(/---+/g, "")
-      .replace(/#{1,6}\s*/g, "")
-      .replace(/\*\*([^*]+)\*\*/g, "$1")
-      .replace(/\*([^*]+)\*/g, "$1")
-      .replace(/[`~>\[\]|]/g, "")
-      .replace(/\n+/g, ". ")
-      .replace(/\s{2,}/g, " ")
-      .trim()
-      .slice(0, 1200);
-
-    const spokenLang = lang === "ur" || looksLikeUrdu(clean) ? "ur" : "en";
+    const clean = stripMarkdownForSpeech(text);
+    const spokenLang: VoiceLang = lang === "ur" || looksLikeUrdu(clean) ? "ur" : "en";
+    const config = VOICE_CONFIG[spokenLang];
     const utterance = new SpeechSynthesisUtterance(clean);
     utterance.lang = spokenLang === "ur" ? "ur-PK" : "en-US";
-    utterance.rate = spokenLang === "ur" ? 0.86 : 0.9;
-    utterance.pitch = spokenLang === "ur" ? 1.02 : 0.96;
+    utterance.rate = config.rate;
+    utterance.pitch = config.pitch;
+    utterance.volume = config.volume;
 
     const voices = window.speechSynthesis.getVoices();
-    const v = pickBestVoice(voices, spokenLang);
+    const v = pickSoftVoice(voices, spokenLang);
     if (v) utterance.voice = v;
 
     utterance.onstart = () => setSpeaking(true);
@@ -453,62 +449,7 @@ function ExplainButton({ text }: { text: string }) {
   );
 }
 
-function looksLikeUrdu(text: string) {
-  const lower = text.toLowerCase();
-  return (
-    /[\u0600-\u06FF]/.test(text) ||
-    /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna|shukriya|theek|bhai|ap|ji|haan|salam|namaste|tutor|parhao|seekhna|seekh)\b/.test(lower)
-  );
-}
-
-function pickBestVoice(voices: SpeechSynthesisVoice[], lang: "en" | "ur") {
-  if (lang === "ur") {
-    const urduVoices = voices.filter(v => {
-      const name = v.name.toLowerCase();
-      const vlang = v.lang.toLowerCase();
-      return vlang.startsWith("ur") || name.includes("urdu");
-    });
-    
-    // Find neural/online Urdu voice first
-    let best = urduVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
-    if (best) return best;
-    if (urduVoices.length > 0) return urduVoices[0];
-    
-    // Fallback to Hindi (phonetically very close to Urdu for synthesis)
-    const hindiVoices = voices.filter(v => {
-      const name = v.name.toLowerCase();
-      const vlang = v.lang.toLowerCase();
-      return vlang.startsWith("hi") || name.includes("hindi") || name.includes("हिन्दी");
-    });
-    
-    best = hindiVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
-    if (best) return best;
-    if (hindiVoices.length > 0) return hindiVoices[0];
-    
-    // Fallback to English Indian voice (reads Roman Urdu/Hindi beautifully)
-    const enInVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en-in") || v.name.toLowerCase().includes("india"));
-    best = enInVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
-    if (best) return best;
-    if (enInVoices.length > 0) return enInVoices[0];
-    
-    return voices.find(v => v.lang.toLowerCase().startsWith("en")) || voices[0];
-  }
-
-  // English - Softer, neural, online, appealing voices priority
-  const enVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en"));
-  
-  // Microsoft Jenny and Aria, Google US English, Apple Samantha are extremely soft and pleasant
-  const preferredNames = ["jenny", "aria", "samantha", "google us english", "natural", "online", "neural"];
-  for (const name of preferredNames) {
-    const match = enVoices.find(v => v.name.toLowerCase().includes(name));
-    if (match) return match;
-  }
-  
-  const usMatch = enVoices.find(v => v.lang.toLowerCase() === "en-us");
-  if (usMatch) return usMatch;
-  
-  return enVoices[0] || voices[0];
-}
+/* looksLikeUrdu and pickSoftVoice are imported from @/lib/voice/utils */
 
 /* ─── Copy Button ─── */
 

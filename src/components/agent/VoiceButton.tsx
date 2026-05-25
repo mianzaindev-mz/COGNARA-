@@ -2,9 +2,13 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-
-type VoiceState = "idle" | "listening" | "processing" | "speaking";
-type VoiceLang = "en" | "ur";
+import {
+  type VoiceLang,
+  looksLikeUrdu,
+  pickSoftVoice,
+  stripMarkdownForSpeech,
+  VOICE_CONFIG,
+} from "@/lib/voice/utils";
 
 interface VoiceButtonProps {
   /** Called with transcribed text when user finishes speaking */
@@ -15,11 +19,14 @@ interface VoiceButtonProps {
   onLanguageChange?: (lang: VoiceLang) => void;
 }
 
+type VoiceState = "idle" | "listening" | "processing" | "speaking";
+
 /**
  * Voice input/output button using native Web Speech API.
  * Supports English (en-US) and Urdu (ur-PK) speech recognition and synthesis.
+ * Uses shared voice utilities for consistent voice selection across the app.
  */
-export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChange }: VoiceButtonProps) {
+export function VoiceButton({ onTranscript, speakText: speakTextProp, disabled, onLanguageChange }: VoiceButtonProps) {
   const [state, setState] = useState<VoiceState>("idle");
   const [transcript, setTranscript] = useState("");
   const [supported, setSupported] = useState(true);
@@ -40,46 +47,31 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
 
   // Speak text when it changes
   useEffect(() => {
-    if (!speakText || typeof window === "undefined") return;
+    if (!speakTextProp || typeof window === "undefined") return;
     if (!window.speechSynthesis) return;
 
     window.speechSynthesis.cancel();
 
-    // Strip markdown for clean speech
-    const clean = speakText
-      .replace(/```[\s\S]*?```/g, " code example omitted for brevity ")
-      .replace(/\|[^\n]+\|/g, "")                    // Remove table rows
-      .replace(/---+/g, "")                           // Remove horizontal rules
-      .replace(/#{1,6}\s*/g, "")                      // Remove header markers
-      .replace(/\*\*([^*]+)\*\*/g, "$1")              // Bold → plain
-      .replace(/\*([^*]+)\*/g, "$1")                  // Italic → plain
-      .replace(/[`~>\[\]|]/g, "")                     // Remove formatting chars
-      .replace(/\n+/g, ". ")                          // Newlines → pauses
-      .replace(/\s{2,}/g, " ")                        // Collapse whitespace
-      .trim()
-      .slice(0, 1200);
-
+    const clean = stripMarkdownForSpeech(speakTextProp);
     const spokenLang: VoiceLang = lang === "ur" || looksLikeUrdu(clean) ? "ur" : "en";
+    const config = VOICE_CONFIG[spokenLang];
     const utterance = new SpeechSynthesisUtterance(clean);
     utterance.lang = spokenLang === "ur" ? "ur-PK" : "en-US";
-    utterance.rate = spokenLang === "ur" ? 0.86 : 0.9;
-    utterance.pitch = spokenLang === "ur" ? 1.02 : 0.96;
-    utterance.volume = 1.0;
+    utterance.rate = config.rate;
+    utterance.pitch = config.pitch;
+    utterance.volume = config.volume;
 
-    // Select best available MALE voice
-    const pickVoice = () => {
+    const assignVoice = () => {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length === 0) return;
-
-      const voice = pickBestVoice(voices, spokenLang);
+      const voice = pickSoftVoice(voices, spokenLang);
       if (voice) utterance.voice = voice;
     };
 
-    // Voices may not be loaded yet — try immediately, then on voiceschanged
-    pickVoice();
+    assignVoice();
     if (window.speechSynthesis.getVoices().length === 0) {
       window.speechSynthesis.onvoiceschanged = () => {
-        pickVoice();
+        assignVoice();
         window.speechSynthesis.speak(utterance);
         window.speechSynthesis.onvoiceschanged = null;
       };
@@ -94,7 +86,7 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [speakText, lang]);
+  }, [speakTextProp, lang]);
 
   const startListening = useCallback(() => {
     if (state !== "idle" || disabled) return;
@@ -201,7 +193,6 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
     try {
       recognition.start();
     } catch {
-      // Handle the case where recognition.start() throws (e.g. already started)
       setState("idle");
       notify({
         tone: "error",
@@ -310,62 +301,7 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
   );
 }
 
-function looksLikeUrdu(text: string) {
-  const lower = text.toLowerCase();
-  return (
-    /[\u0600-\u06FF]/.test(text) ||
-    /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna|shukriya|theek|bhai|ap|ji|haan|salam|namaste|tutor|parhao|seekhna|seekh)\b/.test(lower)
-  );
-}
-
-function pickBestVoice(voices: SpeechSynthesisVoice[], lang: VoiceLang) {
-  if (lang === "ur") {
-    const urduVoices = voices.filter(v => {
-      const name = v.name.toLowerCase();
-      const vlang = v.lang.toLowerCase();
-      return vlang.startsWith("ur") || name.includes("urdu");
-    });
-    
-    // Find neural/online Urdu voice first
-    let best = urduVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
-    if (best) return best;
-    if (urduVoices.length > 0) return urduVoices[0];
-    
-    // Fallback to Hindi (phonetically very close to Urdu for synthesis)
-    const hindiVoices = voices.filter(v => {
-      const name = v.name.toLowerCase();
-      const vlang = v.lang.toLowerCase();
-      return vlang.startsWith("hi") || name.includes("hindi") || name.includes("हिन्दी");
-    });
-    
-    best = hindiVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
-    if (best) return best;
-    if (hindiVoices.length > 0) return hindiVoices[0];
-    
-    // Fallback to English Indian voice (reads Roman Urdu/Hindi beautifully)
-    const enInVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en-in") || v.name.toLowerCase().includes("india"));
-    best = enInVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
-    if (best) return best;
-    if (enInVoices.length > 0) return enInVoices[0];
-    
-    return voices.find(v => v.lang.toLowerCase().startsWith("en")) || voices[0];
-  }
-
-  // English - Softer, neural, online, appealing voices priority
-  const enVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en"));
-  
-  // Microsoft Jenny and Aria, Google US English, Apple Samantha are extremely soft and pleasant
-  const preferredNames = ["jenny", "aria", "samantha", "google us english", "natural", "online", "neural"];
-  for (const name of preferredNames) {
-    const match = enVoices.find(v => v.name.toLowerCase().includes(name));
-    if (match) return match;
-  }
-  
-  const usMatch = enVoices.find(v => v.lang.toLowerCase() === "en-us");
-  if (usMatch) return usMatch;
-  
-  return enVoices[0] || voices[0];
-}
+/* ─── SVG Icons ─── */
 
 function MicIcon({ className }: { className?: string }) {
   return (
