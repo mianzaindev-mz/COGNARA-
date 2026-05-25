@@ -312,32 +312,59 @@ export function VoiceButton({ onTranscript, speakText, disabled, onLanguageChang
 
 function looksLikeUrdu(text: string) {
   const lower = text.toLowerCase();
-  return /[\u0600-\u06FF]/.test(text) || /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna)\b/.test(lower);
+  return (
+    /[\u0600-\u06FF]/.test(text) ||
+    /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna|shukriya|theek|bhai|ap|ji|haan|salam|namaste|tutor|parhao|seekhna|seekh)\b/.test(lower)
+  );
 }
 
 function pickBestVoice(voices: SpeechSynthesisVoice[], lang: VoiceLang) {
   if (lang === "ur") {
-    return (
-      voices.find(v => v.lang.toLowerCase().startsWith("ur")) ||
-      voices.find(v => v.name.toLowerCase().includes("urdu")) ||
-      voices.find(v => v.lang.toLowerCase().includes("hi")) ||
-      voices.find(v => v.lang.toLowerCase().startsWith("en-in")) ||
-      voices.find(v => v.name.includes("Microsoft Heera")) ||
-      voices.find(v => v.name.includes("Google हिन्दी")) ||
-      voices.find(v => v.lang === "en-US")
-    );
+    const urduVoices = voices.filter(v => {
+      const name = v.name.toLowerCase();
+      const vlang = v.lang.toLowerCase();
+      return vlang.startsWith("ur") || name.includes("urdu");
+    });
+    
+    // Find neural/online Urdu voice first
+    let best = urduVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
+    if (best) return best;
+    if (urduVoices.length > 0) return urduVoices[0];
+    
+    // Fallback to Hindi (phonetically very close to Urdu for synthesis)
+    const hindiVoices = voices.filter(v => {
+      const name = v.name.toLowerCase();
+      const vlang = v.lang.toLowerCase();
+      return vlang.startsWith("hi") || name.includes("hindi") || name.includes("हिन्दी");
+    });
+    
+    best = hindiVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
+    if (best) return best;
+    if (hindiVoices.length > 0) return hindiVoices[0];
+    
+    // Fallback to English Indian voice (reads Roman Urdu/Hindi beautifully)
+    const enInVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en-in") || v.name.toLowerCase().includes("india"));
+    best = enInVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
+    if (best) return best;
+    if (enInVoices.length > 0) return enInVoices[0];
+    
+    return voices.find(v => v.lang.toLowerCase().startsWith("en")) || voices[0];
   }
 
-  return (
-    voices.find(v => v.name.includes("Microsoft Guy")) ||
-    voices.find(v => v.name.includes("Microsoft Mark")) ||
-    voices.find(v => v.name.includes("Google US English")) ||
-    voices.find(v => v.name.includes("Google UK English Male")) ||
-    voices.find(v => v.name.includes("Alex")) ||
-    voices.find(v => v.name.includes("Daniel")) ||
-    voices.find(v => v.lang === "en-US") ||
-    voices.find(v => v.lang.startsWith("en"))
-  );
+  // English - Softer, neural, online, appealing voices priority
+  const enVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en"));
+  
+  // Microsoft Jenny and Aria, Google US English, Apple Samantha are extremely soft and pleasant
+  const preferredNames = ["jenny", "aria", "samantha", "google us english", "natural", "online", "neural"];
+  for (const name of preferredNames) {
+    const match = enVoices.find(v => v.name.toLowerCase().includes(name));
+    if (match) return match;
+  }
+  
+  const usMatch = enVoices.find(v => v.lang.toLowerCase() === "en-us");
+  if (usMatch) return usMatch;
+  
+  return enVoices[0] || voices[0];
 }
 
 function MicIcon({ className }: { className?: string }) {

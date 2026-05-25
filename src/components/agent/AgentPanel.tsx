@@ -476,7 +476,10 @@ export function AgentPanel({ studentId, initialCredits, audience = "student" }: 
 
 function looksLikeUrdu(text: string) {
   const lower = text.toLowerCase();
-  return /[\u0600-\u06FF]/.test(text) || /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna)\b/.test(lower);
+  return (
+    /[\u0600-\u06FF]/.test(text) ||
+    /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna|shukriya|theek|bhai|ap|ji|haan|salam|namaste|tutor|parhao|seekhna|seekh)\b/.test(lower)
+  );
 }
 
 /* ─── Icons ─── */

@@ -169,10 +169,20 @@ export function AgentFloatingButton({ userId = "quick", audience = "student" }: 
     const text = guideText || reply || input || "Ask me anything about this page.";
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text.replace(/[#*_`>\[\]]/g, ""));
-    utterance.rate = 0.96;
-    utterance.pitch = 1.02;
-    utterance.lang = /[\u0600-\u06FF]/.test(text) ? "ur-PK" : "en-US";
+    
+    // Strip markdown formatting for cleaner audio
+    const clean = text.replace(/[#*_`>\[\]]/g, "");
+    
+    const spokenLang = looksLikeUrdu(clean) ? "ur" : "en";
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.rate = spokenLang === "ur" ? 0.86 : 0.94;
+    utterance.pitch = spokenLang === "ur" ? 1.02 : 1.0;
+    utterance.lang = spokenLang === "ur" ? "ur-PK" : "en-US";
+    
+    const voices = window.speechSynthesis.getVoices();
+    const voice = pickBestVoice(voices, spokenLang);
+    if (voice) utterance.voice = voice;
+
     window.speechSynthesis.speak(utterance);
   };
 
@@ -445,4 +455,63 @@ function renderInline(text: string): React.ReactNode {
     }
     return part;
   });
+}
+
+/* ─── Neural Voice & Urdu Helpers ─── */
+
+function looksLikeUrdu(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    /[\u0600-\u06FF]/.test(text) ||
+    /\b(kya|hai|hain|mujhe|samjhao|batao|kaise|kyun|nahi|acha|mera|meri|karna|shukriya|theek|bhai|ap|ji|haan|salam|namaste|tutor|parhao|seekhna|seekh)\b/.test(lower)
+  );
+}
+
+function pickBestVoice(voices: SpeechSynthesisVoice[], lang: "en" | "ur") {
+  if (lang === "ur") {
+    const urduVoices = voices.filter(v => {
+      const name = v.name.toLowerCase();
+      const vlang = v.lang.toLowerCase();
+      return vlang.startsWith("ur") || name.includes("urdu");
+    });
+    
+    // Find neural/online Urdu voice first
+    let best = urduVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
+    if (best) return best;
+    if (urduVoices.length > 0) return urduVoices[0];
+    
+    // Fallback to Hindi (phonetically very close to Urdu for synthesis)
+    const hindiVoices = voices.filter(v => {
+      const name = v.name.toLowerCase();
+      const vlang = v.lang.toLowerCase();
+      return vlang.startsWith("hi") || name.includes("hindi") || name.includes("हिन्दी");
+    });
+    
+    best = hindiVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
+    if (best) return best;
+    if (hindiVoices.length > 0) return hindiVoices[0];
+    
+    // Fallback to English Indian voice (reads Roman Urdu/Hindi beautifully)
+    const enInVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en-in") || v.name.toLowerCase().includes("india"));
+    best = enInVoices.find(v => v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("natural"));
+    if (best) return best;
+    if (enInVoices.length > 0) return enInVoices[0];
+    
+    return voices.find(v => v.lang.toLowerCase().startsWith("en")) || voices[0];
+  }
+
+  // English - Softer, neural, online, appealing voices priority
+  const enVoices = voices.filter(v => v.lang.toLowerCase().startsWith("en"));
+  
+  // Microsoft Jenny and Aria, Google US English, Apple Samantha are extremely soft and pleasant
+  const preferredNames = ["jenny", "aria", "samantha", "google us english", "natural", "online", "neural"];
+  for (const name of preferredNames) {
+    const match = enVoices.find(v => v.name.toLowerCase().includes(name));
+    if (match) return match;
+  }
+  
+  const usMatch = enVoices.find(v => v.lang.toLowerCase() === "en-us");
+  if (usMatch) return usMatch;
+  
+  return enVoices[0] || voices[0];
 }
