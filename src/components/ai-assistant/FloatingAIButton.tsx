@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { PremiumCognaraLogo } from "@/components/student/premium-cognara-logo";
 
 interface FloatingAIButtonProps {
   onClick: () => void;
@@ -29,7 +30,7 @@ export function FloatingAIButton({ onClick, disabled = false, hasExistingFAB = f
       aria-label="Open AI Assistant"
       title={disabled ? "AI disabled during assessments" : "Open AI Assistant"}
     >
-      <span className="text-white font-bold text-[20px] font-sans">C</span>
+      <PremiumCognaraLogo className="w-8 h-8 text-white" idSuffix="ai-assistant-fab" />
     </button>
   );
 }
