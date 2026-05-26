@@ -26,13 +26,23 @@ export default async function AgentPage() {
 
     studentId = user.id;
 
-    const { data: credits } = await supabase
-      .from("ai_credits")
-      .select("balance")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    // Demo accounts get unlimited credits (testing) — detected by known demo UUIDs
+    const DEMO_IDS = [
+      "00000000-0000-0000-0000-000000000000",
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+    ];
+    if (DEMO_IDS.includes(user.id)) {
+      creditBalance = 999; // unlimited for demo
+    } else {
+      const { data: credits } = await supabase
+        .from("ai_credits")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-    creditBalance = credits?.balance ?? 20;
+      creditBalance = credits?.balance ?? 20;
+    }
   }
 
   return (

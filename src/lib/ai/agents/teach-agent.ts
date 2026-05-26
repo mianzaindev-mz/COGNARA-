@@ -60,6 +60,9 @@ function generateFallbackResponse(
   context: AgentContext,
 ): AgentResponse {
   const lower = message.toLowerCase();
+  const isUrdu = context.voice_language === "ur"
+    || /[\u0600-\u06FF]/.test(message)  // Urdu/Arabic script characters
+    || lower.includes("[language: respond in urdu");
   let content: string;
 
   if (lower.includes("variable") || lower.includes("variables")) {
@@ -379,6 +382,338 @@ Create a \`Course\` class with attributes \`title\`, \`instructor\`, and \`stude
 
 *Bonus: Make it so adding the same student twice does nothing.*`;
 
+  } else if (lower.includes("closure") || lower.includes("closures")) {
+    content = `## Closures — Functions That Remember
+
+A **closure** is a function that "remembers" the variables from the scope where it was created, even after that scope has finished executing. It's one of the most powerful patterns in programming.
+
+### How Closures Work
+
+\`\`\`javascript
+function createCounter() {
+    let count = 0;                    // This variable is "closed over"
+
+    return function() {               // This inner function is the closure
+        count++;                      // It can access 'count' even after createCounter returns
+        return count;
+    };
+}
+
+const counter = createCounter();
+console.log(counter());  // 1
+console.log(counter());  // 2
+console.log(counter());  // 3
+
+// Each call to createCounter() creates a NEW closure with its own 'count'
+const counter2 = createCounter();
+console.log(counter2()); // 1 — independent from counter
+\`\`\`
+
+> 🧸 **Analogy:** A closure is like a backpack. When the function leaves home (its parent scope), it takes a backpack with all the variables it needs. Even in a new environment, it can still reach into its backpack and use them.
+
+---
+
+### Practical Use Cases
+
+| Pattern | Example | Why Closures Help |
+|---|---|---|
+| **Data privacy** | Counter with private state | No external access to \`count\` |
+| **Function factories** | \`createMultiplier(3)\` | Generate specialized functions |
+| **Event handlers** | Button click callbacks | Capture context at creation time |
+| **Memoization** | Cache expensive computations | Store results in closed-over object |
+
+\`\`\`javascript
+// Function factory pattern
+function createMultiplier(factor) {
+    return function(number) {
+        return number * factor;     // 'factor' is remembered
+    };
+}
+
+const double = createMultiplier(2);
+const triple = createMultiplier(3);
+
+console.log(double(5));  // 10
+console.log(triple(5));  // 15
+\`\`\`
+
+---
+
+### Common Gotcha: Closures in Loops
+
+\`\`\`javascript
+// ❌ BUG: All callbacks share the same 'i'
+for (var i = 0; i < 3; i++) {
+    setTimeout(() => console.log(i), 100);  // Prints: 3, 3, 3
+}
+
+// ✅ FIX: Use 'let' (creates new scope per iteration)
+for (let i = 0; i < 3; i++) {
+    setTimeout(() => console.log(i), 100);  // Prints: 0, 1, 2
+}
+\`\`\`
+
+---
+
+### Practice Challenge
+
+Write a function \`createSecretHolder(secret)\` that returns an object with two methods: \`getSecret()\` and \`setSecret(newSecret)\`. The secret should be completely private — accessible only through these methods.`;
+
+  } else if (lower.includes("data structure") || lower.includes("array") || lower.includes("linked list") || lower.includes("stack") || lower.includes("queue") || lower.includes("hash")) {
+    content = `## Core Data Structures — Choosing the Right Tool
+
+Every data structure is a trade-off between **speed of access**, **speed of insertion**, and **memory usage**. Picking the right one is what separates good code from great code.
+
+### The Big Five at a Glance
+
+| Structure | Access | Search | Insert | Delete | Best For |
+|---|---|---|---|---|---|
+| **Array** | O(1) | O(n) | O(n) | O(n) | Random access by index |
+| **Linked List** | O(n) | O(n) | O(1) | O(1) | Frequent insert/delete |
+| **Stack** | O(n) | O(n) | O(1) | O(1) | Undo, parsing, DFS |
+| **Queue** | O(n) | O(n) | O(1) | O(1) | BFS, scheduling, buffers |
+| **Hash Map** | N/A | O(1)* | O(1)* | O(1)* | Key-value lookups |
+
+*\\* Average case — worst case is O(n) due to collisions*
+
+### Stack — Last In, First Out (LIFO)
+
+\`\`\`python
+stack = []
+stack.append("A")    # Push
+stack.append("B")
+stack.append("C")
+print(stack.pop())   # "C" — last in, first out
+print(stack.pop())   # "B"
+\`\`\`
+
+> 💡 **Real-world:** A stack of plates. You always take from the top.
+
+### Queue — First In, First Out (FIFO)
+
+\`\`\`python
+from collections import deque
+queue = deque()
+queue.append("Alice")    # Enqueue
+queue.append("Bob")
+queue.append("Charlie")
+print(queue.popleft())   # "Alice" — first in, first out
+\`\`\`
+
+> 💡 **Real-world:** A line at a coffee shop. First person in line gets served first.
+
+### Hash Map — Instant Lookups
+
+\`\`\`python
+phonebook = {}
+phonebook["Ali"] = "0300-1234567"
+phonebook["Sara"] = "0321-7654321"
+
+# O(1) lookup — no scanning needed
+print(phonebook["Ali"])  # "0300-1234567"
+
+# Check existence in O(1)
+if "Ali" in phonebook:
+    print("Found!")
+\`\`\`
+
+---
+
+### Decision Tree: Which Structure Should I Use?
+
+1. Need random access by position? → **Array**
+2. Need fast key-value lookup? → **Hash Map**
+3. Need LIFO (undo, backtracking)? → **Stack**
+4. Need FIFO (scheduling, BFS)? → **Queue**
+5. Need frequent inserts in the middle? → **Linked List**
+
+---
+
+### Practice Challenge
+
+Implement a **MinStack** — a stack that supports \`push\`, \`pop\`, and \`getMin()\` all in O(1) time.
+
+*Hint: use a second stack to track minimums.*`;
+
+  } else if (lower.includes("flashcard") || lower.includes("flash card")) {
+    content = `## 🃏 Flashcard Set: Programming Fundamentals
+
+---
+
+### 🃏 Card 1
+**Front:** What is the difference between \`==\` and \`===\` in JavaScript?
+**Back:** \`==\` performs type coercion before comparing (loose equality), while \`===\` compares both value AND type without coercion (strict equality).
+**Memory Tip:** Three equals = three checks (value + type + no tricks)
+
+---
+
+### 🃏 Card 2
+**Front:** What is Big-O notation used for?
+**Back:** It describes the upper bound of an algorithm's time or space complexity as input size grows. It tells you how an algorithm *scales*, not how fast it runs.
+**Memory Tip:** Big-O = "Big Overview" — it shows the big picture of performance.
+
+---
+
+### 🃏 Card 3
+**Front:** What's the difference between a stack and a queue?
+**Back:** Stack = LIFO (Last In, First Out). Queue = FIFO (First In, First Out). Stack is like a pile of plates; queue is like a line at a store.
+**Memory Tip:** Stack = Stack of plates (top first). Queue = Queue at the bank (first come first served).
+
+---
+
+### 🃏 Card 4
+**Front:** What does "DRY" stand for in software engineering?
+**Back:** **D**on't **R**epeat **Y**ourself. It means every piece of knowledge should have a single, unambiguous representation in your code.
+**Memory Tip:** If you're copy-pasting code, you're getting "wet" — time to DRY it up with a function.
+
+---
+
+### 🃏 Card 5
+**Front:** What is a callback function?
+**Back:** A function passed as an argument to another function, which is then invoked (called back) at a later time, often after an async operation completes.
+**Memory Tip:** "Call me back when you're done" — like giving someone your phone number.
+
+---
+
+### 🃏 Card 6
+**Front:** What is the purpose of \`try/catch\` blocks?
+**Back:** They handle runtime errors gracefully. Code in \`try\` runs normally; if it throws an error, execution jumps to \`catch\` instead of crashing the program.
+**Memory Tip:** Try the trapeze act → if you fall, the catch net saves you.
+
+---
+
+## ⚡ Quick Self-Test
+
+1. \`==\` performs _______ before comparing, while \`===\` does not.
+2. Big-O describes the _______ bound of an algorithm's complexity.
+3. A stack follows the _______ principle (abbreviation).`;
+
+  } else if (lower.includes("challenge") || lower.includes("coding challenge") || lower.includes("code challenge")) {
+    content = `## ⚡ Code Challenge
+**Difficulty:** Medium · **Time Limit:** 10 minutes
+**Language:** Python
+
+### The Problem
+
+Given a string \`s\`, find the length of the **longest substring without repeating characters**.
+
+**Constraints:**
+- \`0 <= len(s) <= 50000\`
+- \`s\` consists of English letters, digits, symbols, and spaces
+
+### Input/Output Examples
+
+\`\`\`
+Input: "abcabcbb"
+Output: 3  # "abc"
+
+Input: "bbbbb"
+Output: 1  # "b"
+
+Input: "pwwkew"
+Output: 3  # "wke"
+\`\`\`
+
+### Starter Code
+
+\`\`\`python
+def length_of_longest_substring(s: str) -> int:
+    # Your code here
+    pass
+\`\`\`
+
+### Hints (reveal progressively)
+
+1. 💡 Think about using a **sliding window** — two pointers that define the current substring.
+2. 💡 Use a **set** or **dictionary** to track which characters are currently in the window.
+3. 💡 When you find a duplicate, shrink the window from the left until the duplicate is removed.
+
+### Solution & Walkthrough
+
+\`\`\`python
+def length_of_longest_substring(s: str) -> int:
+    char_set = set()
+    left = 0
+    max_length = 0
+
+    for right in range(len(s)):
+        # Shrink window from left while duplicate exists
+        while s[right] in char_set:
+            char_set.remove(s[left])
+            left += 1
+
+        # Add current char and update max
+        char_set.add(s[right])
+        max_length = max(max_length, right - left + 1)
+
+    return max_length
+\`\`\`
+
+**Why this works:** The sliding window technique processes each character at most twice (once when added, once when removed), giving us **O(n)** time complexity with **O(min(n, alphabet_size))** space.`;
+
+  } else if (lower.includes("eli5") || lower.includes("explain like") || lower.includes("simple terms")) {
+    content = `## 🧸 ELI5 Mode Active
+
+Tell me what concept you'd like explained in the simplest possible way! Here's an example:
+
+---
+
+### How the Internet Works — ELI5 Edition
+
+Imagine you want to send a drawing to your friend who lives far away. You can't walk there, so you give the drawing to a postal worker.
+
+The postal worker doesn't carry it directly — they pass it to the sorting office, which reads the address and passes it to the right truck, which passes it to another sorting office closer to your friend, which finally delivers it.
+
+**The internet works the same way.** When you visit a website, your computer sends a message (like the drawing) through wires and routers (like sorting offices) until it reaches the computer that has the website. That computer sends the website back through the same chain of routers, and your browser shows it on screen.
+
+> 🧸 **Analogy:** The internet is a super-fast postal service for computers. Routers are the sorting offices that know which direction to send your message.
+
+🎯 **The One-Liner:** The internet is just computers sending messages to each other through a chain of helpful middlemen.
+
+---
+
+*Now it's your turn — ask me to explain anything: APIs, databases, recursion, machine learning, blockchain, or any concept you've been struggling with!*`;
+
+  } else if (isUrdu) {
+    // ── Urdu fallback: respond in Urdu when no topic match ──
+    const topicHint = context.current_lesson_title
+      ? `\n\nMain dekh raha hoon aap **"${context.current_lesson_title}"** pe kaam kar rahe hain${context.current_course_title ? ` **${context.current_course_title}** course mein` : ""}. Is topic ke baare mein kuch bhi poochein!`
+      : "";
+
+    content = `## COGNARA AI Mein Khush Aamdeed 🎓
+
+Main aap ka personal AI tutor hoon — aap ko seekhne mein madad karne ke liye, na ke sirf jawaab dene ke liye.${topicHint}
+
+### Main Kya Kar Sakta Hoon
+
+| Skill | Kaise Use Karein | Example |
+|---|---|---|
+| **Samjhaao** | Koi bhi concept explain karo | *"Variables kya hote hain?"* |
+| **Debug** | Code ki galti theek karo | *"Yeh error kyun aa raha hai?"* |
+| **Quiz** | Apna knowledge test karo | *"Data structures pe quiz do"* |
+| **🃏 Flashcards** | Yaad rakhne ke cards | *"Python basics ke flashcards"* |
+| **⚡ Challenge** | Coding challenge do | *"Arrays pe challenge do"* |
+| **🧸 Aasaan Zabaan** | Bilkul aasaan alfaaz mein | *"Recursion ko aasaan mein samjhaao"* |
+| **Voice** | Baat kar ke seekho | *Mic button dabayein* |
+
+---
+
+### Behtareen Jawaab Ke Liye
+
+> **Specific poochein.** Sirf *"Python samjhaao"* ke bajaye, *"List comprehension mein filter kaise kaam karta hai?"* poochein. Jitna specific sawal, utna acha jawaab.
+
+### Mujh Se Yeh Poochein
+
+- *"Variable aur constant mein kya farq hai?"*
+- *"Loop kya hota hai aur kyun use karte hain?"*
+- *"Function kaise banta hai Python mein?"*
+- *"OOP ka matlab kya hai?"*
+- *"API kya hoti hai aasaan alfaaz mein?"*
+
+---
+
+*Main tayaar hoon. Aaj kya seekhna chahte hain?*`;
+
   } else {
     const topicHint = context.current_lesson_title
       ? `\n\nI can see you're working on **"${context.current_lesson_title}"**${context.current_course_title ? ` in the **${context.current_course_title}** course` : ""}. Ask me anything specific about that topic!`
@@ -392,11 +727,14 @@ I'm your personal AI tutor — here to help you learn effectively, not just give
 
 | Skill | How to Use | Example |
 |---|---|---|
-| **Explain concepts** | Ask about any topic | *"Explain how loops work in Python"* |
-| **Debug your code** | Share code + error | *"Why does this give a TypeError?"* |
-| **Generate exercises** | Request practice problems | *"Give me 3 problems on recursion"* |
-| **Quiz preparation** | Test your knowledge | *"Quiz me on data structures"* |
-| **Learning paths** | Get a study roadmap | *"What should I learn after functions?"* |
+| **Teach Me** | Explain any concept | *"Explain closures in JavaScript"* |
+| **Debug** | Fix your code | *"Why does this give a TypeError?"* |
+| **Quiz** | Test your knowledge | *"Quiz me on data structures"* |
+| **🃏 Flashcards** | Spaced repetition cards | *"Make flashcards for Python basics"* |
+| **⚡ Challenge** | Timed coding puzzles | *"Give me a challenge on arrays"* |
+| **🧸 ELI5** | Simple explanations | *"Explain recursion like I'm 5"* |
+| **Voice** | Spoken conversation | *Use the microphone button* |
+| **Path** | Learning roadmap | *"What should I learn after Python?"* |
 
 ---
 
@@ -406,10 +744,10 @@ I'm your personal AI tutor — here to help you learn effectively, not just give
 
 ### Try Asking Me
 
-- *"What's the difference between a list and a tuple in Python?"*
-- *"Explain the concept of Big-O notation with examples"*
-- *"Help me understand why my recursive function hits a stack overflow"*
-- *"Generate 5 practice problems on string manipulation"*
+- *"What are closures and why do they matter?"*
+- *"Make flashcards for Big-O notation"*
+- *"Give me a coding challenge on string manipulation"*
+- *"Explain APIs like I'm 5"*
 - *"What are the SOLID principles in object-oriented design?"*
 
 ---

@@ -19,33 +19,31 @@ type Props = {
  */
 export function StudyBoard({ content, onClose }: Props) {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [isRevealing, setIsRevealing] = useState(true);
   const boardRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const speak = useCallback(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
-
     window.speechSynthesis.cancel();
     const clean = content
       .replace(/```[\s\S]*?```/g, " ... code example ... ")
       .replace(/\|[^\n]+\|/g, "").replace(/---+/g, "")
       .replace(/#{1,6}\s*/g, "")
       .replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\*([^*]+)\*/g, "$1")
-      .replace(/[`~>\[\]|]/g, "").replace(/\n+/g, ". ")
+      .replace(/[`~>[\]|]/g, "").replace(/\n+/g, ". ")
       .replace(/\s{2,}/g, " ").trim().slice(0, 1500);
-
     const utterance = new SpeechSynthesisUtterance(clean);
     utterance.lang = "en-US";
     utterance.rate = 0.92;
     utterance.pitch = 0.95;
     utterance.volume = 1.0;
-
-    // Male voice priority
     const voices = window.speechSynthesis.getVoices();
     const male =
       voices.find(v => v.name.includes("Microsoft David")) ||
@@ -57,7 +55,6 @@ export function StudyBoard({ content, onClose }: Props) {
       voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")) ||
       voices.find(v => v.lang === "en-US");
     if (male) utterance.voice = male;
-
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
@@ -79,8 +76,54 @@ export function StudyBoard({ content, onClose }: Props) {
 
   useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
 
-  // Parse and render
+  // Parse content into sections
   const sections = parseToVisualSections(content);
+  const totalSections = sections.length;
+
+  // ── Progressive reveal: sections appear one by one ──
+  useEffect(() => {
+    if (!isRevealing) return;
+    setVisibleCount(0);
+    let idx = 0;
+    const reveal = () => {
+      idx++;
+      setVisibleCount(idx);
+      if (boardRef.current) {
+        const container = boardRef.current;
+        requestAnimationFrame(() => {
+          container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        });
+      }
+      if (idx < totalSections) {
+        const next = sections[idx];
+        const delay = next?.type === "code" || next?.type === "diagram" || next?.type === "callstack" || next?.type === "table"
+          ? 600
+          : next?.type === "heading" || next?.type === "subheading"
+            ? 350
+            : 400;
+        timerRef.current = setTimeout(reveal, delay);
+      } else {
+        setIsRevealing(false);
+      }
+    };
+    timerRef.current = setTimeout(reveal, 300);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRevealing, totalSections]);
+
+  const handleReplay = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setVisibleCount(0);
+    setIsRevealing(true);
+  }, []);
+
+  const handleSkip = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setVisibleCount(totalSections);
+    setIsRevealing(false);
+  }, [totalSections]);
+
+  const progressPct = totalSections > 0 ? Math.round((visibleCount / totalSections) * 100) : 100;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0d1117]/98 backdrop-blur-md">
@@ -92,14 +135,33 @@ export function StudyBoard({ content, onClose }: Props) {
           </div>
           <div>
             <h2 className="text-sm font-bold text-white tracking-tight">COGNARA Whiteboard</h2>
-            <p className="text-[11px] text-white/35">Visual teaching session</p>
+            <p className="text-[11px] text-white/35">
+              {isRevealing ? `Drawing... ${visibleCount}/${totalSections}` : `${totalSections} sections`}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {isRevealing && (
+            <span className="flex items-center gap-1.5 rounded-full bg-cn-orange/15 px-3 py-1 text-[11px] font-medium text-cn-orange">
+              <span className="h-1.5 w-1.5 rounded-full bg-cn-orange animate-pulse" />
+              Drawing...
+            </span>
+          )}
           {isSpeaking && (
             <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-medium text-emerald-400 animate-pulse">
               <SpeakerIcon /> Speaking...
             </span>
+          )}
+          {isRevealing ? (
+            <button type="button" onClick={handleSkip}
+              className="flex h-9 items-center gap-1 rounded-xl px-4 text-xs font-bold bg-white/8 text-white/60 hover:bg-white/15 hover:text-white transition">
+              Skip ⏭
+            </button>
+          ) : (
+            <button type="button" onClick={handleReplay}
+              className="flex h-9 items-center gap-1 rounded-xl px-4 text-xs font-bold bg-white/8 text-white/60 hover:bg-white/15 hover:text-white transition">
+              ↻ Replay
+            </button>
           )}
           <button type="button" onClick={speak}
             className={`flex h-9 items-center gap-2 rounded-xl px-4 text-xs font-bold transition ${
@@ -108,92 +170,116 @@ export function StudyBoard({ content, onClose }: Props) {
             {isSpeaking ? "■ Stop" : "▶ Narrate"}
           </button>
           <button type="button" onClick={() => { stopSpeaking(); onClose(); }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/8 text-white/50 transition hover:bg-white/15 hover:text-white">
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/8 text-white/50 hover:bg-white/15 hover:text-white transition">
             ✕
           </button>
         </div>
       </div>
 
-      {/* Board content — single continuous scroll */}
+      {/* Progress bar */}
+      <div className="h-0.5 bg-white/5">
+        <div className="h-full bg-gradient-to-r from-cn-orange to-cn-pink transition-all duration-500 ease-out"
+          style={{ width: `${progressPct}%` }} />
+      </div>
+
+      {/* Board content — progressive reveal */}
       <div className="flex-1 overflow-y-auto" ref={boardRef}>
         <div className="mx-auto max-w-4xl px-8 py-10 space-y-6">
-          {sections.map((section, i) => (
-            <React.Fragment key={i}>
-              {section.type === "heading" && (
-                <h2 className="text-2xl font-extrabold text-white tracking-tight border-b-2 border-cn-orange/30 pb-3 mb-2">
-                  {section.text}
-                </h2>
-              )}
-              {section.type === "subheading" && (
-                <h3 className="text-lg font-bold text-amber-400 mt-8 mb-3 flex items-center gap-2">
-                  <span className="w-1 h-5 rounded bg-gradient-to-b from-cn-orange to-amber-400" />
-                  {section.text}
-                </h3>
-              )}
-              {section.type === "text" && (
-                <p className="text-[15px] leading-relaxed text-white/80"
-                   dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(section.text) }} />
-              )}
-              {section.type === "blockquote" && (
-                <div className="border-l-[3px] border-cn-orange bg-cn-orange/5 rounded-r-xl px-5 py-4 my-4">
-                  <p className="text-[15px] text-white/85 leading-relaxed"
+          {sections.map((section, i) => {
+            if (i >= visibleCount) return null;
+            return (
+              <div key={i} style={{ animation: "boardReveal 0.5s ease-out forwards" }}>
+                {section.type === "heading" && (
+                  <h2 className="text-2xl font-extrabold text-white tracking-tight border-b-2 border-cn-orange/30 pb-3 mb-2">
+                    {section.text}
+                  </h2>
+                )}
+                {section.type === "subheading" && (
+                  <h3 className="text-lg font-bold text-amber-400 mt-8 mb-3 flex items-center gap-2">
+                    <span className="w-1 h-5 rounded bg-gradient-to-b from-cn-orange to-amber-400" />
+                    {section.text}
+                  </h3>
+                )}
+                {section.type === "text" && (
+                  <p className="text-[15px] leading-relaxed text-white/80"
                      dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(section.text) }} />
-                </div>
-              )}
-              {section.type === "code" && (
-                <div className="relative rounded-xl border border-white/8 bg-[#0a0e14] overflow-hidden my-4">
-                  {section.lang && (
-                    <div className="absolute top-2 right-3 text-[10px] font-bold uppercase tracking-widest text-white/15">
-                      {section.lang}
-                    </div>
-                  )}
-                  <pre className="p-5 overflow-x-auto text-[13px] leading-[1.7] font-mono">
-                    <code dangerouslySetInnerHTML={{ __html: highlightCode(section.text, section.lang || "") }} />
-                  </pre>
-                </div>
-              )}
-              {section.type === "table" && (
-                <div className="rounded-xl border border-white/8 overflow-hidden my-4"
-                     dangerouslySetInnerHTML={{ __html: renderTable(section.text) }} />
-              )}
-              {section.type === "list" && (
-                <ul className="space-y-2 my-3 pl-1">
-                  {section.items!.map((item, j) => (
-                    <li key={j} className="flex items-start gap-2.5 text-[15px] text-white/78 leading-relaxed">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cn-orange" />
-                      <span dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(item) }} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {section.type === "olist" && (
-                <ol className="space-y-2 my-3 pl-1 counter-reset-list">
-                  {section.items!.map((item, j) => (
-                    <li key={j} className="flex items-start gap-2.5 text-[15px] text-white/78 leading-relaxed">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-amber-400/15 text-[11px] font-bold text-amber-400">
-                        {j + 1}
-                      </span>
-                      <span dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(item) }} />
-                    </li>
-                  ))}
-                </ol>
-              )}
-              {section.type === "diagram" && (
-                <VariableDiagram data={section.diagramData!} />
-              )}
-              {section.type === "callstack" && (
-                <CallStackDiagram data={section.diagramData!} />
-              )}
-              {section.type === "hr" && (
-                <hr className="border-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
-              )}
-            </React.Fragment>
-          ))}
+                )}
+                {section.type === "blockquote" && (
+                  <div className="border-l-[3px] border-cn-orange bg-cn-orange/5 rounded-r-xl px-5 py-4 my-4">
+                    <p className="text-[15px] text-white/85 leading-relaxed"
+                       dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(section.text) }} />
+                  </div>
+                )}
+                {section.type === "code" && (
+                  <div className="relative rounded-xl border border-white/8 bg-[#0a0e14] overflow-hidden my-4">
+                    {section.lang && (
+                      <div className="absolute top-2 right-3 text-[10px] font-bold uppercase tracking-widest text-white/15">
+                        {section.lang}
+                      </div>
+                    )}
+                    <pre className="p-5 overflow-x-auto text-[13px] leading-[1.7] font-mono">
+                      <code dangerouslySetInnerHTML={{ __html: highlightCode(section.text, section.lang || "") }} />
+                    </pre>
+                  </div>
+                )}
+                {section.type === "table" && (
+                  <div className="rounded-xl border border-white/8 overflow-hidden my-4"
+                       dangerouslySetInnerHTML={{ __html: renderTable(section.text) }} />
+                )}
+                {section.type === "list" && (
+                  <ul className="space-y-2 my-3 pl-1">
+                    {section.items!.map((item, j) => (
+                      <li key={j} className="flex items-start gap-2.5 text-[15px] text-white/78 leading-relaxed">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cn-orange" />
+                        <span dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(item) }} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {section.type === "olist" && (
+                  <ol className="space-y-2 my-3 pl-1 counter-reset-list">
+                    {section.items!.map((item, j) => (
+                      <li key={j} className="flex items-start gap-2.5 text-[15px] text-white/78 leading-relaxed">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-amber-400/15 text-[11px] font-bold text-amber-400">
+                          {j + 1}
+                        </span>
+                        <span dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(item) }} />
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                {section.type === "diagram" && <VariableDiagram data={section.diagramData!} />}
+                {section.type === "callstack" && <CallStackDiagram data={section.diagramData!} />}
+                {section.type === "hr" && (
+                  <hr className="border-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
+                )}
+              </div>
+            );
+          })}
+          {/* Drawing cursor */}
+          {isRevealing && (
+            <div className="flex items-center gap-2 py-4">
+              <div className="flex gap-1">
+                <span className="h-2 w-2 rounded-full bg-cn-orange animate-bounce" />
+                <span className="h-2 w-2 rounded-full bg-cn-orange animate-bounce [animation-delay:150ms]" />
+                <span className="h-2 w-2 rounded-full bg-cn-orange animate-bounce [animation-delay:300ms]" />
+              </div>
+              <span className="text-xs text-white/30 italic">Drawing next section...</span>
+            </div>
+          )}
         </div>
       </div>
 
+      <style>{`
+        @keyframes boardReveal {
+          0% { opacity: 0; transform: translateY(20px) scale(0.97); filter: blur(4px); }
+          60% { opacity: 0.8; filter: blur(0); }
+          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+      `}</style>
+
       <div className="border-t border-white/5 py-2 text-center text-[10px] text-white/20">
-        Esc — Close board
+        Esc — Close board{isRevealing ? " · Drawing..." : ""}
       </div>
     </div>
   );

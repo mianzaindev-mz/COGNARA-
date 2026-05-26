@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { routeAgentRequest, type AgentSkill } from "@/lib/ai/master-agent";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/security/rate-limiter";
 import { sanitizeMessage, sanitizeCode, SECURITY_HEADERS } from "@/lib/security/sanitize";
 import { createClient } from "@/lib/supabase/server";
 
+/** Known demo account IDs — these always get unlimited credits */
+const DEMO_USER_IDS = new Set([
+  "00000000-0000-0000-0000-000000000000", // admin
+  "00000000-0000-0000-0000-000000000001", // coach
+  "00000000-0000-0000-0000-000000000002", // student
+]);
+
 const agentSchema = z.object({
-  skill: z.enum(["teach", "debug", "quiz", "voice", "path", "support", "verify", "coach", "admin"]),
+  skill: z.enum(["teach", "debug", "quiz", "voice", "path", "support", "verify", "coach", "admin", "flashcard", "challenge", "eli5"]),
   message: z.string().min(1, "Message cannot be empty").max(5000, "Message too long"),
   studentId: z.string().min(1),
   context: z
@@ -51,8 +59,12 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Allow unauthenticated for quick-ask (floating button) with limited features
     const isAuthenticated = !!user;
+
+    // 2b. Detect demo sessions via cookie (mock client makes demo users look authenticated)
+    const cookieStore = await cookies();
+    const isDemoSession = !!cookieStore.get("cognara_demo_session")?.value
+      || (isAuthenticated && DEMO_USER_IDS.has(user.id));
 
     // 3. Parse and validate input
     const body = await request.json();
@@ -89,13 +101,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 7. Route to agent (demo users = unauthenticated sessions → unlimited credits)
+    // 7. Route to agent (demo users get unlimited credits)
     const result = await routeAgentRequest({
       studentId: realStudentId,
       skill: skill as AgentSkill,
       message: safeMessage,
       context,
-      isDemo: !isAuthenticated,
+      isDemo: isDemoSession || !isAuthenticated,
       code: safeCode,
       language,
       error: safeError,

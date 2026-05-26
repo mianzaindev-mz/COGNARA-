@@ -53,7 +53,13 @@ export async function checkAndDeductCredits(
   const cost = CREDIT_COSTS[action];
 
   // ── Demo accounts: unlimited credits, never deducted ──
-  if (isDemo) {
+  // Detected by explicit flag OR by known demo user IDs (belt-and-suspenders)
+  const DEMO_USER_IDS = [
+    "00000000-0000-0000-0000-000000000000",
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002",
+  ];
+  if (isDemo || DEMO_USER_IDS.includes(studentId)) {
     return { allowed: true, remaining: 999, cost: 0 };
   }
 

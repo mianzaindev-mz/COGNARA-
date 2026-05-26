@@ -16,9 +16,10 @@ type Props = {
   skill?: string;
   creditsUsed?: number;
   timestamp?: string;
+  onOpenBoard?: (content: string) => void;
 };
 
-export function AgentMessage({ role, content, skill, creditsUsed, timestamp }: Props) {
+export function AgentMessage({ role, content, skill, creditsUsed, timestamp, onOpenBoard }: Props) {
   const isUser = role === "user";
 
   return (
@@ -57,6 +58,16 @@ export function AgentMessage({ role, content, skill, creditsUsed, timestamp }: P
           <div className="mt-1.5 flex items-center gap-2 flex-wrap">
             <ExplainButton text={content} />
             <CopyButton text={content} />
+            {onOpenBoard && (
+              <button
+                type="button"
+                onClick={() => onOpenBoard(content)}
+                className="flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-medium text-cn-ink-subtle border border-cn-border bg-cn-canvas transition hover:bg-cn-orange/10 hover:text-cn-orange hover:border-cn-orange/30"
+                title="Open in Whiteboard"
+              >
+                <BoardSmallIcon className="h-3 w-3" /> Board
+              </button>
+            )}
             {timestamp && <span className="text-[11px] text-cn-ink-subtle">{timestamp}</span>}
             {skill && (
               <span className="rounded-full bg-cn-orange/10 px-2 py-0.5 text-[11px] font-medium text-cn-orange">
@@ -486,6 +497,15 @@ function StopIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 16 16">
       <rect x="3" y="3" width="10" height="10" rx="2" />
+    </svg>
+  );
+}
+
+function BoardSmallIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" strokeWidth={1.5} stroke="currentColor">
+      <rect x="2" y="2" width="12" height="10" rx="2" />
+      <path strokeLinecap="round" d="M5 14h6M8 12v2M5 6h2M5 8.5h4" />
     </svg>
   );
 }

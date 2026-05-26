@@ -268,11 +268,14 @@ export function VoiceButton({ onTranscript, speakText: speakTextProp, disabled, 
       {/* Language toggle */}
       <button
         type="button"
-        onClick={() => setLang(l => {
-          const next = l === "en" ? "ur" : "en";
-          onLanguageChange?.(next);
-          return next;
-        })}
+        onClick={() => {
+          setLang(prev => {
+            const next = prev === "en" ? "ur" : "en";
+            // Schedule the parent callback AFTER this render cycle
+            queueMicrotask(() => onLanguageChange?.(next));
+            return next;
+          });
+        }}
         className="flex h-10 items-center rounded-xl border border-cn-border px-2 text-[11px] font-bold text-cn-ink-subtle transition hover:bg-cn-border/30 hover:text-cn-ink"
         title={`Switch to ${lang === "en" ? "Urdu" : "English"} voice`}
       >

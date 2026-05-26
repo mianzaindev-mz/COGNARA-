@@ -13,7 +13,7 @@
     "@daily-co/daily-js": "^0.90.0",
     "@monaco-editor/react": "^4.7.0",
     "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.105.4",
+    "@supabase/supabase-js": "^2.106.2",
     "@tiptap/extension-code-block-lowlight": "^3.23.4",
     "@tiptap/extension-highlight": "^3.23.4",
     "@tiptap/extension-placeholder": "^3.23.4",

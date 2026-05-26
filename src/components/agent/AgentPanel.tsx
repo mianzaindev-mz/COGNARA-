@@ -9,7 +9,7 @@ import { AgentIcon } from "@/components/ui/agent-icon";
 import { looksLikeUrdu } from "@/lib/voice/utils";
 import {
   IconBrain, IconBug, IconClipboard, IconMicrophone,
-  IconTarget, IconTicket,
+  IconTarget, IconTicket, IconFlashcard, IconLightning, IconChild,
 } from "@/components/ui/icons";
 import type { AgentSkill } from "@/lib/ai/master-agent";
 
@@ -29,6 +29,9 @@ const STUDENT_SKILLS: SkillOption[] = [
   { key: "teach", Icon: IconBrain, label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr" },
   { key: "debug", Icon: IconBug, label: "Debug", desc: "Fix your code issues", cost: "2 cr" },
   { key: "quiz", Icon: IconClipboard, label: "Quiz", desc: "Generate practice problems", cost: "3 cr" },
+  { key: "flashcard", Icon: IconFlashcard, label: "Flashcards", desc: "Spaced repetition cards", cost: "1 cr" },
+  { key: "challenge", Icon: IconLightning, label: "Challenge", desc: "Timed coding puzzles", cost: "1 cr" },
+  { key: "eli5", Icon: IconChild, label: "ELI5", desc: "Explain like I'm 5", cost: "1 cr" },
   { key: "voice", Icon: IconMicrophone, label: "Voice", desc: "Spoken conversation", cost: "1 cr/min" },
   { key: "path", Icon: IconTarget, label: "Path", desc: "Create learning roadmap", cost: "3 cr" },
   { key: "support", Icon: IconTicket, label: "Support", desc: "Get help with the platform", cost: "1 cr" },
@@ -332,6 +335,7 @@ export function AgentPanel({ studentId, initialCredits, audience = "student" }: 
                   skill={msg.skill}
                   creditsUsed={msg.creditsUsed}
                   timestamp={msg.timestamp}
+                  onOpenBoard={msg.role === "assistant" ? setStudyBoardContent : undefined}
                 />
               ))}
               {isLoading && (

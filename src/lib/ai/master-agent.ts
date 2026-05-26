@@ -14,19 +14,21 @@ import { runCoachAgent } from "./agents/coach-agent";
 import { runAdminAgent } from "./agents/admin-agent";
 import type { AgentResponse } from "./agents/teach-agent";
 
-export type AgentSkill = "teach" | "debug" | "quiz" | "voice" | "path" | "support" | "verify" | "coach" | "admin";
+export type AgentSkill = "teach" | "debug" | "quiz" | "voice" | "path" | "support" | "verify" | "coach" | "admin" | "flashcard" | "challenge" | "eli5";
 
-/** Map skills to credit actions */
 const SKILL_CREDIT_MAP: Record<AgentSkill, CreditAction> = {
   teach: "ask_question",
   debug: "debug_code",
   quiz: "generate_quiz",
   voice: "voice_per_minute",
   path: "learning_path",
-  support: "ask_question", // support is free-ish (1 credit)
-  verify: "coach_pdf_outline", // internal, free
-  coach: "coach_generate_quiz", // free for coaches
-  admin: "coach_analyze_students", // internal/admin, free
+  support: "ask_question",
+  verify: "coach_pdf_outline",
+  coach: "coach_generate_quiz",
+  admin: "coach_analyze_students",
+  flashcard: "ask_question",
+  challenge: "ask_question",
+  eli5: "ask_question",
 };
 
 export interface AgentRequest {
@@ -85,7 +87,15 @@ export async function routeAgentRequest(req: AgentRequest): Promise<AgentResult>
     voice_language: req.context?.voice_language,
   };
 
-  // 4. Route to skill agent
+  // 4. Build Urdu language prefix if needed
+  const isUrdu = context.voice_language === "ur";
+  const urduPrefix = isUrdu
+    ? `[LANGUAGE: RESPOND IN URDU (اردو). Use Roman Urdu for the main explanation. Keep code keywords, variable names, and syntax in English. Mix Urdu naturally like a tutor speaking to a Pakistani student. Example tone: "Yeh ek variable hai jo aap ki value store karta hai."]
+
+`
+    : "";
+
+  // 5. Route to skill agent
   let response: AgentResponse;
 
   switch (req.skill) {
@@ -147,19 +157,99 @@ export async function routeAgentRequest(req: AgentRequest): Promise<AgentResult>
       break;
 
     case "voice":
-      // Voice uses teach agent (STT/TTS handled client-side)
+      // Voice uses teach agent — force Urdu if language is set
       response = await runTeachAgent({
-        message: req.message,
+        message: `${urduPrefix}${req.message}`,
         memory,
         context,
       });
       response.skill = "voice";
       break;
 
+    case "flashcard":
+      response = await runTeachAgent({
+        message: `Create a set of 6 spaced-repetition flashcards on this topic: ${req.message}.
+
+Format EACH flashcard like this:
+---
+### 🃏 Card N
+**Front:** [Question or term]
+**Back:** [Answer or definition — concise, 1-3 sentences max]
+**Memory Tip:** [A mnemonic, analogy, or visual cue to help remember]
+---
+
+After all cards, add a "⚡ Quick Self-Test" section with 3 fill-in-the-blank questions from the cards above.`,
+        memory,
+        context,
+      });
+      response.skill = "flashcard";
+      break;
+
+    case "challenge":
+      response = await runTeachAgent({
+        message: `Create a timed coding challenge on this topic: ${req.message}.
+
+Format it exactly like this:
+
+## ⚡ Code Challenge
+**Difficulty:** [Easy/Medium/Hard] · **Time Limit:** [5/10/15] minutes
+**Language:** Python (or whatever is most relevant)
+
+### The Problem
+[Clear problem statement with constraints]
+
+### Input/Output Examples
+\`\`\`
+Input: [example]
+Output: [expected output]
+\`\`\`
+
+### Starter Code
+\`\`\`python
+def solve(input):
+    # Your code here
+    pass
+\`\`\`
+
+### Hints (reveal progressively)
+1. 💡 [First hint — gentle nudge]
+2. 💡 [Second hint — more specific]
+3. 💡 [Third hint — nearly gives it away]
+
+### Solution & Walkthrough
+\`\`\`python
+[Full solution with comments]
+\`\`\`
+
+**Why this works:** [Brief explanation of the approach and its time complexity]`,
+        memory,
+        context,
+      });
+      response.skill = "challenge";
+      break;
+
+    case "eli5":
+      response = await runTeachAgent({
+        message: `Explain this like I'm 5 years old: ${req.message}.
+
+Rules:
+- Use a real-world analogy that a child would understand (toys, food, playground, school, animals)
+- Start with the analogy, then connect it to the real concept
+- Use NO jargon whatsoever — if you must use a technical term, immediately explain it in parentheses
+- Maximum 3 short paragraphs
+- End with a "🎯 The One-Liner" that captures the entire concept in a single memorable sentence
+- Add an "🧸 Analogy" callout box with the analogy
+- Keep it warm, engaging, and fun — use emoji sparingly but effectively`,
+        memory,
+        context,
+      });
+      response.skill = "eli5";
+      break;
+
     case "teach":
     default:
       response = await runTeachAgent({
-        message: req.message,
+        message: `${urduPrefix}${req.message}`,
         memory,
         context,
       });
