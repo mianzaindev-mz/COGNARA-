@@ -89,12 +89,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 7. Route to agent
+    // 7. Route to agent (demo users = unauthenticated sessions → unlimited credits)
     const result = await routeAgentRequest({
       studentId: realStudentId,
       skill: skill as AgentSkill,
       message: safeMessage,
       context,
+      isDemo: !isAuthenticated,
       code: safeCode,
       language,
       error: safeError,

@@ -34,6 +34,8 @@ export interface AgentRequest {
   skill: AgentSkill;
   message: string;
   context?: AgentContext;
+  /** Whether this is a demo/unauthenticated session (unlimited credits) */
+  isDemo?: boolean;
   /** Extra data: code, language, error for debug skill */
   code?: string;
   language?: string;
@@ -55,7 +57,7 @@ export async function routeAgentRequest(req: AgentRequest): Promise<AgentResult>
   // 1. Check credits
   const isInternalAudience = req.context?.audience === "coach" || req.context?.audience === "admin";
   const creditAction = isInternalAudience ? "coach_analyze_students" : SKILL_CREDIT_MAP[req.skill];
-  const creditResult = await checkAndDeductCredits(req.studentId, creditAction);
+  const creditResult = await checkAndDeductCredits(req.studentId, creditAction, req.isDemo ?? false);
 
   if (!creditResult.allowed) {
     return {

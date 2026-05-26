@@ -8,6 +8,7 @@ import {
   stripMarkdownForSpeech,
   VOICE_CONFIG,
 } from "@/lib/voice/utils";
+import { GnaraResponseRenderer } from "./GnaraResponseRenderer";
 
 type Props = {
   role: "user" | "assistant";
@@ -46,7 +47,7 @@ export function AgentMessage({ role, content, skill, creditsUsed, timestamp }: P
             <p>{content}</p>
           ) : (
             <div className="agent-markdown">
-              <RichMarkdown content={content} />
+              <GnaraResponseRenderer content={content} />
             </div>
           )}
         </div>
