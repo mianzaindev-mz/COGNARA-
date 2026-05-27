@@ -10,6 +10,7 @@ import { looksLikeUrdu } from "@/lib/voice/utils";
 import {
   IconBrain, IconBug, IconClipboard, IconMicrophone,
   IconTarget, IconTicket, IconFlashcard, IconLightning, IconChild,
+  IconBook, IconChartUp, IconSparkle,
 } from "@/components/ui/icons";
 import type { AgentSkill } from "@/lib/ai/master-agent";
 
@@ -32,6 +33,9 @@ const STUDENT_SKILLS: SkillOption[] = [
   { key: "flashcard", Icon: IconFlashcard, label: "Flashcards", desc: "Spaced repetition cards", cost: "1 cr" },
   { key: "challenge", Icon: IconLightning, label: "Challenge", desc: "Timed coding puzzles", cost: "1 cr" },
   { key: "eli5", Icon: IconChild, label: "ELI5", desc: "Explain like I'm 5", cost: "1 cr" },
+  { key: "generate_course", Icon: IconBook, label: "Generate Course", desc: "Build a full course from any topic", cost: "3 cr" },
+  { key: "summarize", Icon: IconSparkle, label: "Summarize", desc: "Condense content into key points", cost: "1 cr" },
+  { key: "progress_report", Icon: IconChartUp, label: "Progress", desc: "Study insights & recommendations", cost: "1 cr" },
   { key: "voice", Icon: IconMicrophone, label: "Voice", desc: "Spoken conversation", cost: "1 cr/min" },
   { key: "path", Icon: IconTarget, label: "Path", desc: "Create learning roadmap", cost: "3 cr" },
   { key: "support", Icon: IconTicket, label: "Support", desc: "Get help with the platform", cost: "1 cr" },
@@ -39,6 +43,7 @@ const STUDENT_SKILLS: SkillOption[] = [
 
 const COACH_SKILLS: SkillOption[] = [
   { key: "coach", Icon: IconBrain, label: "Coach Agent", desc: "Courses, lessons, rubrics", cost: "Free" },
+  { key: "generate_course", Icon: IconBook, label: "Generate Course", desc: "AI-build a full course from scratch", cost: "Free" },
   { key: "quiz", Icon: IconClipboard, label: "Quiz Studio", desc: "Generate assessments", cost: "Free" },
   { key: "debug", Icon: IconBug, label: "Code Help", desc: "Review examples and fixes", cost: "Free" },
   { key: "support", Icon: IconTicket, label: "Support", desc: "Platform and student issues", cost: "Free" },
@@ -61,8 +66,8 @@ const AUDIENCE_COPY: Record<AgentAudience, { title: string; status: string; empt
     suggestions: [
       "Explain recursion step by step",
       "What are closures in JavaScript?",
-      "Help me understand Big O notation",
-      "Debug my Python code",
+      "Generate a course about Python basics",
+      "Summarize my study progress",
     ],
   },
   coach: {

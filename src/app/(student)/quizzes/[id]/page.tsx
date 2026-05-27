@@ -371,6 +371,7 @@ export default function QuizTakePage() {
 
   // Double Confirm Modal states
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<Record<string, string>>({});
   const { notify } = useToast();
 
   useEffect(() => {
@@ -637,22 +638,59 @@ export default function QuizTakePage() {
         }
       }
 
-      // Calculate score
+      // Calculate score — MCQ/true_false are graded locally, code/text via AI API
       let correctCount = 0;
-      questions.forEach(q => {
-        if (q.type === "mcq" || q.type === "true_false") {
-          const selectedOptId = answers[q.id];
-          const correctOptId = correctAnswersMap[q.id];
-          if (selectedOptId === correctOptId) {
-            correctCount++;
-          }
-        } else if (q.type === "code" || q.type === "text") {
-          const answerText = answers[q.id]?.trim();
-          if (answerText && answerText.length > 0) {
-            correctCount++;
-          }
+      const freeFormQuestions = questions.filter(q => q.type === "code" || q.type === "text");
+      const mcqQuestions = questions.filter(q => q.type === "mcq" || q.type === "true_false");
+
+      // Grade MCQ locally
+      mcqQuestions.forEach(q => {
+        const selectedOptId = answers[q.id];
+        const correctOptId = correctAnswersMap[q.id];
+        if (selectedOptId === correctOptId) {
+          correctCount++;
         }
       });
+
+      // Grade code/text via AI grading API
+      if (freeFormQuestions.length > 0) {
+        try {
+          const gradeRes = await fetch("/api/quiz/grade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answers: freeFormQuestions.map(q => ({
+                questionId: q.id,
+                type: q.type,
+                text: answers[q.id] ?? "",
+                questionText: q.text,
+                explanation: q.explanation ?? "",
+              })),
+            }),
+          });
+
+          if (gradeRes.ok) {
+            const { grades } = await gradeRes.json();
+            for (const grade of grades) {
+              if (grade.isCorrect) correctCount++;
+              // Store feedback for review screen
+              setAiFeedback(prev => ({ ...prev, [grade.questionId]: grade.feedback }));
+            }
+          } else {
+            // Fallback: give credit for non-empty answers if API fails
+            freeFormQuestions.forEach(q => {
+              const answerText = answers[q.id]?.trim();
+              if (answerText && answerText.length > 0) correctCount++;
+            });
+          }
+        } catch {
+          // Fallback if network fails
+          freeFormQuestions.forEach(q => {
+            const answerText = answers[q.id]?.trim();
+            if (answerText && answerText.length > 0) correctCount++;
+          });
+        }
+      }
 
       const finalScore = Math.round((correctCount / questions.length) * 100);
       const passMark = quiz?.pass_score ?? 70;
@@ -1117,9 +1155,19 @@ export default function QuizTakePage() {
                             )}
 
                             {(q.type === "code" || q.type === "text") && (
-                              <p className="text-cn-orange/80 font-semibold bg-cn-orange/5 px-2.5 py-1 rounded-lg border border-cn-orange/10 inline-block">
-                                📝 Status: {correctText}
-                              </p>
+                              <div className="space-y-2">
+                                <p className="text-cn-orange/80 font-semibold bg-cn-orange/5 px-2.5 py-1 rounded-lg border border-cn-orange/10 inline-block">
+                                  📝 Status: {correctText}
+                                </p>
+                                {aiFeedback[q.id] && (
+                                  <div className="flex items-start gap-2 bg-indigo-500/5 border border-indigo-500/10 rounded-lg px-3 py-2">
+                                    <span className="text-indigo-500 text-xs mt-0.5">🤖</span>
+                                    <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                                      <span className="font-semibold">AI Feedback:</span> {aiFeedback[q.id]}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                           {q.explanation && (

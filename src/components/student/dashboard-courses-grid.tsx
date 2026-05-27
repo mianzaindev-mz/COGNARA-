@@ -7,8 +7,12 @@ import { CourseFilterChips } from "@/components/student/course-filter-chips";
 export type DashboardCourseItem = {
   title: string;
   category: string | null;
+  difficulty?: "beginner" | "intermediate" | "advanced" | null;
+  thumbnailUrl?: string | null;
   progressDone: number;
   totalLessons: number;
+  totalMins?: number;
+  enrolledCount?: number;
   href: string;
 };
 
@@ -44,14 +48,18 @@ export function DashboardCoursesGrid({ courses, showFilters }: DashboardCoursesG
           />
         </div>
       ) : null}
-      <ul className="mt-6 grid gap-5 md:grid-cols-3">
+      <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((c) => (
           <li key={c.href}>
             <CourseCard
               title={c.title}
               category={c.category}
+              difficulty={c.difficulty}
+              thumbnailUrl={c.thumbnailUrl}
               progressDone={c.progressDone}
               totalLessons={c.totalLessons}
+              totalMins={c.totalMins}
+              enrolledCount={c.enrolledCount}
               href={c.href}
             />
           </li>

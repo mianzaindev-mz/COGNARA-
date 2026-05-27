@@ -8,9 +8,12 @@ export type EnrolledCourse = {
   title: string;
   slug: string;
   category: string | null;
+  difficulty: "beginner" | "intermediate" | "advanced" | null;
+  thumbnailUrl: string | null;
   progressPct: number;
   progressDone: number;
   totalLessons: number;
+  totalEnrolled: number;
   completedAt: string | null;
 };
 
@@ -19,7 +22,10 @@ type CourseRow = {
   title: string;
   slug: string;
   category: string | null;
+  difficulty: string | null;
+  thumbnail_url: string | null;
   total_lessons: number;
+  total_enrolled: number;
 };
 
 export const loadStudentEnrollments = cache(async (userId: string): Promise<EnrolledCourse[]> => {
@@ -41,7 +47,10 @@ export const loadStudentEnrollments = cache(async (userId: string): Promise<Enro
           title,
           slug,
           category,
-          total_lessons
+          difficulty,
+          thumbnail_url,
+          total_lessons,
+          total_enrolled
         )
       `,
       )
@@ -69,9 +78,12 @@ export const loadStudentEnrollments = cache(async (userId: string): Promise<Enro
         title: c.title,
         slug: c.slug,
         category: c.category,
+        difficulty: (c.difficulty as EnrolledCourse["difficulty"]) ?? null,
+        thumbnailUrl: c.thumbnail_url ?? null,
         progressPct: pct,
         progressDone: done,
         totalLessons: total,
+        totalEnrolled: c.total_enrolled ?? 0,
         completedAt: row.completed_at,
       });
     }

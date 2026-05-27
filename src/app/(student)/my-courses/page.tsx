@@ -49,8 +49,11 @@ export default async function MyCoursesPage() {
                 <CourseCard
                   title={c.title}
                   category={c.category}
+                  difficulty={c.difficulty}
+                  thumbnailUrl={c.thumbnailUrl}
                   progressDone={c.progressDone}
                   totalLessons={c.totalLessons}
+                  enrolledCount={c.totalEnrolled}
                   href={`/learn/${c.slug}`}
                 />
               </li>

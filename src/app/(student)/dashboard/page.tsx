@@ -8,6 +8,7 @@ import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadStudentPortalStats } from "@/lib/student/portal-stats";
 import { loadStudentUpcomingLessons } from "@/lib/student/upcoming-lessons";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
+import { DashboardInsightsWidget } from "@/components/student/dashboard-insights-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -274,7 +275,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative z-10">
             <Link href="/agent?task=ask" className="tilt-card glass-card rounded-3xl p-8 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer group flex flex-col items-center text-center">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20 group-hover:bg-primary/20 transition-all">
                 <span className="material-symbols-outlined text-primary text-4xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
@@ -302,6 +303,34 @@ export default async function DashboardPage() {
               </div>
               <h4 className="font-bold text-lg text-on-surface mb-2">Voice mode</h4>
               <span className="px-4 py-1 bg-orange-400 text-surface text-[10px] font-black rounded-full uppercase">1 Cr/Min</span>
+            </Link>
+            <Link href="/agent?task=generate_course" className="tilt-card glass-card rounded-3xl p-8 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer group flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-all">
+                <span className="material-symbols-outlined text-emerald-500 text-4xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>auto_stories</span>
+              </div>
+              <h4 className="font-bold text-lg text-on-surface mb-2">Generate Course</h4>
+              <span className="px-4 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-full uppercase">3 Credits</span>
+            </Link>
+            <Link href="/agent?task=flashcard" className="tilt-card glass-card rounded-3xl p-8 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer group flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:bg-blue-500/20 transition-all">
+                <span className="material-symbols-outlined text-blue-500 text-4xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>style</span>
+              </div>
+              <h4 className="font-bold text-lg text-on-surface mb-2">Flashcards</h4>
+              <span className="px-4 py-1 bg-blue-500 text-white text-[10px] font-black rounded-full uppercase">1 Credit</span>
+            </Link>
+            <Link href="/agent?task=challenge" className="tilt-card glass-card rounded-3xl p-8 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer group flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-6 border border-rose-500/20 group-hover:bg-rose-500/20 transition-all">
+                <span className="material-symbols-outlined text-rose-500 text-4xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+              </div>
+              <h4 className="font-bold text-lg text-on-surface mb-2">Code Challenge</h4>
+              <span className="px-4 py-1 bg-rose-500 text-white text-[10px] font-black rounded-full uppercase">1 Credit</span>
+            </Link>
+            <Link href="/agent?task=summarize" className="tilt-card glass-card rounded-3xl p-8 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer group flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-6 border border-violet-500/20 group-hover:bg-violet-500/20 transition-all">
+                <span className="material-symbols-outlined text-violet-500 text-4xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>summarize</span>
+              </div>
+              <h4 className="font-bold text-lg text-on-surface mb-2">Summarize</h4>
+              <span className="px-4 py-1 bg-violet-500 text-white text-[10px] font-black rounded-full uppercase">1 Credit</span>
             </Link>
           </div>
         </section>
@@ -478,6 +507,17 @@ export default async function DashboardPage() {
                     <p className="text-sm text-on-surface-variant opacity-70">No badges earned yet. Complete quizzes to earn badges!</p>
                   )}
                 </div>
+              </div>
+
+              <div className="pt-10 border-t border-black/5 dark:border-white/5">
+                <DashboardInsightsWidget
+                  streakDays={stats.streakDays}
+                  completedCourses={stats.completedCourses}
+                  enrolledCourses={stats.enrolledCourses}
+                  progressPercent={progressPercent}
+                  totalXp={stats.totalXp}
+                  level={stats.level}
+                />
               </div>
             </div>
 

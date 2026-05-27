@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { BarChart } from "@/components/ui/chart-bar";
@@ -55,6 +56,78 @@ export default async function CoachAnalyticsPage() {
     value: c.total_enrolled ?? 0,
   }));
 
+  // ── AI Insights Generation (server-side, no API call) ──
+  const insights: { emoji: string; title: string; body: string; severity: "info" | "warning" | "success" }[] = [];
+
+  if (totalEnrolled > 0 && started < totalEnrolled * 0.5) {
+    insights.push({
+      emoji: "⚠️",
+      title: "Low activation rate",
+      body: `Only ${Math.round((started / totalEnrolled) * 100)}% of enrolled students have started. Consider adding a welcome email or onboarding lesson.`,
+      severity: "warning",
+    });
+  }
+
+  if (half > 0 && completed < half * 0.4) {
+    const dropOff = Math.round(((half - completed) / half) * 100);
+    insights.push({
+      emoji: "📉",
+      title: `${dropOff}% drop-off after halfway`,
+      body: "Students are engaged but not finishing. The second half of your courses may need more interactive content or shorter lessons.",
+      severity: "warning",
+    });
+  }
+
+  if (completionRate >= 70) {
+    insights.push({
+      emoji: "🏆",
+      title: `${completionRate}% completion rate — excellent!`,
+      body: "Your courses have outstanding retention. Consider creating advanced follow-up courses for these engaged students.",
+      severity: "success",
+    });
+  }
+
+  if (avgRating > 0 && avgRating < 3.5) {
+    insights.push({
+      emoji: "⭐",
+      title: `Average rating: ${avgRating.toFixed(1)}/5`,
+      body: "Below 3.5 suggests content or pacing issues. Review student feedback and consider restructuring low-rated lessons.",
+      severity: "warning",
+    });
+  } else if (avgRating >= 4.5) {
+    insights.push({
+      emoji: "🌟",
+      title: `Average rating: ${avgRating.toFixed(1)}/5`,
+      body: "Outstanding student satisfaction! Your teaching methodology is highly effective.",
+      severity: "success",
+    });
+  }
+
+  if (list.length > 0 && totalEnrolled === 0) {
+    insights.push({
+      emoji: "📣",
+      title: "No enrollments yet",
+      body: "Your courses are published but have no students. Share course links, add descriptions, and ensure thumbnails are compelling.",
+      severity: "info",
+    });
+  }
+
+  // Always add a tip
+  if (insights.length === 0) {
+    insights.push({
+      emoji: "💡",
+      title: "Keep growing",
+      body: "Publish courses and monitor student progress here. The AI Coach Agent can help generate quizzes, rubrics, and lesson plans.",
+      severity: "info",
+    });
+  }
+
+  const severityStyles = {
+    warning: "border-l-amber-500 bg-amber-500/5",
+    success: "border-l-emerald-500 bg-emerald-500/5",
+    info: "border-l-blue-500 bg-blue-500/5",
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <section>
@@ -87,6 +160,41 @@ export default async function CoachAnalyticsPage() {
           )}
         </section>
       </div>
+
+      {/* AI Coach Insights */}
+      <section className="cn-card-lift rounded-2xl border border-cn-border bg-cn-surface p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cn-orange to-cn-pink shadow-sm">
+              <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+            </span>
+            <h2 className="text-base font-bold text-cn-ink">AI Coach Insights</h2>
+          </div>
+          <Link
+            href="/coach/agent"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-cn-orange/30 bg-cn-orange/10 px-4 py-2 text-xs font-bold text-cn-orange transition hover:bg-cn-orange/20"
+          >
+            Ask Coach Agent →
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {insights.map((insight, i) => (
+            <div
+              key={i}
+              className={`rounded-xl border-l-4 p-4 ${severityStyles[insight.severity]} transition-all`}
+            >
+              <p className="text-sm font-bold text-cn-ink mb-1">
+                {insight.emoji} {insight.title}
+              </p>
+              <p className="text-xs text-cn-ink-muted leading-relaxed">
+                {insight.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

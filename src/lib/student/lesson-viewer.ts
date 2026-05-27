@@ -17,7 +17,11 @@ export type CourseLearnContext = {
   title: string;
   slug: string;
   category: string | null;
+  difficulty: "beginner" | "intermediate" | "advanced" | null;
+  thumbnailUrl: string | null;
+  description: string | null;
   totalLessons: number;
+  totalEnrolled: number;
   lessons: LessonOutline[];
   progressPct: number;
   completedLessonIds: string[];
@@ -33,7 +37,7 @@ export const loadCourseLearnContext = cache(
 
       const { data: course, error: courseError } = await supabase
         .from("courses")
-        .select("id, title, slug, category, total_lessons")
+        .select("id, title, slug, category, difficulty, thumbnail_url, description, total_lessons, total_enrolled")
         .eq("slug", slug)
         .is("deleted_at", null)
         .maybeSingle();
@@ -75,7 +79,11 @@ export const loadCourseLearnContext = cache(
         title: course.title,
         slug: course.slug,
         category: course.category,
+        difficulty: course.difficulty ?? null,
+        thumbnailUrl: course.thumbnail_url ?? null,
+        description: course.description ?? null,
         totalLessons: course.total_lessons ?? lessonRows.length,
+        totalEnrolled: course.total_enrolled ?? 0,
         lessons: lessonRows.map((l: any) => ({
           id: l.id,
           title: l.title,

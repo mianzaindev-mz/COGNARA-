@@ -14,7 +14,7 @@ const DEMO_USER_IDS = new Set([
 ]);
 
 const agentSchema = z.object({
-  skill: z.enum(["teach", "debug", "quiz", "voice", "path", "support", "verify", "coach", "admin", "flashcard", "challenge", "eli5"]),
+  skill: z.enum(["teach", "debug", "quiz", "voice", "path", "support", "verify", "coach", "admin", "flashcard", "challenge", "eli5", "generate_course", "summarize", "progress_report", "search_courses"]),
   message: z.string().min(1, "Message cannot be empty").max(5000, "Message too long"),
   studentId: z.string().min(1),
   context: z
@@ -101,13 +101,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 7. Route to agent (demo users get unlimited credits)
+    // 7. Lookup user role for RBAC
+    let userRole = "student";
+    if (isAuthenticated) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      userRole = profile?.role ?? "student";
+    }
+
+    // 8. Route to agent (demo users get unlimited credits)
     const result = await routeAgentRequest({
       studentId: realStudentId,
       skill: skill as AgentSkill,
       message: safeMessage,
       context,
       isDemo: isDemoSession || !isAuthenticated,
+      role: userRole,
       code: safeCode,
       language,
       error: safeError,
