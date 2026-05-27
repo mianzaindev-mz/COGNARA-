@@ -9,6 +9,7 @@ type CreateCoachCourseInput = {
   category: string;
   difficulty: "beginner" | "intermediate" | "advanced";
   price: number;
+  description?: string;
 };
 
 type CreateCoachCourseResult =
@@ -28,8 +29,9 @@ export async function createCoachCourse(
   input: CreateCoachCourseInput,
 ): Promise<CreateCoachCourseResult> {
   const trimmedTitle = input.title.trim();
-  const category = input.category.trim() || "Computer Science";
+  const category = input.category.trim() || "General";
   const price = Number(input.price);
+  const description = (input.description ?? "").trim();
 
   if (trimmedTitle.length < 5 || trimmedTitle.length > 200) {
     return { ok: false, error: "Course title must be between 5 and 200 characters." };
@@ -80,6 +82,7 @@ export async function createCoachCourse(
         difficulty: input.difficulty,
         price_usd: price,
         is_published: false,
+        ...(description ? { description } : {}),
       })
       .select("slug")
       .single();

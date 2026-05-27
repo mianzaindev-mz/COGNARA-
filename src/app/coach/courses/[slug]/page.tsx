@@ -624,53 +624,46 @@ export default function EditCoursePage() {
       {/* Breadcrumb Trail */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-cn-ink-muted">
-          <Link href="/coach/courses" className="hover:text-cn-ink">Courses</Link>
-          <span>/</span>
-          <span className="text-cn-ink font-medium">{course.title}</span>
+          <Link href="/coach/courses" className="hover:text-indigo-500 transition flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">folder</span>
+            Courses
+          </Link>
+          <span className="text-cn-ink-subtle">/</span>
+          <span className="text-cn-ink font-medium dark:text-white truncate max-w-[200px]">{course.title}</span>
+          {isPublished && (
+            <span className="ml-1 text-[9px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Live</span>
+          )}
         </div>
         <Link
           href="/coach/courses"
-          className="text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1"
+          className="text-xs font-bold text-cn-ink-muted hover:text-indigo-500 transition flex items-center gap-1"
         >
-          ← Back to Courses
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          Back
         </Link>
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex border-b border-cn-border dark:border-[#2e2a2a] gap-6">
-        <button
-          type="button"
-          onClick={() => setActiveTab("general")}
-          className={`pb-3 text-sm font-bold transition-all relative ${
-            activeTab === "general"
-              ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-              : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
-          }`}
-        >
-          General Settings
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("lessons")}
-          className={`pb-3 text-sm font-bold transition-all relative ${
-            activeTab === "lessons"
-              ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-              : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
-          }`}
-        >
-          Lessons Management ({lessons.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("live")}
-          className={`pb-3 text-sm font-bold transition-all relative ${
-            activeTab === "live"
-              ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-              : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
-          }`}
-        >
-          Live Classes
-        </button>
+      <div className="flex border-b border-cn-border dark:border-[#2e2a2a] gap-1">
+        {([
+          { key: "general", label: "General Settings", icon: "settings" },
+          { key: "lessons", label: `Lessons (${lessons.length})`, icon: "description" },
+          { key: "live", label: "Live Classes", icon: "videocam" },
+        ] as const).map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key as any)}
+            className={`pb-3 px-4 text-sm font-bold transition-all relative flex items-center gap-2 ${
+              activeTab === tab.key
+                ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                : "text-cn-ink-muted hover:text-cn-ink dark:hover:text-white"
+            }`}
+          >
+            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: activeTab === tab.key ? "'FILL' 1" : "'FILL' 0" }}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* General Settings Tab content */}
@@ -721,18 +714,14 @@ export default function EditCoursePage() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-cn-ink-muted mb-1.5">
                   Category
                 </label>
-                <select
+                <input
+                  type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-cn-border bg-cn-canvas px-3 py-2.5 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
-                >
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Data Science">Data Science</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Design">Design</option>
-                  <option value="Business">Business</option>
-                  <option value="Psychology">Psychology</option>
-                </select>
+                  placeholder="e.g. Computer Science, Finance, Photography..."
+                  className="w-full rounded-xl border border-cn-border bg-cn-canvas px-4 py-2.5 text-sm text-cn-ink focus:border-indigo-500 focus:outline-none dark:border-[#2e2a2a] dark:bg-[#0f0e0e] dark:text-white"
+                />
+                <p className="mt-1 text-[10px] text-cn-ink-subtle italic">Type any category — not restricted to a list.</p>
               </div>
 
               <div>
@@ -746,7 +735,7 @@ export default function EditCoursePage() {
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
+                  <option value="advanced">Expert</option>
                 </select>
               </div>
 
@@ -797,74 +786,124 @@ export default function EditCoursePage() {
 
       {/* Lessons Management Tab content */}
       {activeTab === "lessons" && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <section className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-cn-ink dark:text-white">Outline & Curriculum</h2>
+            <div>
+              <h2 className="text-base font-bold text-cn-ink dark:text-white">Outline & Curriculum</h2>
+              <p className="text-xs text-cn-ink-muted mt-0.5">{lessons.length} lesson{lessons.length !== 1 ? "s" : ""} · Drag to reorder</p>
+            </div>
             <button
               type="button"
               onClick={openCreateLessonModal}
-              className="rounded-xl border border-indigo-500/20 bg-indigo-500/10 px-4 py-2 text-xs font-bold text-indigo-500 hover:bg-indigo-500 hover:text-white transition"
+              className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 transition flex items-center gap-2 shadow-lg shadow-indigo-600/20"
             >
-              + Add Lesson
+              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
+              Add Lesson
             </button>
           </section>
 
           {lessons.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-cn-border bg-cn-surface py-16 text-center dark:border-[#2e2a2a] dark:bg-[#1a1818]">
-              <p className="font-bold text-cn-ink dark:text-white">No lessons in this course yet</p>
-              <p className="mt-1 text-xs text-cn-ink-muted">Click "+ Add Lesson" to compile your syllabus.</p>
+            <div className="rounded-2xl border border-dashed border-cn-border bg-cn-surface py-20 text-center dark:border-[#2e2a2a] dark:bg-[#1a1818]">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
+                <span className="material-symbols-outlined text-2xl text-indigo-500" style={{ fontVariationSettings: "'FILL' 1" }}>description</span>
+              </div>
+              <p className="font-bold text-cn-ink dark:text-white">No lessons yet</p>
+              <p className="mt-1 text-xs text-cn-ink-muted max-w-xs mx-auto">Add your first lesson to start building the curriculum. Each lesson can contain rich text, code, videos, and interactive blocks.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {lessons.map((lesson, idx) => {
+                // Compute block count and word estimate
+                let blockCount = 0;
+                let wordEstimate = 0;
+                try {
+                  if (lesson.content) {
+                    const parsed = JSON.parse(lesson.content);
+                    if (Array.isArray(parsed)) {
+                      blockCount = parsed.length;
+                      wordEstimate = parsed.reduce((sum: number, b: any) => sum + (typeof b.content === "string" ? b.content.split(/\s+/).length : 0), 0);
+                    }
+                  }
+                } catch { /* fallback */ }
+
+                // Type-based styling
+                const typeConfig: Record<string, { icon: string; color: string; bg: string; border: string }> = {
+                  text: { icon: "description", color: "text-indigo-500", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
+                  video: { icon: "play_circle", color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" },
+                  code: { icon: "code", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                  quiz: { icon: "quiz", color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+                  mixed: { icon: "layers", color: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/20" },
+                };
+                const tc = typeConfig[lesson.type] || typeConfig.text;
+
                 return (
                   <div
                     key={lesson.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-cn-border bg-cn-surface p-4 shadow-sm dark:border-[#2e2a2a] dark:bg-[#1a1818]"
+                    className="group relative flex items-center gap-4 rounded-2xl border border-cn-border bg-cn-surface p-4 shadow-sm transition-all hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 dark:border-[#2e2a2a] dark:bg-[#1a1818] dark:hover:border-indigo-500/20"
                   >
-                    <div className="flex items-center gap-3">
-                      {/* Move Order buttons */}
-                      <div className="flex flex-col gap-1">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => handleMoveLesson(idx, "up")}
-                          className="text-[10px] text-cn-ink-muted hover:text-indigo-500 disabled:opacity-20 disabled:hover:text-cn-ink-muted"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          type="button"
-                          disabled={idx === lessons.length - 1}
-                          onClick={() => handleMoveLesson(idx, "down")}
-                          className="text-[10px] text-cn-ink-muted hover:text-indigo-500 disabled:opacity-20 disabled:hover:text-cn-ink-muted"
-                        >
-                          ▼
-                        </button>
-                      </div>
+                    {/* Reorder controls */}
+                    <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => handleMoveLesson(idx, "up")}
+                        className="w-5 h-5 rounded flex items-center justify-center text-cn-ink-muted hover:text-indigo-500 hover:bg-indigo-500/10 disabled:opacity-20 disabled:hover:text-cn-ink-muted disabled:hover:bg-transparent transition"
+                      >
+                        <span className="material-symbols-outlined text-xs">keyboard_arrow_up</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === lessons.length - 1}
+                        onClick={() => handleMoveLesson(idx, "down")}
+                        className="w-5 h-5 rounded flex items-center justify-center text-cn-ink-muted hover:text-indigo-500 hover:bg-indigo-500/10 disabled:opacity-20 disabled:hover:text-cn-ink-muted disabled:hover:bg-transparent transition"
+                      >
+                        <span className="material-symbols-outlined text-xs">keyboard_arrow_down</span>
+                      </button>
+                    </div>
 
-                      <div className="text-center rounded-lg bg-cn-canvas h-8 w-8 flex items-center justify-center font-bold text-xs text-cn-ink dark:bg-[#0f0e0e] dark:text-white">
-                        {idx + 1}
-                      </div>
+                    {/* Lesson number */}
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/15 to-violet-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-xs text-indigo-400 shrink-0">
+                      {idx + 1}
+                    </div>
 
-                      <div>
-                        <h4 className="font-bold text-sm text-cn-ink dark:text-white">{lesson.title}</h4>
-                        <p className="text-[10px] capitalize text-cn-ink-subtle">{lesson.type} content</p>
+                    {/* Type icon */}
+                    <div className={`w-9 h-9 rounded-xl ${tc.bg} border ${tc.border} flex items-center justify-center shrink-0`}>
+                      <span className={`material-symbols-outlined text-base ${tc.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{tc.icon}</span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-sm text-cn-ink dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{lesson.title}</h4>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-cn-ink-subtle capitalize">{lesson.type}</span>
+                        {blockCount > 0 && (
+                          <span className="text-[10px] text-cn-ink-muted flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[10px]">widgets</span>
+                            {blockCount} block{blockCount !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {wordEstimate > 10 && (
+                          <span className="text-[10px] text-cn-ink-muted flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[10px]">notes</span>
+                            ~{wordEstimate} words
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => openEditLessonModal(lesson)}
-                        className="rounded-lg border border-cn-border px-3 py-1.5 text-xs text-cn-ink hover:bg-cn-canvas dark:border-[#2e2a2a] dark:text-white dark:hover:bg-[#0f0e0e]"
+                        className="rounded-lg border border-cn-border px-3.5 py-1.5 text-xs font-bold text-cn-ink hover:bg-indigo-500/10 hover:text-indigo-500 hover:border-indigo-500/20 transition dark:border-[#2e2a2a] dark:text-white dark:hover:text-indigo-400"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => setLessonToDelete(lesson.id)}
-                        className="rounded-lg border border-rose-500/20 px-3 py-1.5 text-xs text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        className="rounded-lg border border-rose-500/15 px-3 py-1.5 text-xs font-bold text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition opacity-0 group-hover:opacity-100"
                       >
                         Delete
                       </button>
