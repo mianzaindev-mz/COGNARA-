@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { dropCourse } from "@/lib/courses/enrollment";
+import { logAuditEvent } from "@/lib/security/audit";
 
 const dropSchema = z.object({
   reason: z.string().max(500).optional(),
@@ -41,6 +42,15 @@ export async function PATCH(
       const status = result.error.status ?? 400;
       return NextResponse.json({ error: result.error.message }, { status });
     }
+
+    // Fire-and-forget audit log
+    logAuditEvent({
+      userId: authData.user.id,
+      action: "enrollment.drop",
+      resource: "enrollments",
+      resourceId: enrollmentId,
+      metadata: { reason: parsed.success ? parsed.data.reason : undefined },
+    });
 
     return NextResponse.json({ message: "Course dropped successfully." });
   } catch {

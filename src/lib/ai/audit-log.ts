@@ -61,24 +61,30 @@ export async function logAgentAction(entry: AuditEntry): Promise<void> {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
 
-    await supabase.from("agent_audit_log").insert({
+    await supabase.from("audit_logs").insert({
       user_id: entry.user_id,
-      skill: entry.skill,
-      input_length: entry.input_length,
-      output_length: entry.output_length,
-      credits_used: entry.credits_used,
-      status: entry.status,
-      flags: entry.flags,
-      duration_ms: entry.duration_ms,
+      action: `agent.${entry.skill}`,
+      resource: "agent",
+      metadata: {
+        skill: entry.skill,
+        input_length: entry.input_length,
+        output_length: entry.output_length,
+        credits_used: entry.credits_used,
+        status: entry.status,
+        flags: entry.flags,
+        duration_ms: entry.duration_ms,
+      },
       created_at: new Date().toISOString(),
     });
   } catch {
-    // Supabase not configured or table doesn't exist — log to console
-    console.log(
-      `[AUDIT] ${entry.status} | user=${entry.user_id.slice(0, 8)} | skill=${entry.skill} | credits=${entry.credits_used} | ${entry.duration_ms}ms${
-        entry.flags.length > 0 ? ` | flags=${entry.flags.join(",")}` : ""
-      }`,
-    );
+    // Supabase not configured or table doesn't exist — log in dev only
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[AUDIT] ${entry.status} | user=${entry.user_id.slice(0, 8)} | skill=${entry.skill} | credits=${entry.credits_used} | ${entry.duration_ms}ms${
+          entry.flags.length > 0 ? ` | flags=${entry.flags.join(",")}` : ""
+        }`,
+      );
+    }
   }
 }
 

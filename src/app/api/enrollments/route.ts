@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { enrollStudent } from "@/lib/courses/enrollment";
+import { logAuditEvent } from "@/lib/security/audit";
 
 const enrollSchema = z.object({
   courseId: z.string().uuid("Invalid course ID."),
@@ -47,6 +48,15 @@ export async function POST(request: NextRequest) {
       const status = result.error.status ?? 400;
       return NextResponse.json({ error: result.error.message }, { status });
     }
+
+    // Fire-and-forget audit log
+    logAuditEvent({
+      userId: authData.user.id,
+      action: "enrollment.create",
+      resource: "enrollments",
+      resourceId: result.enrollment?.id,
+      metadata: { courseId: parsed.data.courseId },
+    });
 
     return NextResponse.json(
       { enrollment: result.enrollment, message: "Successfully enrolled!" },

@@ -48,16 +48,12 @@ export function useAIAssistantContext(): AIAssistantContext {
 
     async function fetchContext() {
       try {
-        console.log("[AI Assistant Context] Fetching context for:", pathname);
         const supabase = createClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
-        console.log("[AI Assistant Context] User:", user ? user.id : "No user");
-
         if (!user) {
-          console.log("[AI Assistant Context] No user found, disabling AI");
           if (mounted) {
             setContext({
               isEnabled: false,
@@ -77,7 +73,6 @@ export function useAIAssistantContext(): AIAssistantContext {
           .maybeSingle();
 
         const userRole = profile?.role as UserRole || "student";
-        console.log("[AI Assistant Context] User role:", userRole);
 
         const isExcluded = EXCLUDED_PATHS.some((path) =>
           pathname === path || pathname.startsWith(path + "/")
@@ -87,7 +82,7 @@ export function useAIAssistantContext(): AIAssistantContext {
           pathname.includes(path)
         );
 
-        console.log("[AI Assistant Context] isExcluded:", isExcluded, "isQuizPath:", isQuizPath);
+
 
         if (mounted) {
           setContext({
@@ -97,7 +92,6 @@ export function useAIAssistantContext(): AIAssistantContext {
             isQuizActive: isQuizPath,
             isLoading: false,
           });
-          console.log("[AI Assistant Context] Context set:", { isEnabled: !isExcluded, userRole, isQuizPath });
         }
       } catch (error) {
         console.error("[AI Assistant Context] Error fetching context:", error);

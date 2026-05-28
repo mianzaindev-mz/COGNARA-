@@ -122,6 +122,12 @@ src/
 
 ---
 
+## 📊 Data Attribution
+
+Course seed data is inspired by the [Udemy Courses Dataset](https://www.kaggle.com/datasets/andrewmvd/udemy-courses) by Andrew MVD on Kaggle (CC BY 4.0). The seed migration (`20260528000002_seed_courses.sql`) contains 50 hand-crafted courses modeled on this dataset's structure across 8 categories.
+
+---
+
 ## 🔒 Security
 
 - **Authentication:** Supabase Auth with JWT + Row Level Security on all tables
@@ -129,6 +135,7 @@ src/
 - **Input Sanitization:** XSS stripping, off-platform detection, code size limits
 - **Headers:** HSTS, X-Frame-Options DENY, Content-Type nosniff
 - **Session:** Server-side verification prevents ID spoofing
+- **Audit Logging:** All critical actions logged to `audit_logs` table
 
 ---
 

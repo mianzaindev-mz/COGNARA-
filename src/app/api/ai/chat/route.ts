@@ -70,7 +70,6 @@ Help users with their courses, lessons, and platform usage. Be concise, helpful,
 
     // Demo mode: return mock responses if no API key is configured
     if (!process.env.GROQ_API_KEY) {
-      console.log("[AI Chat API] Running in demo mode (no API key)");
       const lastMessage = messages[messages.length - 1]?.content || "";
       const mockResponse = generateMockResponse(lastMessage, context?.user_role || "student");
       return NextResponse.json({ content: mockResponse });

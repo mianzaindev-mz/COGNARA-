@@ -76,12 +76,10 @@ export function AIAssistant() {
   };
 
   if (context.isLoading) {
-    console.log("[AI Assistant] Loading context...");
     return null;
   }
 
   if (!context.isEnabled) {
-    console.log("[AI Assistant] Not enabled on this page:", context.currentPage);
     return null;
   }
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AgentPanel } from "@/components/agent/AgentPanel";
+import type { AgentSkill } from "@/lib/ai/master-agent";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,30 @@ export const metadata: Metadata = {
     "Your AI-powered tutor. Ask questions, debug code, generate quizzes, and get personalized learning paths.",
 };
 
-export default async function AgentPage() {
+/** Map dashboard ?task= query values to AgentSkill keys */
+const TASK_TO_SKILL: Record<string, AgentSkill> = {
+  ask: "teach",
+  teach: "teach",
+  debug: "debug",
+  quiz: "quiz",
+  voice: "voice",
+  generate_course: "generate_course",
+  flashcard: "flashcard",
+  challenge: "challenge",
+  summarize: "summarize",
+  progress: "progress_report",
+  progress_report: "progress_report",
+  path: "path",
+  support: "support",
+  eli5: "eli5",
+};
+
+export default async function AgentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ task?: string }>;
+}) {
+  const params = await searchParams;
   let studentId = "demo-student";
   let creditBalance: number | null = 50;
 
@@ -45,6 +69,10 @@ export default async function AgentPage() {
     }
   }
 
+  // Resolve the ?task= query param to a valid AgentSkill
+  const taskParam = params.task?.toLowerCase().trim();
+  const initialSkill = taskParam ? TASK_TO_SKILL[taskParam] : undefined;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -58,10 +86,14 @@ export default async function AgentPage() {
         </div>
         <div className="flex items-center gap-2 rounded-xl bg-cn-orange/10 px-3 py-1.5 text-xs font-semibold text-cn-orange">
           <span className="h-2 w-2 rounded-full bg-cn-orange" />
-          7 skills · Autonomous
+          12 skills · Autonomous
         </div>
       </div>
-      <AgentPanel studentId={studentId} initialCredits={creditBalance} />
+      <AgentPanel
+        studentId={studentId}
+        initialCredits={creditBalance}
+        initialSkill={initialSkill}
+      />
     </div>
   );
 }

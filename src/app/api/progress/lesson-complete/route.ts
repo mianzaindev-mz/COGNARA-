@@ -10,6 +10,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { calculateCourseProgress } from "@/lib/courses/progress";
 import { checkAndUnlockNextLesson } from "@/lib/courses/unlock";
+import { logAuditEvent } from "@/lib/security/audit";
 
 const completeSchema = z.object({
   lessonId: z.string().uuid("Invalid lesson ID."),
@@ -98,6 +99,15 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       );
     }
+
+    // Fire-and-forget audit log
+    logAuditEvent({
+      userId: studentId,
+      action: "progress.lesson_complete",
+      resource: "lessons",
+      resourceId: lessonId,
+      metadata: { courseId: lesson.course_id, quizScore, quizPassed },
+    });
 
     // Trigger unlock chain (non-blocking errors won't fail the request)
     let unlockMessage: string | null = null;

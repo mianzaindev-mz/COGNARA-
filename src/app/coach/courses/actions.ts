@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/utils/uuid";
+import { logAuditEvent } from "@/lib/security/audit";
 
 type CreateCoachCourseInput = {
   title: string;
@@ -98,6 +99,14 @@ export async function createCoachCourse(
 
     revalidatePath("/coach/courses");
     revalidatePath(`/coach/courses/${course.slug}`);
+
+    // Fire-and-forget audit log
+    logAuditEvent({
+      userId: user.id,
+      action: "course.create",
+      resource: "courses",
+      metadata: { slug: course.slug, title: trimmedTitle, category, difficulty: input.difficulty, priceUsd: price },
+    });
 
     return { ok: true, slug: course.slug };
   } catch (error) {

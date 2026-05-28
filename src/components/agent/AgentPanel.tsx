@@ -102,14 +102,16 @@ type Props = {
   studentId: string;
   initialCredits: number | null;
   audience?: AgentAudience;
+  initialSkill?: AgentSkill;
 };
 
-export function AgentPanel({ studentId, initialCredits, audience = "student" }: Props) {
+export function AgentPanel({ studentId, initialCredits, audience = "student", initialSkill }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const skills = audience === "coach" ? COACH_SKILLS : audience === "admin" ? ADMIN_SKILLS : STUDENT_SKILLS;
   const copy = AUDIENCE_COPY[audience];
-  const [skill, setSkill] = useState<AgentSkill>(skills[0]?.key ?? "teach");
+  const resolvedInitial = initialSkill && skills.some(s => s.key === initialSkill) ? initialSkill : (skills[0]?.key ?? "teach");
+  const [skill, setSkill] = useState<AgentSkill>(resolvedInitial);
   const [isLoading, setIsLoading] = useState(false);
   const [isQueueing, setIsQueueing] = useState(false);
   const [credits, setCredits] = useState<number | null>(initialCredits);
