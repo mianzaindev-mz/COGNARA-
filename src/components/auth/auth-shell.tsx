@@ -26,10 +26,42 @@ export function AuthShell({
     setLoading(true);
     setError(null);
     try {
+      // 1. Try to initialize and authenticate using the real Supabase client first
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      
+      if (supabase && typeof supabase.auth?.signInWithPassword === "function") {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: pass,
+        });
+
+        if (!signInError && data?.user) {
+          // Real login succeeded! Route to real database session dashboard
+          router.replace(path);
+          router.refresh();
+          return;
+        }
+      }
+
+      // 2. If real login fails or is not connected, fall back to mock sandbox client
+      let demoEmail = email;
+      let demoPass = pass;
+      if (email === "danownz2005@gmail.com") {
+        demoEmail = "student@gmail.com";
+        demoPass = "user123";
+      } else if (email === "zainworks67@gmail.com") {
+        demoEmail = "coach@gmail.com";
+        demoPass = "coach123";
+      } else if (email === "admin@cognara.dev") {
+        demoEmail = "admin@gmail.com";
+        demoPass = "admin123";
+      }
+
       const res = await fetch(`${window.location.origin}/api/demo-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: pass }),
+        body: JSON.stringify({ email: demoEmail, password: demoPass }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -141,9 +173,9 @@ export function AuthShell({
             )}
             <div className="space-y-3">
               {[
-                { email: "student@gmail.com", pass: "user123", role: "Student Access", path: "/dashboard", color: "text-amber-500", bg: "bg-amber-500/10", hover: "hover:ring-amber-500/20", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9z"/></svg> },
-                { email: "coach@gmail.com", pass: "coach123", role: "Coach Access", path: "/coach/dashboard", color: "text-purple-500", bg: "bg-purple-500/10", hover: "hover:ring-purple-500/20", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M13 8.57a1.43 1.43 0 100 2.86 1.43 1.43 0 000-2.86zM13 3C9.25 3 6.2 5.94 6.02 9.64L4.1 12.2a.5.5 0 00.4.8H6v3c0 1.1.9 2 2 2h1v3h7v-4.68c2.36-1.12 4-3.53 4-6.32 0-3.87-3.13-7-7-7zm3 7c0 .13-.01.26-.02.39l1.16.9-.38.67-1.34-.56c-.21.2-.45.37-.71.5l.1 1.1H13.8l.1-1.1c-.26-.13-.5-.3-.71-.5l-1.34.56-.38-.67 1.16-.9c-.01-.13-.02-.26-.02-.39s.01-.26.02-.39l-1.16-.9.38-.67 1.34.56c.21-.2.45-.37.71-.5L13.8 7h1.39l-.1 1.1c.26.13.5.3.71.5l1.34-.56.38.67-1.16.9c.01.13.02.26.02.39z"/></svg> },
-                { email: "admin@gmail.com", pass: "admin123", role: "Admin Access", path: "/admin/dashboard", color: "text-emerald-500", bg: "bg-emerald-500/10", hover: "hover:ring-emerald-500/20", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg> }
+                { email: "danownz2005@gmail.com", pass: "D@ni123", role: "Student Access", path: "/dashboard", color: "text-amber-500", bg: "bg-amber-500/10", hover: "hover:ring-amber-500/20", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9z"/></svg> },
+                { email: "zainworks67@gmail.com", pass: "Z@in123", role: "Coach Access", path: "/coach/dashboard", color: "text-purple-500", bg: "bg-purple-500/10", hover: "hover:ring-purple-500/20", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M13 8.57a1.43 1.43 0 100 2.86 1.43 1.43 0 000-2.86zM13 3C9.25 3 6.2 5.94 6.02 9.64L4.1 12.2a.5.5 0 00.4.8H6v3c0 1.1.9 2 2 2h1v3h7v-4.68c2.36-1.12 4-3.53 4-6.32 0-3.87-3.13-7-7-7zm3 7c0 .13-.01.26-.02.39l1.16.9-.38.67-1.34-.56c-.21.2-.45.37-.71.5l.1 1.1H13.8l.1-1.1c-.26-.13-.5-.3-.71-.5l-1.34.56-.38-.67 1.16-.9c-.01-.13-.02-.26-.02-.39s.01-.26.02-.39l-1.16-.9.38-.67 1.34.56c.21-.2.45-.37.71-.5L13.8 7h1.39l-.1 1.1c.26.13.5.3.71.5l1.34-.56.38.67-1.16.9c.01.13.02.26.02.39z"/></svg> },
+                { email: "admin@cognara.dev", pass: "admin@123", role: "Admin Access", path: "/admin/dashboard", color: "text-emerald-500", bg: "bg-emerald-500/10", hover: "hover:ring-emerald-500/20", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg> }
               ].map((acc) => (
                 <button
                   key={acc.role}

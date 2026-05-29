@@ -61,7 +61,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create room in Daily.co
     const response = await fetch(`${DAILY_API_URL}/rooms`, {
       method: "POST",
       headers: {
@@ -75,6 +74,10 @@ export async function POST(req: Request) {
           start_video_off: false,
           start_audio_off: false,
           exp: Math.floor(Date.now() / 1000) + 3600 * 4, // 4 hours from now
+          hide_daily_branding: false,
+          redirect_on_meeting_exit: "https://cognara.co/vid-exit",
+          hipaa: false,
+          lang: "en",
         },
       }),
     });

@@ -22,9 +22,13 @@ export function NotificationBell() {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   useEffect(() => {
+    let channel: any = null;
+    let active = true;
+
     async function loadNotifications() {
       if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
+      if (!active) return;
       if (!user) {
         setLoading(false);
         return;
@@ -37,27 +41,48 @@ export function NotificationBell() {
         .order("created_at", { ascending: false })
         .limit(20);
 
+      if (!active) return;
       if (data) setNotifications(data);
       setLoading(false);
 
       // Listen for realtime notifications
-      let channel: any = null;
       if (typeof supabase.channel === "function") {
-        channel = supabase
-          .channel("realtime_notifications")
+        const channelName = `realtime_notifications_${user.id}`;
+        
+        try {
+          if (typeof supabase.getChannels === "function" && typeof supabase.removeChannel === "function") {
+            const existing = supabase.getChannels().find((c: any) => c.name === channelName);
+            if (existing) {
+              await supabase.removeChannel(existing);
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to remove existing channel:", err);
+        }
+
+        if (!active) return;
+
+        const newChannel = supabase
+          .channel(channelName)
           .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, (payload: any) => {
             setNotifications((prev) => [payload.new as Notification, ...prev]);
-          })
-          .subscribe();
-      }
+          });
 
-      return () => {
-        if (channel && typeof supabase.removeChannel === "function") {
-          supabase.removeChannel(channel);
-        }
-      };
+        if (!active) return;
+
+        channel = newChannel;
+        newChannel.subscribe();
+      }
     }
+
     loadNotifications();
+
+    return () => {
+      active = false;
+      if (channel && typeof supabase.removeChannel === "function") {
+        supabase.removeChannel(channel);
+      }
+    };
   }, [supabase]);
 
   useEffect(() => {

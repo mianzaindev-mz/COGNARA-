@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isValidUUID } from "@/lib/utils/uuid";
 
@@ -16,14 +16,16 @@ export type AppNotification = {
 export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel>;
+    const supabase = supabaseRef.current;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let active = true;
 
     async function loadNotifications() {
-      if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
+      if (!active) return;
       if (!user || !isValidUUID(user.id)) {
         setLoading(false);
         return;
@@ -36,35 +38,56 @@ export function useNotifications() {
         .order("created_at", { ascending: false })
         .limit(20);
 
+      if (!active) return;
       if (data) setNotifications(data);
       setLoading(false);
 
       // Listen for realtime notifications
       if (typeof supabase.channel === "function") {
-        channel = supabase
-          .channel("realtime_notifications")
+        const channelName = `realtime_notifications_${user.id}`;
+        
+        try {
+          if (typeof supabase.getChannels === "function" && typeof supabase.removeChannel === "function") {
+            const existing = supabase.getChannels().find((c: any) => c.name === channelName);
+            if (existing) {
+              await supabase.removeChannel(existing);
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to remove existing channel:", err);
+        }
+
+        if (!active) return;
+
+        const newChannel = supabase
+          .channel(channelName)
           .on(
             "postgres_changes", 
             { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, 
             (payload: any) => {
               setNotifications((prev) => [payload.new as AppNotification, ...prev]);
             }
-          )
-          .subscribe();
+          );
+
+        if (!active) return;
+
+        channel = newChannel;
+        newChannel.subscribe();
       }
     }
 
     loadNotifications();
 
     return () => {
+      active = false;
       if (channel && typeof supabase.removeChannel === "function") {
         supabase.removeChannel(channel);
       }
     };
-  }, [supabase]);
+  }, []);
 
   const markAllAsRead = async () => {
-    if (!supabase) return;
+    const supabase = supabaseRef.current;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || !isValidUUID(user.id)) return;
 

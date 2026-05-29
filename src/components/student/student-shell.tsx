@@ -81,7 +81,7 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
       </div>
 
       {/* Persistent Sidebar */}
-      <aside className="fixed left-0 top-0 h-full bg-surface-container-lowest/20 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 shadow-[25px_0_50px_rgba(0,0,0,0.05)] dark:shadow-[25px_0_50px_rgba(0,0,0,0.4)] flex flex-col py-8 z-[60] overflow-hidden group/sidebar" id="main-sidebar">
+      <aside className="fixed left-0 top-0 h-full bg-surface-container-lowest/20 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 shadow-[25px_0_50px_rgba(0,0,0,0.05)] dark:shadow-[25px_0_50px_rgba(0,0,0,0.4)] flex flex-col pt-8 pb-4 z-[60] overflow-x-hidden group/sidebar" id="main-sidebar">
         {/* Brand */}
         <Link href="/" className="mb-10 px-5 flex items-center gap-4 shrink-0 h-10">
           <CognaraLogo 
@@ -92,7 +92,7 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
         </Link>
 
         {/* Navigation Group */}
-        <div className="nav-glass-container flex flex-col custom-scrollbar overflow-y-auto overflow-x-hidden h-fit shrink-0">
+        <div className="nav-glass-container flex flex-col custom-scrollbar overflow-y-auto overflow-x-hidden flex-1 min-h-0 mb-4">
           <nav className="space-y-1">
             {nav.map(({ href, label, icon, activeFill }) => {
               const active = isActive(href);
@@ -110,11 +110,8 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
           </nav>
         </div>
 
-        {/* Flexible Spacer */}
-        <div className="flex-1"></div>
-
         {/* System Group */}
-        <div className="nav-glass-container mb-2 shrink-0">
+        <div className="nav-glass-container shrink-0">
           <nav className="space-y-1">
 
             
@@ -134,10 +131,8 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
               <div className="nav-icon-wrapper">
                 <span className="material-symbols-outlined text-[20px] text-error/80 group-hover/signout:text-error transition-colors">power_settings_new</span>
               </div>
-              <div className="nav-text relative w-full h-full flex items-center">
-                <SignOutButton variant="sidebar" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" />
-                <span className="text-error/80 font-bold uppercase tracking-wider group-hover/signout:text-error">Sign out</span>
-              </div>
+              <span className="nav-text text-error/80 font-bold uppercase tracking-wider group-hover/signout:text-error">Sign out</span>
+              <SignOutButton variant="sidebar" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" />
             </div>
           </nav>
         </div>
