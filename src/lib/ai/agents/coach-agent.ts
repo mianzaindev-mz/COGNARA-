@@ -14,7 +14,8 @@ export async function runCoachAgent(input: CoachAgentInput): Promise<AgentRespon
   const groqKey = process.env.GROQ_API_KEY;
 
   if (groqKey) {
-    const Groq = (await import("groq-sdk")).default;
+    const GroqModule = await import("groq-sdk");
+    const Groq = GroqModule.default || GroqModule.Groq || GroqModule;
     const groq = new Groq({ apiKey: groqKey });
 
     const systemPrompt = `You are COGNARA's coach AI agent. You help coaches create excellent learning experiences and operate their courses responsibly.

@@ -9,6 +9,7 @@ import {
   VOICE_CONFIG,
 } from "@/lib/voice/utils";
 import { GnaraResponseRenderer } from "./GnaraResponseRenderer";
+import { PremiumCognaraLogo } from "../student/premium-cognara-logo";
 
 type Props = {
   role: "user" | "assistant";
@@ -32,7 +33,7 @@ export function AgentMessage({ role, content, skill, creditsUsed, timestamp, onO
             : "bg-gradient-to-br from-cn-orange to-cn-pink text-white"
         }`}
       >
-        {isUser ? "Y" : "C"}
+        {isUser ? "Y" : <PremiumCognaraLogo className="w-5 h-5 text-white" idSuffix="agent-msg" />}
       </div>
 
       {/* Bubble */}

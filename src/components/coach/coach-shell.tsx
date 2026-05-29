@@ -14,9 +14,12 @@ const nav = [
   { href: "/coach/library",   label: "My library",  icon: "account_balance" },
   { href: "/coach/agent",     label: "Agent",    icon: "magic_button" },
   { href: "/coach/students",  label: "Students",  icon: "group" },
+  { href: "/coach/grades",    label: "Grade Book",  icon: "table_chart" },
+  { href: "/coach/activities",label: "Activities",  icon: "crisis_alert" },
   { href: "/coach/analytics", label: "Analytics",  icon: "bar_chart" },
   { href: "/coach/earnings",  label: "Earnings",   icon: "wallet" },
   { href: "/coach/quizzes",   label: "Quiz builder", icon: "assignment" },
+  { href: "/coach/grade-scales", label: "Grade Scales", icon: "scale" },
   { href: "/coach/verification", label: "Verification", icon: "verified_user" },
   { href: "/coach/support",   label: "Support",    icon: "confirmation_number" },
 ] as const;

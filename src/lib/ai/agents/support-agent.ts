@@ -22,7 +22,8 @@ export async function runSupportAgent(input: SupportAgentInput): Promise<AgentRe
   const groqKey = process.env.GROQ_API_KEY;
 
   if (groqKey) {
-    const Groq = (await import("groq-sdk")).default;
+    const GroqModule = await import("groq-sdk");
+    const Groq = GroqModule.default || GroqModule.Groq || GroqModule;
     const groq = new Groq({ apiKey: groqKey });
 
     const completion = await groq.chat.completions.create({

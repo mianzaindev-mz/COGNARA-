@@ -59,7 +59,8 @@ export async function runPathAgent(input: PathAgentInput): Promise<AgentResponse
   }
 
   if (groqKey) {
-    const Groq = (await import("groq-sdk")).default;
+    const GroqModule = await import("groq-sdk");
+    const Groq = GroqModule.default || GroqModule.Groq || GroqModule;
     const groq = new Groq({ apiKey: groqKey });
 
     const completion = await groq.chat.completions.create({

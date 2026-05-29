@@ -23,37 +23,69 @@ type Message = {
   timestamp: string;
 };
 
-type SkillOption = { key: AgentSkill; Icon: React.FC<{ className?: string }>; label: string; desc: string; cost: string };
+type SkillTab = "learn" | "create" | "research" | "tools";
+
+type SkillOption = {
+  key: AgentSkill;
+  Icon: React.FC<{ className?: string }>;
+  label: string;
+  desc: string;
+  cost: string;
+  tab: SkillTab;
+};
+
 type AgentAudience = "student" | "coach" | "admin";
 
 const STUDENT_SKILLS: SkillOption[] = [
-  { key: "teach", Icon: IconBrain, label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr" },
-  { key: "debug", Icon: IconBug, label: "Debug", desc: "Fix your code issues", cost: "2 cr" },
-  { key: "quiz", Icon: IconClipboard, label: "Quiz", desc: "Generate practice problems", cost: "3 cr" },
-  { key: "flashcard", Icon: IconFlashcard, label: "Flashcards", desc: "Spaced repetition cards", cost: "1 cr" },
-  { key: "challenge", Icon: IconLightning, label: "Challenge", desc: "Timed coding puzzles", cost: "1 cr" },
-  { key: "eli5", Icon: IconChild, label: "ELI5", desc: "Explain like I'm 5", cost: "1 cr" },
-  { key: "generate_course", Icon: IconBook, label: "Generate Course", desc: "Build a full course from any topic", cost: "3 cr" },
-  { key: "summarize", Icon: IconSparkle, label: "Summarize", desc: "Condense content into key points", cost: "1 cr" },
-  { key: "progress_report", Icon: IconChartUp, label: "Progress", desc: "Study insights & recommendations", cost: "1 cr" },
-  { key: "voice", Icon: IconMicrophone, label: "Voice", desc: "Spoken conversation", cost: "1 cr/min" },
-  { key: "path", Icon: IconTarget, label: "Path", desc: "Create learning roadmap", cost: "3 cr" },
-  { key: "support", Icon: IconTicket, label: "Support", desc: "Get help with the platform", cost: "1 cr" },
+  // Learn
+  { key: "teach", Icon: IconBrain, label: "Teach Me", desc: "Explain concepts clearly", cost: "1 cr", tab: "learn" },
+  { key: "debug", Icon: IconBug, label: "Debug Code", desc: "Fix your code issues", cost: "2 cr", tab: "learn" },
+  { key: "explain_mistake", Icon: IconClipboard, label: "Explain Mistakes", desc: "Review quiz mistakes", cost: "1 cr", tab: "learn" },
+  { key: "flashcards", Icon: IconFlashcard, label: "Flashcards", desc: "Spaced repetition cards", cost: "2 cr", tab: "learn" },
+  { key: "socratic", Icon: IconBrain, label: "Socratic Mode", desc: "Interactive questioning", cost: "1 cr", tab: "learn" },
+  { key: "concept_map", Icon: IconTarget, label: "Concept Map", desc: "Visual relations", cost: "3 cr", tab: "learn" },
+  { key: "transcript", Icon: IconMicrophone, label: "Transcribe Lesson", desc: "Convert lecture audio", cost: "2 cr", tab: "learn" },
+  { key: "lecture_notes", Icon: IconSparkle, label: "Generate Notes", desc: "Lecture summary", cost: "2 cr", tab: "learn" },
+  
+  // Create
+  { key: "quiz", Icon: IconClipboard, label: "Quiz Studio", desc: "Generate assessments", cost: "3 cr", tab: "create" },
+  { key: "generate_course", Icon: IconBook, label: "Generate Course", desc: "AI course builder", cost: "3 cr", tab: "create" },
+  { key: "summarize", Icon: IconSparkle, label: "Summarize", desc: "Condense content", cost: "1 cr", tab: "create" },
+
+  // Research
+  { key: "research", Icon: IconTarget, label: "Research Topic", desc: "Web synthesis", cost: "3 cr", tab: "research" },
+  { key: "web_fetch", Icon: IconBook, label: "Analyze URL", desc: "Fetch web content", cost: "1 cr", tab: "research" },
+
+  // Tools
+  { key: "chat_pdf", Icon: IconClipboard, label: "Export Chat PDF", desc: "Save chat to PDF", cost: "1 cr", tab: "tools" },
+  { key: "schedule", Icon: IconClipboard, label: "Schedule Reminder", desc: "Task scheduler", cost: "Free", tab: "tools" },
+  { key: "report_bug", Icon: IconBug, label: "Report a Bug", desc: "Submit bug report", cost: "Free", tab: "tools" },
+  { key: "progress_report", Icon: IconChartUp, label: "Progress Report", desc: "Study insights", cost: "Free", tab: "tools" },
+  { key: "voice", Icon: IconMicrophone, label: "Voice Mode", desc: "Spoken convo", cost: "1 cr/min", tab: "tools" },
 ];
 
 const COACH_SKILLS: SkillOption[] = [
-  { key: "coach", Icon: IconBrain, label: "Coach Agent", desc: "Courses, lessons, rubrics", cost: "Free" },
-  { key: "generate_course", Icon: IconBook, label: "Generate Course", desc: "AI-build a full course from scratch", cost: "Free" },
-  { key: "quiz", Icon: IconClipboard, label: "Quiz Studio", desc: "Generate assessments", cost: "Free" },
-  { key: "debug", Icon: IconBug, label: "Code Help", desc: "Review examples and fixes", cost: "Free" },
-  { key: "support", Icon: IconTicket, label: "Support", desc: "Platform and student issues", cost: "Free" },
+  // Learn
+  { key: "coach", Icon: IconBrain, label: "Coach Agent", desc: "Interact with coach assistant", cost: "Free", tab: "learn" },
+  { key: "debug", Icon: IconBug, label: "Code Help", desc: "Review examples and fixes", cost: "Free", tab: "learn" },
+  
+  // Create
+  { key: "generate_course", Icon: IconBook, label: "Generate Course", desc: "AI-build full courses", cost: "Free", tab: "create" },
+  { key: "quiz", Icon: IconClipboard, label: "Quiz Studio", desc: "Create assessments", cost: "Free", tab: "create" },
+  { key: "solution_set", Icon: IconSparkle, label: "Solution Set", desc: "Generate quiz solution sets", cost: "Free", tab: "create" },
+
+  // Tools
+  { key: "support", Icon: IconTicket, label: "Support", desc: "Submit tickets", cost: "Free", tab: "tools" },
 ];
 
 const ADMIN_SKILLS: SkillOption[] = [
-  { key: "admin", Icon: IconBrain, label: "Admin Agent", desc: "Operations and risk review", cost: "Free" },
-  { key: "verify", Icon: IconTarget, label: "Verify", desc: "Coach and content checks", cost: "Free" },
-  { key: "support", Icon: IconTicket, label: "Support Ops", desc: "Ticket triage", cost: "Free" },
-  { key: "coach", Icon: IconClipboard, label: "Content Audit", desc: "Course quality review", cost: "Free" },
+  // Learn
+  { key: "admin", Icon: IconBrain, label: "Admin Agent", desc: "Review platform operations", cost: "Free", tab: "learn" },
+  { key: "verify", Icon: IconTarget, label: "Verify", desc: "Content verification review", cost: "Free", tab: "learn" },
+  
+  // Tools
+  { key: "support", Icon: IconTicket, label: "Support Ops", desc: "Ticket queue review", cost: "Free", tab: "tools" },
+  { key: "coach", Icon: IconClipboard, label: "Content Audit", desc: "Verify course quality", cost: "Free", tab: "tools" },
 ];
 
 const AUDIENCE_COPY: Record<AgentAudience, { title: string; status: string; emptyTitle: string; emptyBody: string; suggestions: string[] }> = {
@@ -112,6 +144,7 @@ export function AgentPanel({ studentId, initialCredits, audience = "student", in
   const copy = AUDIENCE_COPY[audience];
   const resolvedInitial = initialSkill && skills.some(s => s.key === initialSkill) ? initialSkill : (skills[0]?.key ?? "teach");
   const [skill, setSkill] = useState<AgentSkill>(resolvedInitial);
+  const [activeTab, setActiveTab] = useState<SkillTab>("learn");
   const [isLoading, setIsLoading] = useState(false);
   const [isQueueing, setIsQueueing] = useState(false);
   const [credits, setCredits] = useState<number | null>(initialCredits);
@@ -387,36 +420,61 @@ export function AgentPanel({ studentId, initialCredits, audience = "student", in
               </button>
 
               {showSkillMenu && (
-                <div className="cn-popover-enter absolute bottom-full left-0 mb-2 w-64 overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-1.5 shadow-xl shadow-black/15">
-                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cn-ink-subtle">
-                    Select Skill
-                  </p>
-                  {skills.map((s) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      onClick={() => {
-                        setSkill(s.key);
-                        setShowSkillMenu(false);
-                      }}
-                      className={`cn-row-hover flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
-                        skill === s.key
-                          ? "bg-cn-orange/10 text-cn-orange"
-                          : "text-cn-ink-muted hover:text-cn-ink"
-                      }`}
-                    >
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                        skill === s.key ? "bg-cn-orange/15" : "bg-cn-canvas"
-                      }`}>
-                        <s.Icon className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold">{s.label}</p>
-                        <p className="text-[10px] opacity-60">{s.desc}</p>
-                      </div>
-                      <span className="text-[10px] font-medium opacity-40">{s.cost}</span>
-                    </button>
-                  ))}
+                <div className="cn-popover-enter absolute bottom-full left-0 mb-2 w-80 overflow-hidden rounded-2xl border border-cn-border bg-cn-surface p-1.5 shadow-xl shadow-black/15 z-50">
+                  <div className="flex border-b border-cn-border px-1 py-1 mb-1.5 gap-0.5 bg-cn-canvas rounded-xl">
+                    {(["learn", "create", "research", "tools"] as SkillTab[]).map((tabName) => {
+                      const hasSkills = skills.some((s) => s.tab === tabName);
+                      if (!hasSkills) return null;
+                      return (
+                        <button
+                          key={tabName}
+                          type="button"
+                          onClick={() => setActiveTab(tabName)}
+                          className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                            activeTab === tabName
+                              ? "bg-cn-orange/10 text-cn-orange font-bold"
+                              : "text-cn-ink-muted hover:bg-cn-surface hover:text-cn-ink"
+                          }`}
+                        >
+                          {tabName}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="max-h-72 overflow-y-auto space-y-0.5 px-0.5">
+                    {skills
+                      .filter((s) => s.tab === activeTab)
+                      .map((s) => (
+                        <button
+                          key={s.key}
+                          type="button"
+                          onClick={() => {
+                            setSkill(s.key);
+                            setShowSkillMenu(false);
+                          }}
+                          className={`cn-row-hover flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
+                            skill === s.key
+                              ? "bg-cn-orange/10 text-cn-orange"
+                              : "text-cn-ink-muted hover:text-cn-ink"
+                          }`}
+                        >
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                            skill === s.key ? "bg-cn-orange/15" : "bg-cn-canvas"
+                          }`}>
+                            <s.Icon className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold truncate">{s.label}</p>
+                            <p className="text-[10px] opacity-60 truncate">{s.desc}</p>
+                          </div>
+                          <span className="text-[10px] font-medium opacity-40 shrink-0">{s.cost}</span>
+                        </button>
+                      ))}
+                    {skills.filter((s) => s.tab === activeTab).length === 0 && (
+                      <p className="text-center text-xs text-cn-ink-subtle py-8">No skills under this category.</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

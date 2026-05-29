@@ -76,7 +76,8 @@ async function callGroqForCourse(
   systemPrompt: string,
   topic: string,
 ): Promise<AgentResponse> {
-  const Groq = (await import("groq-sdk")).default;
+  const GroqModule = await import("groq-sdk");
+  const Groq = GroqModule.default || GroqModule.Groq || GroqModule;
   const groq = new Groq({ apiKey });
 
   const completion = await groq.chat.completions.create({

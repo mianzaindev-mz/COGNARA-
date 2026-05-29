@@ -3,6 +3,7 @@ import { JetBrains_Mono, Kodchasan, Source_Serif_4, Manrope, Hanken_Grotesk } fr
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
+import { ReportBugButton } from "@/components/shared/ReportBugButton";
 import "material-symbols/outlined.css";
 import "./globals.css";
 
@@ -35,6 +36,9 @@ export default function RootLayout({
           <ToastProvider>
             {children}
             <AIAssistant />
+            <div className="fixed bottom-5 left-5 z-[9999] print:hidden">
+              <ReportBugButton initialCategory="bug" />
+            </div>
           </ToastProvider>
         </ThemeProvider>
       </body>

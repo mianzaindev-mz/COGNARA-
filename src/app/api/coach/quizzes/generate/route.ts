@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
 
     if (groqKey) {
       try {
-        const Groq = (await import("groq-sdk")).default;
+        const GroqModule = await import("groq-sdk");
+        const Groq = GroqModule.default || GroqModule.Groq || GroqModule;
         const groq = new Groq({ apiKey: groqKey });
 
         const systemPrompt = `You are an expert EdTech quiz generator.

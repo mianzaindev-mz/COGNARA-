@@ -16,7 +16,10 @@ const nav = [
   { href: "/notebook", label: "Notebook", icon: "auto_stories", activeFill: false },
   { href: "/agent", label: "Agent", icon: "magic_button", activeFill: false },
   { href: "/quizzes", label: "Quizzes", icon: "assignment", activeFill: false },
+  { href: "/grades", label: "Grades", icon: "bar_chart", activeFill: false },
   { href: "/progress", label: "Progress", icon: "bar_chart_4_bars", activeFill: false },
+  { href: "/research", label: "Research", icon: "science", activeFill: false },
+  { href: "/settings/tasks", label: "My Tasks", icon: "calendar_today", activeFill: false },
   { href: "/peer", label: "Peer", icon: "hub", activeFill: false },
 ] as const;
 

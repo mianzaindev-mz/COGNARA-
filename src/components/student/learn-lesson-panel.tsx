@@ -11,8 +11,9 @@ import { NotebookPanel } from "@/components/notebook/NotebookPanel";
 import { LiveCall } from "@/components/shared/LiveCall";
 import { CodeEditorFull } from "@/components/editor/CodeEditor";
 import { LessonWorldScene } from "@/components/student/lesson-world-scene";
+import { TranscriptPanel } from "@/components/student/TranscriptPanel";
 
-const LEFT_TABS = ["Overview", "Materials", "Curriculum", "Live Classes"] as const;
+const LEFT_TABS = ["Overview", "Materials", "Curriculum", "Live Classes", "Transcripts"] as const;
 
 type LearnLessonPanelProps = {
   ctx: CourseLearnContext;
@@ -429,6 +430,7 @@ function TabContent({
   body,
   liveSessions,
   onJoinCall,
+  videoPlayer,
 }: {
   leftTab: (typeof LEFT_TABS)[number];
   lesson: LessonOutline;
@@ -438,6 +440,7 @@ function TabContent({
   body: string;
   liveSessions: any[];
   onJoinCall: (url: string) => void;
+  videoPlayer: any;
 }) {
   return (
     <>
@@ -461,6 +464,8 @@ function TabContent({
         </p>
       ) : leftTab === "Live Classes" ? (
         <LiveSessionList sessions={liveSessions} onJoin={onJoinCall} />
+      ) : leftTab === "Transcripts" ? (
+        <TranscriptPanel lessonId={lesson.id} lessonTitle={lesson.title} videoPlayer={videoPlayer} />
       ) : (
         <div className="mt-1">
           <LearnCurriculum ctx={ctx} activeOrder={lesson.orderIndex} />
@@ -750,6 +755,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
                 body={body}
                 liveSessions={liveSessions}
                 onJoinCall={setActiveCallRoom}
+                videoPlayer={videoPlayerApi}
               />
             </div>
             <LessonNav slug={ctx.slug} prevOrder={prevOrder} nextOrder={nextOrder} />
@@ -799,6 +805,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
                   body={body}
                   liveSessions={liveSessions}
                   onJoinCall={setActiveCallRoom}
+                  videoPlayer={videoPlayerApi}
                 />
               </div>
               <LessonNav slug={ctx.slug} prevOrder={prevOrder} nextOrder={nextOrder} />

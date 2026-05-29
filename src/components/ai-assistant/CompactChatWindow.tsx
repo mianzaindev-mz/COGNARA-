@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { PremiumCognaraLogo } from "../student/premium-cognara-logo";
 
 type Message = {
   id: string;
@@ -143,7 +144,7 @@ export function CompactChatWindow({
       {/* Header */}
       <div className="h-[48px] bg-[#141420] rounded-t-[16px] border-b-[0.5px] border-[rgba(255,255,255,0.07)] flex items-center px-3">
         <div className="flex items-center gap-2">
-          <span className="text-white font-bold text-[13px]">C</span>
+          <PremiumCognaraLogo className="w-5 h-5 text-white" idSuffix="compact-chat" />
           <span className="text-white font-medium text-[13px]">Cognara AI</span>
         </div>
         <div className="ml-auto flex items-center gap-1">

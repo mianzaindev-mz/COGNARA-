@@ -137,6 +137,7 @@ export function sanitizeInput(input: string): {
 const ROLE_REQUIRED_SKILLS: Record<string, string[]> = {
   generate_course: ["coach", "admin"],
   verify: ["coach", "admin"],
+  solution_set: ["coach", "admin"],
   admin: ["admin"],
 };
 

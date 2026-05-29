@@ -13,7 +13,9 @@ const nav = [
   { href: "/admin/coaches",   label: "Coaches",   icon: "verified_user" },
   { href: "/admin/courses",   label: "Courses",   icon: "menu_book" },
   { href: "/admin/agent",     label: "Agent",     icon: "magic_button" },
+  { href: "/admin/bugs",      label: "Bug Reports", icon: "bug_report" },
   { href: "/admin/reports",   label: "Reports",   icon: "bar_chart" },
+  { href: "/admin/reports/grades", label: "Grades Overview", icon: "analytics" },
   { href: "/admin/security",  label: "Security",  icon: "shield" },
   { href: "/admin/support",   label: "Support",   icon: "support_agent" },
 ] as const;
