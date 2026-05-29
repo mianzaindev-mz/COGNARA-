@@ -249,7 +249,7 @@ export default function AdminBugsPage() {
       {/* 1. Header Metrics Card Bar */}
       <section className="flex flex-col gap-1 sm:gap-2">
         <h1 className="text-2xl font-bold tracking-tight text-cn-ink flex items-center gap-2">
-          <span className="material-symbols-outlined text-rose-500 animate-pulse text-[28px]">shield_heart</span>
+          <span className="material-symbols-outlined text-rose-500 animate-pulse text-[28px]">security</span>
           Trust, Safety & Bug Triage Command
         </h1>
         <p className="text-sm text-cn-ink-muted">AI-powered evaluations, exact location tracking, and administrative resolution workflows.</p>
@@ -404,7 +404,7 @@ export default function AdminBugsPage() {
               </div>
             ) : filteredReports.length === 0 ? (
               <div className="p-12 text-center flex flex-col items-center gap-2">
-                <span className="material-symbols-outlined text-4xl text-cn-ink-subtle opacity-40">shield_check</span>
+                <span className="material-symbols-outlined text-4xl text-cn-ink-subtle opacity-40">verified_user</span>
                 <p className="text-sm font-bold text-cn-ink">All Clear! No alerts in queue.</p>
                 <p className="text-xs text-cn-ink-subtle leading-relaxed">No reports match your selected filters. Adjust searches to review closed items.</p>
               </div>
