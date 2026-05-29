@@ -109,87 +109,83 @@ interface ChatExportPdfData {
   dateStr?: string;
 }
 
-class ChatExportDocument extends React.Component<{ data: ChatExportPdfData }> {
-  render() {
-    const { data } = this.props;
-    const messages = data.messages || [];
+const ChatExportDocument = ({ data }: { data: ChatExportPdfData }) => {
+  const messages = data.messages || [];
 
-    return (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          <View style={styles.header}>
-            <Text style={styles.sub}>
-              Agent Conversation Export{data.skillName ? ` · ${data.skillName}` : ""}
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.sub}>
+            Agent Conversation Export{data.skillName ? ` · ${data.skillName}` : ""}
+          </Text>
+          <Text style={styles.title}>{data.title || "AI Chat Transcript"}</Text>
+          <View style={styles.meta}>
+            <Text>Student: {data.studentName}</Text>
+            <Text>
+              Exported: {data.dateStr || new Date().toLocaleDateString()} ·{" "}
+              {messages.length} messages
             </Text>
-            <Text style={styles.title}>{data.title || "AI Chat Transcript"}</Text>
-            <View style={styles.meta}>
-              <Text>Student: {data.studentName}</Text>
-              <Text>
-                Exported: {data.dateStr || new Date().toLocaleDateString()} ·{" "}
-                {messages.length} messages
-              </Text>
-            </View>
           </View>
+        </View>
 
-          {messages.map((msg, i) => {
-            const isUser = msg.role === "user";
-            const isAssistant = msg.role === "assistant";
+        {messages.map((msg, i) => {
+          const isUser = msg.role === "user";
+          const isAssistant = msg.role === "assistant";
 
-            return (
-              <View
-                key={i}
+          return (
+            <View
+              key={i}
+              style={[
+                styles.messageCard,
+                isUser
+                  ? styles.userCard
+                  : isAssistant
+                  ? styles.assistantCard
+                  : styles.systemCard,
+              ]}
+            >
+              <Text
                 style={[
-                  styles.messageCard,
+                  styles.roleBadge,
                   isUser
-                    ? styles.userCard
+                    ? styles.userBadge
                     : isAssistant
-                    ? styles.assistantCard
-                    : styles.systemCard,
+                    ? styles.assistantBadge
+                    : styles.systemBadge,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.roleBadge,
-                    isUser
-                      ? styles.userBadge
-                      : isAssistant
-                      ? styles.assistantBadge
-                      : styles.systemBadge,
-                  ]}
-                >
-                  {msg.role === "user"
-                    ? "You"
-                    : msg.role === "assistant"
-                    ? "Cognara AI"
-                    : "System"}
-                </Text>
-                <Text style={styles.messageText}>
-                  {(msg.content || "").slice(0, 2000)}
-                </Text>
-                {msg.timestamp && (
-                  <Text style={styles.timestamp}>{msg.timestamp}</Text>
-                )}
-              </View>
-            );
-          })}
+                {msg.role === "user"
+                  ? "You"
+                  : msg.role === "assistant"
+                  ? "Cognara AI"
+                  : "System"}
+              </Text>
+              <Text style={styles.messageText}>
+                {(msg.content || "").slice(0, 2000)}
+              </Text>
+              {msg.timestamp && (
+                <Text style={styles.timestamp}>{msg.timestamp}</Text>
+              )}
+            </View>
+          );
+        })}
 
-          <View style={styles.footer} fixed>
-            <Text>Cognara · AI Agent Conversation Export</Text>
-            <Text
-              render={({ pageNumber, totalPages }) =>
-                `Page ${pageNumber} of ${totalPages}`
-              }
-            />
-          </View>
-        </Page>
-      </Document>
-    );
-  }
-}
+        <View style={styles.footer} fixed>
+          <Text>Cognara · AI Agent Conversation Export</Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 export async function generateChatExportPdf(
   data: ChatExportPdfData
 ): Promise<Buffer> {
-  const element = React.createElement(ChatExportDocument, { data });
-  return await renderToBuffer(element as any);
+  return await renderToBuffer(<ChatExportDocument data={data} />);
 }

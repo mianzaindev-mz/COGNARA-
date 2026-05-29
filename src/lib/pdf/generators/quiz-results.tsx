@@ -171,108 +171,104 @@ interface QuizPdfData {
   dateStr?: string;
 }
 
-class QuizResultsDocument extends React.Component<{ data: QuizPdfData }> {
-  render() {
-    const { data } = this.props;
-
-    return (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.sub}>Official Academic Performance Report</Text>
-            <Text style={styles.title}>{data.quizTitle || "Quiz Assessment Summary"}</Text>
-            <View style={styles.meta}>
-              <Text>Student: {data.studentName}</Text>
-              <Text>Date Evaluated: {data.dateStr || new Date().toLocaleDateString()}</Text>
-            </View>
+const QuizResultsDocument = ({ data }: { data: QuizPdfData }) => {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.sub}>Official Academic Performance Report</Text>
+          <Text style={styles.title}>{data.quizTitle || "Quiz Assessment Summary"}</Text>
+          <View style={styles.meta}>
+            <Text>Student: {data.studentName}</Text>
+            <Text>Date Evaluated: {data.dateStr || new Date().toLocaleDateString()}</Text>
           </View>
+        </View>
 
-          {/* Score section */}
-          <View style={styles.scoreSection}>
-            <View style={styles.scoreBlock}>
-              <Text style={styles.scoreLabel}>Final Percentage</Text>
-              <Text style={styles.scoreVal}>{data.percentage.toFixed(1)}%</Text>
-            </View>
-            <View style={styles.scoreBlock}>
-              <Text style={styles.scoreLabel}>Letter Grade</Text>
-              <Text style={styles.scoreVal}>{data.letterGrade}</Text>
-            </View>
-            <View style={styles.scoreBlock}>
-              <Text style={styles.scoreLabel}>GPA Contribution</Text>
-              <Text style={styles.scoreVal}>{data.gradePoint.toFixed(1)} / 4.0</Text>
-            </View>
-            <View style={styles.scoreBlock}>
-              <Text style={styles.scoreLabel}>Status</Text>
-              <Text style={[styles.scoreVal, { color: data.passed ? "#10b981" : "#ef4444" }]}>
-                {data.passed ? "PASSED" : "FAILED"}
-              </Text>
-            </View>
+        {/* Score section */}
+        <View style={styles.scoreSection}>
+          <View style={styles.scoreBlock}>
+            <Text style={styles.scoreLabel}>Final Percentage</Text>
+            <Text style={styles.scoreVal}>{data.percentage.toFixed(1)}%</Text>
           </View>
-
-          {/* Overall feedback */}
-          {data.overallFeedback && (
-            <View style={{ marginBottom: 15 }}>
-              <Text style={styles.sectionTitle}>Instructor / AI Evaluator Assessment</Text>
-              <Text style={{ fontSize: 10, lineHeight: 1.5, color: "#374151" }}>{data.overallFeedback}</Text>
-            </View>
-          )}
-
-          {/* Strengths & Resources */}
-          <View style={{ flexDirection: "row", gap: 20, marginBottom: 15 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>Identified Strengths</Text>
-              {data.strengths?.map((s, i) => (
-                <View key={i} style={styles.bulletRow}>
-                  <Text style={styles.bullet}>✓</Text>
-                  <Text style={styles.bulletText}>{s}</Text>
-                </View>
-              )) || <Text style={{ fontSize: 9, color: "#9ca3af" }}>None logged.</Text>}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>Study recommendations</Text>
-              {data.recommended_resources?.map((r, i) => (
-                <View key={i} style={styles.bulletRow}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>{r}</Text>
-                </View>
-              )) || <Text style={{ fontSize: 9, color: "#9ca3af" }}>None logged.</Text>}
-            </View>
+          <View style={styles.scoreBlock}>
+            <Text style={styles.scoreLabel}>Letter Grade</Text>
+            <Text style={styles.scoreVal}>{data.letterGrade}</Text>
           </View>
+          <View style={styles.scoreBlock}>
+            <Text style={styles.scoreLabel}>GPA Contribution</Text>
+            <Text style={styles.scoreVal}>{data.gradePoint.toFixed(1)} / 4.0</Text>
+          </View>
+          <View style={styles.scoreBlock}>
+            <Text style={styles.scoreLabel}>Status</Text>
+            <Text style={[styles.scoreVal, { color: data.passed ? "#10b981" : "#ef4444" }]}>
+              {data.passed ? "PASSED" : "FAILED"}
+            </Text>
+          </View>
+        </View>
 
-          {/* Question Breakdown */}
-          <View style={{ marginTop: 10 }}>
-            <Text style={styles.sectionTitle}>Detailed Question Breakdown</Text>
-            {data.questionGrades?.slice(0, 5).map((q, i) => (
-              <View key={i} style={styles.card}>
-                <Text style={styles.qText}>{`Question ${i + 1}: [Score: ${q.points_earned}/${q.points_possible}]`}</Text>
-                <View style={styles.aRow}>
-                  <Text style={styles.aLabel}>Student Answer:</Text>
-                  <Text style={styles.aVal}>{q.student_answer || "(No Answer Submitted)"}</Text>
-                </View>
-                <View style={styles.aRow}>
-                  <Text style={styles.aLabel}>Correct Answer:</Text>
-                  <Text style={styles.aVal}>{q.correct_answer}</Text>
-                </View>
-                {q.ai_feedback && (
-                  <Text style={styles.aiFeedback}>{q.ai_feedback}</Text>
-                )}
+        {/* Overall feedback */}
+        {data.overallFeedback && (
+          <View style={{ marginBottom: 15 }}>
+            <Text style={styles.sectionTitle}>Instructor / AI Evaluator Assessment</Text>
+            <Text style={{ fontSize: 10, lineHeight: 1.5, color: "#374151" }}>{data.overallFeedback}</Text>
+          </View>
+        )}
+
+        {/* Strengths & Resources */}
+        <View style={{ flexDirection: "row", gap: 20, marginBottom: 15 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sectionTitle}>Identified Strengths</Text>
+            {data.strengths?.map((s, i) => (
+              <View key={i} style={styles.bulletRow}>
+                <Text style={styles.bullet}>✓</Text>
+                <Text style={styles.bulletText}>{s}</Text>
               </View>
-            ))}
+            )) || <Text style={{ fontSize: 9, color: "#9ca3af" }}>None logged.</Text>}
           </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sectionTitle}>Study recommendations</Text>
+            {data.recommended_resources?.map((r, i) => (
+              <View key={i} style={styles.bulletRow}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.bulletText}>{r}</Text>
+              </View>
+            )) || <Text style={{ fontSize: 9, color: "#9ca3af" }}>None logged.</Text>}
+          </View>
+        </View>
 
-          {/* Footer */}
-          <View style={styles.footer} fixed>
-            <Text>Cognara Next-Gen Learning platform · Official Academic Transcript</Text>
-            <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
-          </View>
-        </Page>
-      </Document>
-    );
-  }
-}
+        {/* Question Breakdown */}
+        <View style={{ marginTop: 10 }}>
+          <Text style={styles.sectionTitle}>Detailed Question Breakdown</Text>
+          {data.questionGrades?.slice(0, 5).map((q, i) => (
+            <View key={i} style={styles.card}>
+              <Text style={styles.qText}>{`Question ${i + 1}: [Score: ${q.points_earned}/${q.points_possible}]`}</Text>
+              <View style={styles.aRow}>
+                <Text style={styles.aLabel}>Student Answer:</Text>
+                <Text style={styles.aVal}>{q.student_answer || "(No Answer Submitted)"}</Text>
+              </View>
+              <View style={styles.aRow}>
+                <Text style={styles.aLabel}>Correct Answer:</Text>
+                <Text style={styles.aVal}>{q.correct_answer}</Text>
+              </View>
+              {q.ai_feedback && (
+                <Text style={styles.aiFeedback}>{q.ai_feedback}</Text>
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer} fixed>
+          <Text>Cognara Next-Gen Learning platform · Official Academic Transcript</Text>
+          <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 export async function generateQuizResultsPdf(data: QuizPdfData): Promise<Buffer> {
-  const element = React.createElement(QuizResultsDocument, { data });
-  return await renderToBuffer(element as any);
+  return await renderToBuffer(<QuizResultsDocument data={data} />);
 }
+

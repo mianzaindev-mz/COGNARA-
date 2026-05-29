@@ -128,92 +128,87 @@ interface NotesPdfData {
 }
 
 // React-PDF Document Component
-class LectureNotesDocument extends React.Component<{ data: NotesPdfData }> {
-  render() {
-    const { data } = this.props;
-    const points = data.key_points || [];
-    const terms = Object.entries(data.key_terms || {});
-    
-    // Simple markdown paragraph splitter
-    const mdParagraphs = (data.full_notes_md || "")
-      .split("\n\n")
-      .map(p => p.replace(/[#*`_-]/g, "").trim())
-      .filter(p => p.length > 10);
+const LectureNotesDocument = ({ data }: { data: NotesPdfData }) => {
+  const points = data.key_points || [];
+  const terms = Object.entries(data.key_terms || {});
+  
+  // Simple markdown paragraph splitter
+  const mdParagraphs = (data.full_notes_md || "")
+    .split("\n\n")
+    .map(p => p.replace(/[#*`_-]/g, "").trim())
+    .filter(p => p.length > 10);
 
-    return (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.courseTitle}>{data.courseTitle || "Cognara Interactive Study Notes"}</Text>
-            <Text style={styles.lectureTitle}>{data.title || "Lecture Highlights"}</Text>
-            <View style={styles.metaRow}>
-              <Text>Student: {data.studentName || "Cognara Learner"}</Text>
-              <Text>Generated: {data.dateStr || new Date().toLocaleDateString()}</Text>
-            </View>
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.courseTitle}>{data.courseTitle || "Cognara Interactive Study Notes"}</Text>
+          <Text style={styles.lectureTitle}>{data.title || "Lecture Highlights"}</Text>
+          <View style={styles.metaRow}>
+            <Text>Student: {data.studentName || "Cognara Learner"}</Text>
+            <Text>Generated: {data.dateStr || new Date().toLocaleDateString()}</Text>
           </View>
+        </View>
 
-          {/* AI Summary */}
-          {data.summary && (
-            <View style={{ marginBottom: 15 }}>
-              <Text style={styles.sectionTitle}>Executive Summary</Text>
-              <Text style={styles.summaryText}>{data.summary}</Text>
-            </View>
-          )}
-
-          {/* Key Insights */}
-          {points.length > 0 && (
-            <View style={{ marginBottom: 15 }}>
-              <Text style={styles.sectionTitle}>Key takeaways</Text>
-              {points.map((pt, i) => (
-                <View key={i} style={styles.bulletPoint}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>{pt}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Key Terms */}
-          {terms.length > 0 && (
-            <View style={{ marginBottom: 20 }}>
-              <Text style={styles.sectionTitle}>Glossary & Concepts</Text>
-              {terms.map(([key, val], i) => (
-                <View key={i} style={styles.termRow}>
-                  <Text style={styles.termKey}>{key}</Text>
-                  <Text style={styles.termVal}>{val}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Detailed Study Notes */}
-          {mdParagraphs.length > 0 && (
-            <View>
-              <Text style={styles.sectionTitle}>Detailed Study Guide</Text>
-              {mdParagraphs.slice(0, 12).map((p, i) => (
-                <Text key={i} style={styles.markdownParagraph}>{p}</Text>
-              ))}
-            </View>
-          )}
-
-          {/* Footer */}
-          <View style={styles.footer} fixed>
-            <Text>Cognara Next-Gen Learning platform · Lecture Study Notes</Text>
-            <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+        {/* AI Summary */}
+        {data.summary && (
+          <View style={{ marginBottom: 15 }}>
+            <Text style={styles.sectionTitle}>Executive Summary</Text>
+            <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
-        </Page>
-      </Document>
-    );
-  }
-}
+        )}
+
+        {/* Key Insights */}
+        {points.length > 0 && (
+          <View style={{ marginBottom: 15 }}>
+            <Text style={styles.sectionTitle}>Key takeaways</Text>
+            {points.map((pt, i) => (
+              <View key={i} style={styles.bulletPoint}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.bulletText}>{pt}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Key Terms */}
+        {terms.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={styles.sectionTitle}>Glossary & Concepts</Text>
+            {terms.map(([key, val], i) => (
+              <View key={i} style={styles.termRow}>
+                <Text style={styles.termKey}>{key}</Text>
+                <Text style={styles.termVal}>{val}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Detailed Study Notes */}
+        {mdParagraphs.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Detailed Study Guide</Text>
+            {mdParagraphs.slice(0, 12).map((p, i) => (
+              <Text key={i} style={styles.markdownParagraph}>{p}</Text>
+            ))}
+          </View>
+        )}
+
+        {/* Footer */}
+        <View style={styles.footer} fixed>
+          <Text>Cognara Next-Gen Learning platform · Lecture Study Notes</Text>
+          <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 /**
  * generateLectureNotesPdf
  * Compiles a structured, harmoniously colored PDF document from lecture notes
  */
 export async function generateLectureNotesPdf(data: NotesPdfData): Promise<Buffer> {
-  const element = React.createElement(LectureNotesDocument, { data });
-  const buffer = await renderToBuffer(element as any);
-  return buffer;
+  return await renderToBuffer(<LectureNotesDocument data={data} />);
 }

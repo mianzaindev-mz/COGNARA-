@@ -1,21 +1,22 @@
-// src/app/api/grading/[submissionId]/override/route.ts
+// src/app/api/grading/[attemptId]/override/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { gradeOverrideSchema } from "@/lib/validation/schemas/enhanced-skills.schema";
-import { getStandardGradeScale } from "@/lib/ai/agents/grading-agent";
+import { getStandardGradeScale } from "@/lib/utils/grading";
 import { SECURITY_HEADERS } from "@/lib/security/sanitize";
 import { logAuditEvent } from "@/lib/security/audit";
 
 type Params = {
   params: Promise<{
-    submissionId: string;
+    attemptId: string;
   }>;
 };
 
 /** PATCH — Coach grade override with instructor note */
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const { submissionId } = await params;
+    const { attemptId } = await params;
+    const submissionId = attemptId; // Map attemptId parameter to submissionId since the segment placeholder is named [attemptId]
     const supabase = await createClient();
     const {
       data: { user },

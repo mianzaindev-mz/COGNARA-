@@ -175,133 +175,130 @@ interface GradeReportPdfData {
   dateStr?: string;
 }
 
-class GradeReportDocument extends React.Component<{ data: GradeReportPdfData }> {
-  render() {
-    const { data } = this.props;
-    const passRate =
-      data.totalQuizzes > 0
-        ? Math.round((data.totalPassed / data.totalQuizzes) * 100)
-        : 0;
+const GradeReportDocument = ({ data }: { data: GradeReportPdfData }) => {
+  const passRate =
+    data.totalQuizzes > 0
+      ? Math.round((data.totalPassed / data.totalQuizzes) * 100)
+      : 0;
 
-    return (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.institution}>Cognara Academy</Text>
-            <Text style={styles.title}>Official Academic Transcript</Text>
-            <View style={styles.metaRow}>
-              <Text>
-                Student: {data.studentName}
-                {data.studentEmail ? ` (${data.studentEmail})` : ""}
-              </Text>
-              <Text>
-                Date: {data.dateStr || new Date().toLocaleDateString()}
-              </Text>
-            </View>
-          </View>
-
-          {/* Summary Cards Row */}
-          <View style={styles.summarySection}>
-            <View style={styles.summaryBlock}>
-              <Text style={styles.summaryLabel}>Cumulative GPA</Text>
-              <Text style={styles.summaryValue}>
-                {data.cumulativeGPA.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.summaryBlock}>
-              <Text style={styles.summaryLabel}>Average Score</Text>
-              <Text style={styles.summaryValue}>
-                {data.averagePercentage.toFixed(1)}%
-              </Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.summaryBlock}>
-              <Text style={styles.summaryLabel}>Total Evaluated</Text>
-              <Text style={styles.summaryValue}>{data.totalQuizzes}</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.summaryBlock}>
-              <Text style={styles.summaryLabel}>Pass Rate</Text>
-              <Text style={styles.summaryValue}>{passRate}%</Text>
-            </View>
-          </View>
-
-          {/* Detailed Grade Table */}
-          <Text style={styles.sectionTitle}>Detailed Assessment Records</Text>
-
-          {/* Table Header */}
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, { flex: 2.5 }]}>Quiz</Text>
-            <Text style={[styles.tableHeaderText, { flex: 2 }]}>Course</Text>
-            <Text style={styles.tableHeaderText}>Score</Text>
-            <Text style={styles.tableHeaderText}>Grade</Text>
-            <Text style={styles.tableHeaderText}>GPA</Text>
-            <Text style={styles.tableHeaderText}>Status</Text>
-            <Text style={styles.tableHeaderText}>Date</Text>
-          </View>
-
-          {/* Table Rows */}
-          {data.grades.map((g, i) => (
-            <View
-              key={i}
-              style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}
-            >
-              <Text style={[styles.tableCellBold, { flex: 2.5 }]}>
-                {g.quizTitle}
-              </Text>
-              <Text style={[styles.tableCell, { flex: 2 }]}>
-                {g.courseTitle}
-              </Text>
-              <Text style={styles.tableCell}>{g.percentage.toFixed(1)}%</Text>
-              <Text style={styles.tableCellBold}>{g.letterGrade}</Text>
-              <Text style={styles.tableCell}>{g.gradePoint.toFixed(1)}</Text>
-              <Text
-                style={[
-                  styles.tableCellBold,
-                  g.passed ? styles.passCell : styles.failCell,
-                ]}
-              >
-                {g.passed ? "PASS" : "FAIL"}
-              </Text>
-              <Text style={styles.tableCell}>
-                {g.gradedAt
-                  ? new Date(g.gradedAt).toLocaleDateString()
-                  : "—"}
-              </Text>
-            </View>
-          ))}
-
-          {/* Official Seal */}
-          <View style={styles.seal}>
-            <Text style={styles.sealText}>Verified Academic Record</Text>
-            <Text style={styles.sealSub}>
-              Cognara AI-Assisted Grading System ·{" "}
-              {new Date().toLocaleDateString()}
-            </Text>
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer} fixed>
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.institution}>Cognara Academy</Text>
+          <Text style={styles.title}>Official Academic Transcript</Text>
+          <View style={styles.metaRow}>
             <Text>
-              Cognara Next-Gen Learning · Official Grade Report
+              Student: {data.studentName}
+              {data.studentEmail ? ` (${data.studentEmail})` : ""}
             </Text>
-            <Text
-              render={({ pageNumber, totalPages }) =>
-                `Page ${pageNumber} of ${totalPages}`
-              }
-            />
+            <Text>
+              Date: {data.dateStr || new Date().toLocaleDateString()}
+            </Text>
           </View>
-        </Page>
-      </Document>
-    );
-  }
-}
+        </View>
+
+        {/* Summary Cards Row */}
+        <View style={styles.summarySection}>
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summaryLabel}>Cumulative GPA</Text>
+            <Text style={styles.summaryValue}>
+              {data.cumulativeGPA.toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summaryLabel}>Average Score</Text>
+            <Text style={styles.summaryValue}>
+              {data.averagePercentage.toFixed(1)}%
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summaryLabel}>Total Evaluated</Text>
+            <Text style={styles.summaryValue}>{data.totalQuizzes}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summaryLabel}>Pass Rate</Text>
+            <Text style={styles.summaryValue}>{passRate}%</Text>
+          </View>
+        </View>
+
+        {/* Detailed Grade Table */}
+        <Text style={styles.sectionTitle}>Detailed Assessment Records</Text>
+
+        {/* Table Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderText, { flex: 2.5 }]}>Quiz</Text>
+          <Text style={[styles.tableHeaderText, { flex: 2 }]}>Course</Text>
+          <Text style={styles.tableHeaderText}>Score</Text>
+          <Text style={styles.tableHeaderText}>Grade</Text>
+          <Text style={styles.tableHeaderText}>GPA</Text>
+          <Text style={styles.tableHeaderText}>Status</Text>
+          <Text style={styles.tableHeaderText}>Date</Text>
+        </View>
+
+        {/* Table Rows */}
+        {data.grades.map((g, i) => (
+          <View
+            key={i}
+            style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}
+          >
+            <Text style={[styles.tableCellBold, { flex: 2.5 }]}>
+              {g.quizTitle}
+            </Text>
+            <Text style={[styles.tableCell, { flex: 2 }]}>
+              {g.courseTitle}
+            </Text>
+            <Text style={styles.tableCell}>{g.percentage.toFixed(1)}%</Text>
+            <Text style={styles.tableCellBold}>{g.letterGrade}</Text>
+            <Text style={styles.tableCell}>{g.gradePoint.toFixed(1)}</Text>
+            <Text
+              style={[
+                styles.tableCellBold,
+                g.passed ? styles.passCell : styles.failCell,
+              ]}
+            >
+              {g.passed ? "PASS" : "FAIL"}
+            </Text>
+            <Text style={styles.tableCell}>
+              {g.gradedAt
+                ? new Date(g.gradedAt).toLocaleDateString()
+                : "—"}
+            </Text>
+          </View>
+        ))}
+
+        {/* Official Seal */}
+        <View style={styles.seal}>
+          <Text style={styles.sealText}>Verified Academic Record</Text>
+          <Text style={styles.sealSub}>
+            Cognara AI-Assisted Grading System ·{" "}
+            {new Date().toLocaleDateString()}
+          </Text>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer} fixed>
+          <Text>
+            Cognara Next-Gen Learning · Official Grade Report
+          </Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 export async function generateGradeReportPdf(
   data: GradeReportPdfData
 ): Promise<Buffer> {
-  const element = React.createElement(GradeReportDocument, { data });
-  return await renderToBuffer(element as any);
+  return await renderToBuffer(<GradeReportDocument data={data} />);
 }
+

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-import { getStandardGradeScale } from "@/lib/ai/agents/grading-agent";
+import { getStandardGradeScale } from "@/lib/utils/grading";
 import { Badge } from "@/components/ui/badge";
 
 type GradeScaleRow = {
