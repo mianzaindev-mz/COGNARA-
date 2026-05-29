@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast-provider";
-import Link from "next/link";
 
 type BugReport = {
   id: string;
@@ -59,8 +58,6 @@ export default function AdminBugsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [resolutionNote, setResolutionNote] = useState("");
   const [draftReply, setDraftReply] = useState("");
-  const [assignedToMe, setAssignedToMe] = useState(false);
-
   // Stats Counters
   const [stats, setStats] = useState({
     totalOpen: 0,
@@ -88,6 +85,7 @@ export default function AdminBugsPage() {
 
   useEffect(() => {
     loadReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
