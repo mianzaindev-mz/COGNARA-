@@ -188,7 +188,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
   return (
     <div className="relative flex h-full flex-col gap-4 lg:flex-row">
       {/* Left: Editor */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cn-border/80 bg-cn-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:border-cn-border">
+      <div className="flex min-h-[550px] lg:min-h-[700px] flex-1 flex-col overflow-hidden rounded-2xl border border-cn-border/80 bg-cn-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:border-cn-border">
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-3 border-b border-cn-border bg-cn-surface-variant/10 px-4 py-3">
           <LanguageSelector value={language} onChange={handleLanguageChange} />
@@ -263,7 +263,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
         )}
 
         {/* Monaco */}
-        <div className="min-h-0 flex-1 h-full w-full relative">
+        <div className="flex-1 w-full relative min-h-[450px]">
           <Editor
             height="100%"
             language={PISTON_LANGUAGES[language].monaco}
@@ -298,7 +298,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
       </div>
 
       {/* Right: Output */}
-      <div className="flex min-h-[200px] flex-col lg:w-[32%] lg:min-h-0">
+      <div className="flex min-h-[300px] lg:min-h-[700px] flex-col lg:w-[32%]">
         <OutputPanel result={result} isRunning={isRunning} error={error} language={language} />
       </div>
 
