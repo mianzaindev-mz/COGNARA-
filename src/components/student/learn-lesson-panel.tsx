@@ -871,7 +871,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
               {renderVideoPlayer()}
             </div>
             <TabBar leftTab={leftTab} setLeftTab={setLeftTab} />
-            <div className="bg-white border border-cn-border rounded-[1.5rem] p-5 shadow-sm dark:bg-[#12100f] dark:border-stone-850 flex-1 overflow-y-auto">
+            <div className="min-h-[220px] bg-white border border-cn-border rounded-[1.5rem] p-5 shadow-sm dark:bg-[#12100f] dark:border-stone-850">
               <TabContent
                 leftTab={leftTab}
                 lesson={lesson}
@@ -916,13 +916,13 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
             <div
               ref={scrollContainerRef}
               style={{ width: `${splitWidth}%` }}
-              className="flex flex-col h-full overflow-y-auto pr-4 scrollbar-thin select-none"
+              className="flex flex-col h-full min-w-[420px] overflow-y-auto pr-4 scrollbar-thin select-none"
             >
-              <div className="relative aspect-video w-full overflow-hidden rounded-[1.75rem] border border-cn-border bg-gradient-to-br from-cn-lavender/30 via-cn-canvas to-cn-yellow/20 dark:border-[#2e2a2a] shrink-0 mb-4 shadow-sm">
+              <div className="relative h-[clamp(320px,46vh,500px)] w-full overflow-hidden rounded-[1.75rem] border border-cn-border bg-gradient-to-br from-cn-lavender/30 via-cn-canvas to-cn-yellow/20 dark:border-[#2e2a2a] shrink-0 mb-4 shadow-sm">
                 {renderVideoPlayer()}
               </div>
               <TabBar leftTab={leftTab} setLeftTab={setLeftTab} />
-              <div className="bg-white border border-cn-border rounded-[1.5rem] p-5 shadow-sm dark:bg-[#12100f] dark:border-stone-850 flex-1 overflow-y-auto">
+              <div className="min-h-[220px] bg-white border border-cn-border rounded-[1.5rem] p-5 shadow-sm dark:bg-[#12100f] dark:border-stone-850">
                 <TabContent
                   leftTab={leftTab}
                   lesson={lesson}
