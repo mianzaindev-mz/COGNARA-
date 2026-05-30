@@ -188,21 +188,21 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
   return (
     <div className="relative flex h-full flex-col gap-4 lg:flex-row">
       {/* Left: Editor */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cn-border bg-cn-surface shadow-[var(--cn-shadow-card)]">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cn-border/80 bg-cn-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:border-cn-border">
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-3 border-b border-cn-border px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-3 border-b border-cn-border bg-cn-surface-variant/10 px-4 py-3">
           <LanguageSelector value={language} onChange={handleLanguageChange} />
 
           {!CLIENT_RENDERED.has(language) && (
             <button
               type="button"
               onClick={() => setShowStdin(!showStdin)}
-              className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+              className={`relative rounded-xl px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 ${
                 showStdin
-                  ? "bg-cn-orange/10 text-cn-orange"
+                  ? "bg-cn-orange/15 text-cn-orange border border-cn-orange/30 shadow-[0_0_12px_rgba(255,107,61,0.15)]"
                   : stdinNeeded && !stdin.trim()
-                    ? "bg-red-500/10 text-red-400 animate-pulse"
-                    : "text-cn-ink-muted hover:bg-cn-border/50 hover:text-cn-ink"
+                    ? "bg-red-500/15 text-red-400 border border-red-500/30 animate-pulse"
+                    : "text-cn-ink-muted border border-cn-border/50 hover:bg-cn-border/40 hover:text-cn-ink"
               }`}
             >
               {stdinNeeded && !stdin.trim() && (
@@ -215,11 +215,11 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
             </button>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2.5">
             <button
               type="button"
               onClick={handleReset}
-              className="rounded-xl px-3 py-1.5 text-xs font-medium text-cn-ink-muted transition hover:bg-cn-border/50 hover:text-cn-ink"
+              className="rounded-xl border border-cn-border px-3.5 py-1.5 text-xs font-bold text-cn-ink-muted transition-all duration-200 hover:bg-cn-border/50 hover:text-cn-ink active:scale-95"
             >
               Reset
             </button>
@@ -227,7 +227,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
               type="button"
               onClick={handleRun}
               disabled={isRunning || !code.trim()}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-1.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-1.5 text-sm font-bold text-white shadow-md shadow-emerald-600/10 transition-all duration-200 hover:bg-emerald-500 hover:shadow-emerald-500/35 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
             >
               <PlayIcon className="h-3.5 w-3.5" />
               {isRunning ? "Running…" : "Run"}
@@ -237,7 +237,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
                 type="button"
                 onClick={() => setShowConfirmSubmit(true)}
                 disabled={isRunning || isSubmitting || !code.trim()}
-                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-1.5 text-sm font-bold text-black shadow-sm transition hover:brightness-110 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cn-orange to-cn-pink px-5 py-1.5 text-sm font-bold text-white shadow-md shadow-cn-orange/15 transition-all duration-200 hover:brightness-110 hover:shadow-cn-orange/35 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
               >
                 <span className="material-symbols-outlined text-[18px]">publish</span>
                 {isSubmitting ? "Submitting…" : "Submit"}
@@ -263,7 +263,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
         )}
 
         {/* Monaco */}
-        <div className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 h-full w-full relative">
           <Editor
             height="100%"
             language={PISTON_LANGUAGES[language].monaco}
@@ -298,7 +298,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
       </div>
 
       {/* Right: Output */}
-      <div className="flex min-h-[200px] flex-col lg:w-[38%] lg:min-h-0">
+      <div className="flex min-h-[200px] flex-col lg:w-[28%] lg:min-h-0">
         <OutputPanel result={result} isRunning={isRunning} error={error} language={language} />
       </div>
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function EditorPage() {
   return (
-    <div className="flex flex-col gap-6 px-margin-desktop py-6 max-w-7xl mx-auto w-full h-[calc(100vh-150px)] min-h-[700px] lg:min-h-0">
+    <div className="flex flex-col gap-6 px-margin-desktop py-6 max-w-[1600px] mx-auto w-full h-[calc(100vh-120px)] min-h-[750px] lg:min-h-0">
       <div className="flex flex-wrap items-end justify-between gap-3 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-cn-ink">
@@ -23,7 +23,7 @@ export default function EditorPage() {
           Unlimited runs — always free
         </div>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 h-full w-full">
         <CodeEditorFull />
       </div>
     </div>
