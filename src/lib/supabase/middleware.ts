@@ -75,6 +75,21 @@ export async function updateSession(request: NextRequest) {
         url.pathname = role === "admin" ? "/admin/dashboard" : role === "coach" ? "/coach/dashboard" : "/dashboard";
         return NextResponse.redirect(url);
       }
+      // Redirect admin/coach away from generic /dashboard to their role-specific dashboard
+      if (pathname === "/dashboard") {
+        if (role === "admin") {
+          const url = request.nextUrl.clone();
+          url.pathname = "/admin/dashboard";
+          url.search = "";
+          return NextResponse.redirect(url);
+        }
+        if (role === "coach") {
+          const url = request.nextUrl.clone();
+          url.pathname = "/coach/dashboard";
+          url.search = "";
+          return NextResponse.redirect(url);
+        }
+      }
       // Allow all other pages
       return NextResponse.next({ request });
     } catch {
@@ -173,7 +188,7 @@ export async function updateSession(request: NextRequest) {
 
     if (!profile?.is_banned && pathname === "/banned") {
       const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
+      url.pathname = profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "coach" ? "/coach/dashboard" : "/dashboard";
       url.search = "";
       return NextResponse.redirect(url);
     }
@@ -202,14 +217,14 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/onboarding")
     ) {
       const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
+      url.pathname = profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "coach" ? "/coach/dashboard" : "/dashboard";
       url.search = "";
       return NextResponse.redirect(url);
     }
 
     if (user && emailConfirmed && isAuthRoute(pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
+      url.pathname = profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "coach" ? "/coach/dashboard" : "/dashboard";
       url.search = "";
       return NextResponse.redirect(url);
     }
@@ -224,6 +239,22 @@ export async function updateSession(request: NextRequest) {
       if (profile?.role !== "coach" && profile?.role !== "admin") {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+    }
+
+    // Redirect admin/coach away from generic /dashboard to their role-specific dashboard
+    if (pathname === "/dashboard") {
+      if (profile?.role === "admin") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/dashboard";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+      if (profile?.role === "coach") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/coach/dashboard";
         url.search = "";
         return NextResponse.redirect(url);
       }

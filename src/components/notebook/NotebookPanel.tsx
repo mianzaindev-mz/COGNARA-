@@ -109,16 +109,16 @@ export function NotebookPanel({
         }
 
         // Fetch or create notebook for this student & course
-        const { data: notebook, error: notebookErr } = await supabase
+        const { data: notebooks, error: notebookErr } = await supabase
           .from("notebooks")
           .select("id")
           .eq("student_id", studentId)
           .eq("course_id", courseId)
-          .maybeSingle();
+          .limit(1);
 
         if (notebookErr) throw notebookErr;
 
-        let activeNotebook = notebook;
+        let activeNotebook = notebooks && notebooks.length > 0 ? notebooks[0] : null;
 
         if (!activeNotebook) {
           const { data: newNotebook, error: createNotebookErr } = await supabase
@@ -137,16 +137,16 @@ export function NotebookPanel({
 
         if (activeNotebook) {
           // Fetch or create notebook page for this lesson
-          const { data: page, error: pageErr } = await supabase
+          const { data: pages, error: pageErr } = await supabase
             .from("notebook_pages")
             .select("id, content_canvas, content_text")
             .eq("notebook_id", activeNotebook.id)
             .eq("title", `Lesson: ${lessonTitle || "Untitled"}`)
-            .maybeSingle();
+            .limit(1);
 
           if (pageErr) throw pageErr;
 
-          let activePage = page;
+          let activePage = pages && pages.length > 0 ? pages[0] : null;
 
           if (!activePage) {
             const { data: newPage, error: createPageErr } = await supabase

@@ -27,6 +27,85 @@ type LearnLessonPanelProps = {
    Used by both mobile and desktop layouts (was previously duplicated).
    ═══════════════════════════════════════════════════════════════════════════ */
 
+function EmbeddableLink({
+  url,
+  title,
+  subtitle,
+  compact = false,
+}: {
+  url: string;
+  title: string;
+  subtitle: string;
+  compact?: boolean;
+}) {
+  const [showEmbed, setShowEmbed] = useState(false);
+
+  return (
+    <div className="my-4 space-y-3">
+      <div
+        className={cn(
+          "group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-cn-border bg-cn-surface p-4 transition-all duration-300 hover:border-cn-orange/45 hover:shadow-md dark:border-white/8 dark:bg-white/3",
+          compact && "p-3 border-0 bg-transparent dark:bg-transparent"
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-cn-ink dark:text-white mb-0.5 group-hover:text-cn-orange transition">
+            {title}
+          </p>
+          <p className="text-xs text-cn-ink-muted truncate font-mono select-all">
+            {subtitle}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowEmbed(!showEmbed)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all duration-200",
+              showEmbed
+                ? "border-cn-orange bg-cn-orange/15 text-cn-orange"
+                : "border-cn-border bg-white text-cn-ink-muted hover:border-cn-orange/40 hover:text-cn-orange dark:border-stone-850 dark:bg-stone-900"
+            )}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {showEmbed ? "close" : "devices"}
+            </span>
+            {showEmbed ? "Close Preview" : "Embed Preview"}
+          </button>
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-cn-orange/30 bg-cn-orange/10 px-3 py-1.5 text-xs font-bold text-cn-orange transition-all duration-200 hover:bg-cn-orange/20"
+          >
+            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+            Open
+          </a>
+        </div>
+      </div>
+
+      {showEmbed && (
+        <div className="rounded-2xl border border-cn-border dark:border-stone-850 overflow-hidden shadow-lg animate-fade-in bg-white dark:bg-neutral-900">
+          <div className="bg-cn-canvas px-4 py-2 border-b border-cn-border dark:border-stone-850 flex items-center justify-between text-[11px] text-cn-ink-muted">
+            <span className="font-semibold truncate max-w-xs">{title} preview</span>
+            <span className="flex items-center gap-1 shrink-0 text-amber-500 font-medium">
+              <span className="material-symbols-outlined text-[12px]">warning</span>
+              If blank, click &quot;Open&quot; above
+            </span>
+          </div>
+          <iframe
+            src={url}
+            className="w-full h-[450px] border-0"
+            title={`Preview of ${title}`}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BlockRenderer({ blocks }: { blocks: any[] }) {
   return (
     <div className="space-y-4">
@@ -115,22 +194,14 @@ function ContentBlock({ block }: { block: any }) {
           className="w-full h-72 rounded-2xl border border-cn-border shadow-sm my-4 dark:border-white/8"
         />
       ) : null;
-    case "url":
-      return block.content &&
-        typeof block.content === "string" &&
-        block.content.startsWith("http") ? (
-        <a
-          href={block.content}
-          target="_blank"
-          rel="noreferrer"
-          className="group block rounded-2xl border border-cn-border bg-cn-surface p-4 transition hover:border-cn-orange/40 hover:shadow-sm my-4 dark:border-white/8 dark:bg-white/3"
-        >
-          <p className="text-sm font-semibold text-cn-ink dark:text-white mb-1 group-hover:text-cn-orange transition">
-            Link Reference
-          </p>
-          <p className="text-xs text-cn-ink-muted truncate">{block.content}</p>
-        </a>
-      ) : null;
+    case "url": {
+      const url = block.content;
+      const isHttp = typeof url === "string" && url.startsWith("http");
+      if (!isHttp) return null;
+      return (
+        <EmbeddableLink url={url} title="Link Reference" subtitle={url} />
+      );
+    }
     case "callout":
       return (
         <div className="bg-cn-yellow/8 border-l-4 border-cn-yellow p-4 rounded-r-2xl flex gap-3 items-start my-4 dark:bg-yellow-500/5">
@@ -153,27 +224,26 @@ function ContentBlock({ block }: { block: any }) {
           ) : null}
         </div>
       );
-    case "resource":
+    case "resource": {
+      const url = block.content;
+      const isUrl = typeof url === "string" && url.startsWith("http");
+      const title = block.properties?.title || "Resource";
       return (
         <div className="rounded-2xl border border-cn-border bg-cn-surface p-5 my-4 dark:border-white/8 dark:bg-white/3">
           <p className="text-sm font-semibold text-cn-orange mb-1">
-            {block.properties?.title || "Resource"}
+            {title}
           </p>
-          <p className="text-sm text-cn-ink-muted leading-relaxed mb-3">
-            {block.content}
-          </p>
-          {block.content && block.content.startsWith("http") && (
-            <a
-              href={block.content}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-cn-orange/30 bg-cn-orange/10 px-4 py-2 text-xs font-bold text-cn-orange transition hover:bg-cn-orange/20"
-            >
-              Open resource →
-            </a>
+          {!isUrl && (
+            <p className="text-sm text-cn-ink-muted leading-relaxed mb-3">
+              {block.content}
+            </p>
+          )}
+          {isUrl && (
+            <EmbeddableLink url={url} title={title} subtitle="External Resource Link" compact />
           )}
         </div>
       );
+    }
     case "divider":
       return <hr className="my-6 border-cn-border/50 dark:border-white/5" />;
     default:
@@ -431,6 +501,7 @@ function TabContent({
   liveSessions,
   onJoinCall,
   videoPlayer,
+  resources,
 }: {
   leftTab: (typeof LEFT_TABS)[number];
   lesson: LessonOutline;
@@ -441,6 +512,7 @@ function TabContent({
   liveSessions: any[];
   onJoinCall: (url: string) => void;
   videoPlayer: any;
+  resources: any[];
 }) {
   return (
     <>
@@ -459,9 +531,47 @@ function TabContent({
           </p>
         )
       ) : leftTab === "Materials" ? (
-        <p className="text-sm text-cn-ink-muted">
-          Downloadable resources appear here when coaches attach files in the lesson editor.
-        </p>
+        resources.length > 0 ? (
+          <div className="space-y-4">
+            <p className="text-xs text-cn-ink-muted mb-2 font-medium">
+              Materials and reference links for this lesson:
+            </p>
+            {resources.map((res) => {
+              const isUrl = res.url && res.url.startsWith("http");
+              return (
+                <div
+                  key={res.id}
+                  className="rounded-2xl border border-cn-border bg-cn-surface p-4 dark:border-stone-850 dark:bg-black/20"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-cn-orange/10 text-cn-orange px-2 py-0.5 rounded">
+                      {res.type}
+                    </span>
+                    <h4 className="font-bold text-cn-ink dark:text-white text-sm">
+                      {res.title}
+                    </h4>
+                  </div>
+                  {res.ai_summary && (
+                    <p className="text-xs text-cn-ink-muted mb-3 leading-relaxed">
+                      {res.ai_summary}
+                    </p>
+                  )}
+                  {isUrl ? (
+                    <EmbeddableLink url={res.url} title={res.title} subtitle={res.url} compact />
+                  ) : (
+                    <p className="text-xs text-cn-ink-subtle">
+                      This material does not contain an external link.
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-cn-ink-muted">
+            Downloadable resources appear here when coaches attach files in the lesson editor.
+          </p>
+        )
       ) : leftTab === "Live Classes" ? (
         <LiveSessionList sessions={liveSessions} onJoin={onJoinCall} />
       ) : leftTab === "Transcripts" ? (
@@ -516,6 +626,22 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
     }
     void fetchUser();
   }, []);
+
+  // Resources State
+  const [resources, setResources] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchResources() {
+      const supabase = createClient();
+      if (!supabase) return;
+      const { data } = await supabase
+        .from("resources")
+        .select("*")
+        .eq("lesson_id", lesson.id);
+      setResources(data || []);
+    }
+    void fetchResources();
+  }, [lesson.id]);
 
   useEffect(() => {
     if (leftTab === "Live Classes" && ctx.courseId) {
@@ -595,7 +721,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
     return { type: "direct" as const, url };
   };
 
-  const videoInfo = parseVideoUrl(firstVideoUrl || "");
+  const videoInfo = parseVideoUrl(lesson.videoUrl || firstVideoUrl || "");
 
   const videoPlayerApi = {
     getCurrentTime: () => videoElRef.current?.currentTime ?? 0,
@@ -756,6 +882,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
                 liveSessions={liveSessions}
                 onJoinCall={setActiveCallRoom}
                 videoPlayer={videoPlayerApi}
+                resources={resources}
               />
             </div>
             <LessonNav slug={ctx.slug} prevOrder={prevOrder} nextOrder={nextOrder} />
@@ -806,6 +933,7 @@ export function LearnLessonPanel({ ctx, lesson, prevOrder, nextOrder }: LearnLes
                   liveSessions={liveSessions}
                   onJoinCall={setActiveCallRoom}
                   videoPlayer={videoPlayerApi}
+                  resources={resources}
                 />
               </div>
               <LessonNav slug={ctx.slug} prevOrder={prevOrder} nextOrder={nextOrder} />

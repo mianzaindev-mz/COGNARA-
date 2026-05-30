@@ -1,8 +1,5 @@
 -- Add quiz scheduling and code question support
 
 ALTER TABLE public.quizzes
-  ADD COLUMN available_from TIMESTAMPTZ,
-  ADD COLUMN available_until TIMESTAMPTZ;
-
-ALTER TABLE public.questions
-  ADD COLUMN code_starter TEXT;
+  ADD COLUMN IF NOT EXISTS available_from TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS available_until TIMESTAMPTZ;

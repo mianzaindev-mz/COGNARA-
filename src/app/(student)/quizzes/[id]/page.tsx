@@ -293,6 +293,58 @@ const REGISTRY: Record<string, Array<{ text: string; explanation: string; option
       ]
     }
   ],
+  cybersecurity: [
+    {
+      text: "What is a 'phishing' attack?",
+      explanation: "Phishing is a social engineering attack where an attacker impersonates a trusted entity to trick victims into revealing sensitive information like passwords or credit card numbers.",
+      options: [
+        { text: "A type of DDoS attack that floods servers", isCorrect: false },
+        { text: "A fraudulent attempt to obtain sensitive information by disguising as a trustworthy entity", isCorrect: true },
+        { text: "A brute-force password cracking technique", isCorrect: false },
+        { text: "A method of physically tampering with network cables", isCorrect: false }
+      ]
+    },
+    {
+      text: "What does MFA (Multi-Factor Authentication) require?",
+      explanation: "MFA adds layers of security by requiring two or more verification factors: something you know (password), something you have (phone), and/or something you are (biometric).",
+      options: [
+        { text: "Only a strong password with special characters", isCorrect: false },
+        { text: "Two or more independent authentication factors", isCorrect: true },
+        { text: "A single biometric scan like fingerprint only", isCorrect: false },
+        { text: "Answering three security questions correctly", isCorrect: false }
+      ]
+    },
+    {
+      text: "Which encryption standard is currently recommended for securing data at rest?",
+      explanation: "AES-256 (Advanced Encryption Standard with 256-bit key) is widely considered the gold standard for symmetric encryption of sensitive data.",
+      options: [
+        { text: "DES (Data Encryption Standard)", isCorrect: false },
+        { text: "ROT13 cipher", isCorrect: false },
+        { text: "AES-256 (Advanced Encryption Standard)", isCorrect: true },
+        { text: "Base64 encoding", isCorrect: false }
+      ]
+    },
+    {
+      text: "What is an SQL injection attack?",
+      explanation: "SQL injection inserts malicious SQL code into application queries via user inputs, potentially allowing attackers to read, modify, or delete database contents.",
+      options: [
+        { text: "A technique to optimize database query performance", isCorrect: false },
+        { text: "Inserting malicious SQL code through user input fields to manipulate database queries", isCorrect: true },
+        { text: "A method of encrypting SQL database connections", isCorrect: false },
+        { text: "A tool used to back up database tables automatically", isCorrect: false }
+      ]
+    },
+    {
+      text: "Which of the following is the best defense against social engineering attacks?",
+      explanation: "Security awareness training educates employees to recognize manipulation tactics, suspicious requests, and verify identities before sharing sensitive information.",
+      options: [
+        { text: "Installing the latest antivirus software only", isCorrect: false },
+        { text: "Using a hardware firewall at the network perimeter", isCorrect: false },
+        { text: "Regular security awareness training for all employees", isCorrect: true },
+        { text: "Blocking all external email addresses", isCorrect: false }
+      ]
+    }
+  ],
   default: [
     {
       text: "What is the first step in debugging a software error?",
@@ -462,6 +514,7 @@ export default function QuizTakePage() {
           else if (titleLower.includes("data science") || titleLower.includes("pandas")) questionPool = REGISTRY.data;
           else if (titleLower.includes("writing") || titleLower.includes("creative")) questionPool = REGISTRY.writing;
           else if (titleLower.includes("speaking") || titleLower.includes("leadership")) questionPool = REGISTRY.speaking;
+          else if (titleLower.includes("cybersecurity") || titleLower.includes("security") || titleLower.includes("infosec")) questionPool = REGISTRY.cybersecurity;
 
           // Insert questions and options
           for (let i = 0; i < questionPool.length; i++) {

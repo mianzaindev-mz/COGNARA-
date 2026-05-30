@@ -10,6 +10,7 @@ export type LessonOutline = {
   durationMins: number | null;
   type: string;
   isGraded: boolean;
+  videoUrl: string | null;
 };
 
 export type CourseLearnContext = {
@@ -55,7 +56,7 @@ export const loadCourseLearnContext = cache(
 
       const { data: lessons } = await supabase
         .from("lessons")
-        .select("id, title, content, order_index, duration_mins, type, is_graded")
+        .select("id, title, content, order_index, duration_mins, type, is_graded, video_url")
         .eq("course_id", course.id)
         .order("order_index", { ascending: true });
 
@@ -92,6 +93,7 @@ export const loadCourseLearnContext = cache(
           durationMins: l.duration_mins,
           type: l.type ?? "text",
           isGraded: !!l.is_graded,
+          videoUrl: l.video_url ?? null,
         })),
         progressPct: enrollment.progress_pct ?? 0,
         completedLessonIds,

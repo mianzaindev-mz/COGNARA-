@@ -5,18 +5,39 @@
 -- Uses a sentinel coach profile "COGNARA Demo Coach" created inline.
 -- All courses default to published = true, status = 'published'.
 
--- Create a demo coach profile if not exists
-INSERT INTO public.profiles (id, email, role, full_name, display_name, is_verified, onboarded)
+-- Create the auth user first to satisfy the profiles_id_fkey foreign key constraint
+INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_user_meta_data, raw_app_meta_data, role, aud, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token)
+VALUES (
+  '11111111-1111-1111-1111-111111111111',
+  '00000000-0000-0000-0000-000000000000',
+  'demo-coach@cognara.dev',
+  crypt('DemoCoach@1234', gen_salt('bf')),
+  NOW(),
+  '{"full_name": "COGNARA Demo Coach", "role": "coach"}'::jsonb,
+  '{"provider": "email", "providers": ["email"]}'::jsonb,
+  'authenticated',
+  'authenticated',
+  NOW(),
+  NOW(),
+  '',
+  '',
+  '',
+  ''
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Now create/update the demo coach profile
+INSERT INTO public.profiles (id, email, role, full_name, username, is_verified)
 VALUES (
   '11111111-1111-1111-1111-111111111111',
   'demo-coach@cognara.dev',
   'coach',
   'COGNARA Demo Coach',
   'DemoCoach',
-  true,
   true
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE
+SET username = EXCLUDED.username, is_verified = EXCLUDED.is_verified;
 
 -- Seed courses
 INSERT INTO public.courses (coach_id, title, slug, description, category, difficulty, language, price_usd, is_published, thumbnail_url, total_lessons, total_enrolled, avg_rating)

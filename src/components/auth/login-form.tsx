@@ -46,7 +46,26 @@ export function LoginForm() {
       return;
     }
 
-    router.replace(redirectTo);
+    // Determine role-based dashboard redirect
+    let destination = redirectTo;
+    if (redirectTo === "/dashboard") {
+      // Only override the default — if the user had a specific redirectTo, honor it
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authUser.id)
+          .maybeSingle();
+        if (profile?.role === "admin") {
+          destination = "/admin/dashboard";
+        } else if (profile?.role === "coach") {
+          destination = "/coach/dashboard";
+        }
+      }
+    }
+
+    router.replace(destination);
     router.refresh();
   }
 

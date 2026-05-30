@@ -78,9 +78,9 @@ export default function CoachGradeBookPage() {
           if (error) throw error;
           setSubmissions(data || []);
 
-          // Deduplicate quizzes from submissions list
+          // Deduplicate quizzes from submissions list, preserving the quiz_id as the key
           const uniqueQuizzes = Array.from(
-            new Map((data || []).filter((s: any) => s.quiz).map((s: any) => [s.quiz_id, s.quiz])).values()
+            new Map((data || []).filter((s: any) => s.quiz).map((s: any) => [s.quiz_id, { id: s.quiz_id, ...s.quiz }])).values()
           );
           setQuizzes(uniqueQuizzes);
         }
