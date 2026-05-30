@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-import { cn } from "@/lib/utils/cn";
 
 type Segment = {
   start_secs: number;
@@ -354,39 +353,56 @@ export function TranscriptPanel({ lessonId, lessonTitle, videoPlayer }: Transcri
   };
 
   return (
-    <div className="flex flex-col gap-5 h-full min-h-[450px]">
+    <div className="flex min-h-[360px] flex-col gap-5">
       {loading ? (
-        <div className="p-12 text-center text-xs text-cn-ink-subtle flex-grow flex flex-col justify-center items-center">
+        <div className="flex min-h-[320px] flex-col items-center justify-center p-12 text-center text-xs text-cn-ink-subtle">
           <span className="h-7 w-7 animate-spin rounded-full border-2 border-rose-500/20 border-t-rose-500 inline-block mb-3" />
           <p>Scanning transcription databases...</p>
         </div>
       ) : !transcript && !isTranscribing ? (
         /* --- Welcome / Inactive State --- */
-        <div className="flex-grow flex flex-col justify-center items-center text-center p-6 gap-5 max-w-md mx-auto my-auto h-full">
-          <div className="p-4 bg-rose-500/10 rounded-full animate-bounce">
-            <span className="material-symbols-outlined text-4xl text-rose-500">record_voice_over</span>
+        <div className="min-h-[340px] rounded-[1.5rem] border border-rose-500/10 bg-gradient-to-br from-rose-500/8 via-cn-canvas/35 to-black/5 p-7">
+          <div className="mx-auto flex h-full max-w-3xl flex-col justify-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-500/12 shadow-[0_0_35px_rgba(244,63,94,0.14)]">
+              <span className="material-symbols-outlined text-4xl text-rose-500">record_voice_over</span>
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-rose-500/80">Transcript workspace</p>
+              <h3 className="mt-1 text-xl font-black tracking-tight text-cn-ink dark:text-neutral-100">Build a searchable lesson transcript</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-cn-ink-muted">
+                Capture the lecture as timestamped text, then turn it into study notes, summaries, and notebook-ready material.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-cn-ink dark:text-neutral-100">Video Transcription Hub</h3>
-            <p className="text-[11px] text-cn-ink-subtle leading-relaxed mt-1">
-              Capture spoken lecture text in real-time or auto-generate complete timeline transcripts to unlock AI study sheets.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2.5 w-full">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <button
               onClick={startSpeechRecognition}
-              className="py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20 w-full"
+              className="group flex min-h-[108px] items-center gap-4 rounded-2xl bg-rose-600 px-5 py-4 text-left text-[0px] text-white shadow-lg shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-rose-700"
             >
-              <span className="material-symbols-outlined text-[16px]">mic</span>
+              <span className="material-symbols-outlined text-3xl">mic</span>
+              <span className="text-white">
+                <span className="block text-sm font-black">Start mic capture</span>
+                <span className="mt-1 block text-xs font-semibold leading-relaxed text-white/75">
+                  Record live speech into timestamped transcript segments.
+                </span>
+              </span>
               🎤 Start Real-Time Mic Capture
             </button>
             <button
               onClick={handleGenerateAiMock}
-              className="py-2.5 px-4 bg-cn-canvas border border-cn-border hover:bg-cn-border text-cn-ink rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 w-full"
+              className="group flex min-h-[108px] items-center gap-4 rounded-2xl border border-cn-border bg-cn-surface/80 px-5 py-4 text-left text-[0px] text-cn-ink shadow-sm transition hover:-translate-y-0.5 hover:border-rose-500/30 hover:bg-cn-canvas"
             >
-              <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+              <span className="material-symbols-outlined text-3xl text-rose-500">auto_awesome</span>
+              <span className="text-cn-ink">
+                <span className="block text-sm font-black">AI auto-transcription</span>
+                <span className="mt-1 block text-xs font-semibold leading-relaxed text-cn-ink-muted">
+                  Generate a ready timeline transcript for this lesson.
+                </span>
+              </span>
               🤖 AI Instant Auto-Transcription
             </button>
+          </div>
           </div>
         </div>
       ) : (

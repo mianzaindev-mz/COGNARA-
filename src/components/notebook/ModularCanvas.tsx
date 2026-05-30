@@ -806,7 +806,7 @@ export function ModularCanvas({
             onBlur={(e) => updateBlock(block.id, { content: e.currentTarget.textContent || "" })}
             onInput={(e) => handleTextChange(block.id, e.currentTarget.textContent || "")}
             data-placeholder="Type '/' to trigger menu, or type standard notes..."
-            className="outline-none w-full min-h-[1.5rem] text-sm text-cn-ink leading-relaxed"
+            className="outline-none w-full min-h-[4.5rem] text-sm text-cn-ink leading-relaxed"
           >
             {block.content}
           </div>
@@ -815,7 +815,7 @@ export function ModularCanvas({
   };
 
   return (
-    <div className="flex flex-col gap-2 min-h-[450px] pb-16 relative">
+    <div className="flex flex-col gap-3 min-h-[560px] pb-16 relative">
       {blocks.map((block, index) => {
         const isSelected = selectedBlockId === block.id;
         const isDragOver = dragOverIndex === index;
@@ -839,7 +839,7 @@ export function ModularCanvas({
               e.stopPropagation();
               setSelectedBlockId(block.id);
             }}
-            className={`group flex items-start gap-2.5 p-2 rounded-xl transition-all relative ${
+            className={`group flex items-start gap-2.5 min-h-[96px] p-4 rounded-2xl transition-all relative ${
               isDragOver ? "border-t-2 border-cn-orange pt-4" : ""
             } ${isSelected ? "bg-cn-orange/5 ring-1 ring-cn-orange/20" : "hover:bg-cn-canvas/40"}`}
           >

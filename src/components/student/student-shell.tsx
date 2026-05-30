@@ -139,7 +139,7 @@ export function StudentShell({ displayName, email, children }: StudentShellProps
       </aside>
 
       {/* Main Content Area */}
-      <main className="ml-[88px] min-h-screen pb-20 relative z-10 transition-all duration-300">
+      <main className="student-main-content ml-[88px] min-h-screen pb-20 relative z-10 transition-all duration-500">
         {/* TopAppBar */}
         <header className="flex justify-between items-center px-margin-desktop h-[80px] sticky top-0 z-50 bg-surface-container-lowest/30 backdrop-blur-2xl border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-2">
