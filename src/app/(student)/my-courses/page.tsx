@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CourseCard } from "@/components/student/course-card";
 import { EnrollCourseButton } from "@/components/student/enroll-course-button";
+import { ReportCourseButton } from "@/components/student/report-course-button";
 import { loadStudentEnrollments } from "@/lib/student/enrollments";
 import { loadPublishedCourses } from "@/lib/courses/public-catalog";
 
@@ -45,7 +46,7 @@ export default async function MyCoursesPage() {
           <h2 className="text-lg font-bold text-cn-ink">Continue learning</h2>
           <ul className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {enrollments.map((c) => (
-              <li key={c.enrollmentId}>
+              <li key={c.enrollmentId} className="flex flex-col gap-2">
                 <CourseCard
                   title={c.title}
                   category={c.category}
@@ -56,6 +57,9 @@ export default async function MyCoursesPage() {
                   enrolledCount={c.totalEnrolled}
                   href={`/learn/${c.slug}`}
                 />
+                <div className="flex justify-end px-1">
+                  <ReportCourseButton courseId={c.courseId} courseTitle={c.title} />
+                </div>
               </li>
             ))}
           </ul>
