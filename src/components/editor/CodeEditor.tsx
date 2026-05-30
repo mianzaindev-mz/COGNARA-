@@ -298,7 +298,7 @@ export function CodeEditorFull({ lessonId }: CodeEditorProps) {
       </div>
 
       {/* Right: Output */}
-      <div className="flex min-h-[200px] flex-col lg:w-[28%] lg:min-h-0">
+      <div className="flex min-h-[200px] flex-col lg:w-[32%] lg:min-h-0">
         <OutputPanel result={result} isRunning={isRunning} error={error} language={language} />
       </div>
 
