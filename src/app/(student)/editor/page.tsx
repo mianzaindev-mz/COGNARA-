@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function EditorPage() {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="flex flex-col gap-6 px-margin-desktop py-6 max-w-7xl mx-auto w-full h-[calc(100vh-150px)] min-h-[700px] lg:min-h-0">
+      <div className="flex flex-wrap items-end justify-between gap-3 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-cn-ink">
             Code Lab
@@ -23,7 +23,9 @@ export default function EditorPage() {
           Unlimited runs — always free
         </div>
       </div>
-      <CodeEditorFull />
+      <div className="flex-1 min-h-0">
+        <CodeEditorFull />
+      </div>
     </div>
   );
 }
