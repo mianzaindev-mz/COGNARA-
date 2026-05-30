@@ -353,7 +353,7 @@ export function TranscriptPanel({ lessonId, lessonTitle, videoPlayer }: Transcri
   };
 
   return (
-    <div className="flex min-h-[360px] flex-col gap-5">
+    <div className="flex min-h-[460px] flex-col gap-5">
       {loading ? (
         <div className="flex min-h-[320px] flex-col items-center justify-center p-12 text-center text-xs text-cn-ink-subtle">
           <span className="h-7 w-7 animate-spin rounded-full border-2 border-rose-500/20 border-t-rose-500 inline-block mb-3" />
@@ -361,10 +361,10 @@ export function TranscriptPanel({ lessonId, lessonTitle, videoPlayer }: Transcri
         </div>
       ) : !transcript && !isTranscribing ? (
         /* --- Welcome / Inactive State --- */
-        <div className="min-h-[340px] rounded-[1.5rem] border border-rose-500/10 bg-gradient-to-br from-rose-500/8 via-cn-canvas/35 to-black/5 p-7">
-          <div className="mx-auto flex h-full max-w-3xl flex-col justify-center">
+        <div className="flex min-h-[440px] items-center rounded-[1.5rem] border border-rose-500/15 bg-[radial-gradient(circle_at_top_left,rgba(244,63,94,0.16),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(0,0,0,0.08))] p-8">
+          <div className="mx-auto grid w-full max-w-4xl gap-7">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-500/12 shadow-[0_0_35px_rgba(244,63,94,0.14)]">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-500/15 shadow-[0_0_35px_rgba(244,63,94,0.16)]">
               <span className="material-symbols-outlined text-4xl text-rose-500">record_voice_over</span>
             </div>
             <div className="text-left">
@@ -375,15 +375,15 @@ export function TranscriptPanel({ lessonId, lessonTitle, videoPlayer }: Transcri
               </p>
             </div>
           </div>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <button
               onClick={startSpeechRecognition}
               className="group flex min-h-[108px] items-center gap-4 rounded-2xl bg-rose-600 px-5 py-4 text-left text-[0px] text-white shadow-lg shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-rose-700"
             >
               <span className="material-symbols-outlined text-3xl">mic</span>
               <span className="text-white">
-                <span className="block text-sm font-black">Start mic capture</span>
-                <span className="mt-1 block text-xs font-semibold leading-relaxed text-white/75">
+                <span className="block text-base font-black">Start real-time capture</span>
+                <span className="mt-1 block text-sm font-semibold leading-relaxed text-white/75">
                   Record live speech into timestamped transcript segments.
                 </span>
               </span>
@@ -395,8 +395,8 @@ export function TranscriptPanel({ lessonId, lessonTitle, videoPlayer }: Transcri
             >
               <span className="material-symbols-outlined text-3xl text-rose-500">auto_awesome</span>
               <span className="text-cn-ink">
-                <span className="block text-sm font-black">AI auto-transcription</span>
-                <span className="mt-1 block text-xs font-semibold leading-relaxed text-cn-ink-muted">
+                <span className="block text-base font-black">AI auto-transcription</span>
+                <span className="mt-1 block text-sm font-semibold leading-relaxed text-cn-ink-muted">
                   Generate a ready timeline transcript for this lesson.
                 </span>
               </span>
